@@ -1,0 +1,46 @@
+# Basic task metadata
+task_id: "test_001"
+category: "arithmetic"
+subcategory: "basic_operations"
+title: "Calculate Sum"
+short_description: "Add two integers together"
+version: "1.0"
+created_date: "2025-01-01"
+created_by: "test_suite"
+
+# Task specification
+prompt: "Implement a function that adds two integers and returns their sum."
+expected_function_name: "calculate_sum"
+include_tests: true
+expected_test_functions:
+  - "test_calculate_sum"
+
+# Function signature
+function_signature:
+  parameters: ["a", "b"]
+  parameter_types: ["int", "int"]
+  return_shape: "int"
+
+# Dependencies (empty for this simple test)
+task_dependencies:
+  required_functions: []
+
+# Reference solution
+reference_solution:
+  code: |
+    def calculate_sum(a: int, b: int) -> int:
+        """Add two integers together."""
+        return a + b
+
+# Test cases (optional for validation testing)
+reference_verification:
+  test_cases:
+    - input: {"a": 2, "b": 3}
+      tolerance: 0
+
+# Expected failures (optional)
+test_efficacy_verification:
+  expected_failures: []
+
+# Failure examples (optional)
+failure_examples: {}

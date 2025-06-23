@@ -1,0 +1,301 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_FE_007.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_FE_007"
+category: "FE"
+subcategory: "solver"
+title: "Matrix Equation Solver with Dirichlet Boundary Conditions"
+short_description: "Solve the global finite element system with prescribed displacement boundary conditions."
+
+version: "1.0"
+created_date: "2025-06-19"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that solves the global finite element system K*x = F with Dirichlet boundary conditions.
+  
+  The solver must handle prescribed displacement boundary conditions by partitioning the system into free and constrained degrees of freedom. The standard approach:
+  
+  1. Partition nodes into free (f) and supported/constrained (s) sets
+  2. Partition system
+  3. Solve for unknowns
+  4. Compute reactions
+  
+  The function should satisfy:
+  - Correct solution of partitioned linear system
+  - Proper handling of arbitrary node ordering in boundary condition specification
+  - Conservation of equilibrium: sum of applied forces + sum of reactions = 0
+  - Accurate computation of reaction forces at constrained nodes
+  - Support for multiple Dirichlet boundary conditions simultaneously
+  - Robust matrix partitioning and indexing operations
+  
+  Function input parameter definitions are:
+    K_global: Global stiffness matrix (n_nodes, n_nodes)
+    F_global: Global force vector (n_nodes,)
+    dirichlet_BC_nodes: List of node indices with prescribed displacements
+    prescribed_displacements: Array of displacement values at Dirichlet nodes (same order)
+  
+  Returns tuple containing:
+    x: Full displacement vector (n_nodes,) with prescribed values at constrained nodes
+    R: Reaction forces at Dirichlet nodes (same order as dirichlet_BC_nodes)
+  
+  Include comprehensive unit tests that verify the solution accuracy, reaction force computation, and equilibrium conservation.
+
+expected_function_name: "solve_matrix_eqn"
+include_tests: true
+expected_test_functions: ["test_solve_matrix_eqn"]
+
+function_signature:
+  parameters: ["K_global", "F_global", "dirichlet_BC_nodes", "prescribed_displacements"]
+  parameter_types: ["np.ndarray", "np.ndarray", "List[int]", "np.ndarray"]
+  return_shape: "np.ndarray (dtype=object, containing [x, R])"
+
+task_dependencies:
+  required_functions: []
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def solve_matrix_eqn(
+        K_global: np.ndarray,
+        F_global: np.ndarray,
+        dirichlet_BC_nodes: List[int],
+        prescribed_displacements: np.ndarray
+    ) -> np.ndarray:
+        # Partition system
+        n_nodes = K_global.shape[0]
+        all_nodes = set(range(n_nodes))
+        free_nodes = sorted(all_nodes - set(dirichlet_BC_nodes))
+        supported_nodes = sorted(dirichlet_BC_nodes)
+
+        # Convert to index arrays
+        f = np.array(free_nodes)
+        s = np.array(supported_nodes)
+
+        # Partition stiffness matrix and force vector
+        K_ff = K_global[np.ix_(f, f)]
+        K_ss = K_global[np.ix_(s, s)]
+        K_fs = K_global[np.ix_(f, s)]
+        K_sf = K_global[np.ix_(s, f)]
+        F_f = F_global[f]
+        F_s = F_global[s]
+
+        # Solve for unknown displacements at free nodes
+        x_s = np.array(prescribed_displacements)
+        x_f = np.linalg.solve(K_ff, F_f - K_fs @ x_s)
+
+        # Build full displacement vector
+        x = np.zeros(n_nodes)
+        for idx, i in enumerate(free_nodes):
+            x[i] = x_f[idx]
+        for idx, i in enumerate(dirichlet_BC_nodes):
+            x[i] = x_s[idx]
+
+        # Compute reaction forces at supported nodes
+        R = K_sf @ x_f + K_ss @ x_s - F_s
+
+        return np.array([x, R], dtype=object)
+
+failure_examples:
+  "wrong_partitioning": |
+    def solve_matrix_eqn(
+        K_global: np.ndarray,
+        F_global: np.ndarray,
+        dirichlet_BC_nodes: List[int],
+        prescribed_displacements: np.ndarray
+    ) -> np.ndarray:
+        # Wrong! Incorrect matrix partitioning but doesn't crash
+        n_nodes = K_global.shape[0]
+        all_nodes = set(range(n_nodes))
+        free_nodes = sorted(all_nodes - set(dirichlet_BC_nodes))
+        
+        f = np.array(free_nodes)
+        s = np.array(dirichlet_BC_nodes)
+        
+        # Wrong! Uses diagonal blocks instead of proper partitioning
+        K_ff = K_global[:len(f), :len(f)]  # Takes top-left block instead of correct indices
+        F_f = F_global[:len(f)]            # Takes first elements instead of free node forces
+        
+        x_f = np.linalg.solve(K_ff, F_f)
+        
+        x = np.zeros(n_nodes)
+        for idx, i in enumerate(free_nodes):
+            if idx < len(x_f):
+                x[i] = x_f[idx]
+        for idx, i in enumerate(dirichlet_BC_nodes):
+            x[i] = prescribed_displacements[idx]
+        
+        R = np.zeros(len(dirichlet_BC_nodes))
+        return np.array([x, R], dtype=object)
+        
+  "missing_prescribed_displacements": |
+    def solve_matrix_eqn(
+        K_global: np.ndarray,
+        F_global: np.ndarray,
+        dirichlet_BC_nodes: List[int],
+        prescribed_displacements: np.ndarray
+    ) -> np.ndarray:
+        # Wrong! Ignores prescribed displacements in solution
+        n_nodes = K_global.shape[0]
+        all_nodes = set(range(n_nodes))
+        free_nodes = sorted(all_nodes - set(dirichlet_BC_nodes))
+        
+        f = np.array(free_nodes)
+        
+        K_ff = K_global[np.ix_(f, f)]
+        F_f = F_global[f]
+        
+        # Wrong! Doesn't account for prescribed displacements in RHS
+        x_f = np.linalg.solve(K_ff, F_f)  # Should be F_f - K_fs @ x_s
+        
+        x = np.zeros(n_nodes)
+        for idx, i in enumerate(free_nodes):
+            x[i] = x_f[idx]
+        # Wrong! Doesn't set prescribed displacements
+        
+        R = np.zeros(len(dirichlet_BC_nodes))
+        return np.array([x, R], dtype=object)
+        
+  "wrong_reaction_computation": |
+    def solve_matrix_eqn(
+        K_global: np.ndarray,
+        F_global: np.ndarray,
+        dirichlet_BC_nodes: List[int],
+        prescribed_displacements: np.ndarray
+    ) -> np.ndarray:
+        # Wrong! Incorrect reaction force computation
+        n_nodes = K_global.shape[0]
+        all_nodes = set(range(n_nodes))
+        free_nodes = sorted(all_nodes - set(dirichlet_BC_nodes))
+        
+        f = np.array(free_nodes)
+        s = np.array(dirichlet_BC_nodes)
+        
+        K_ff = K_global[np.ix_(f, f)]
+        K_fs = K_global[np.ix_(f, s)]
+        F_f = F_global[f]
+        
+        x_s = np.array(prescribed_displacements)
+        x_f = np.linalg.solve(K_ff, F_f - K_fs @ x_s)
+        
+        x = np.zeros(n_nodes)
+        for idx, i in enumerate(free_nodes):
+            x[i] = x_f[idx]
+        for idx, i in enumerate(dirichlet_BC_nodes):
+            x[i] = x_s[idx]
+        
+        # Wrong! Uses applied forces instead of computing reactions
+        R = F_global[s]  # Should be K_sf @ x_f + K_ss @ x_s - F_s
+        
+        return np.array([x, R], dtype=object)
+        
+  "no_node_ordering": |
+    def solve_matrix_eqn(
+        K_global: np.ndarray,
+        F_global: np.ndarray,
+        dirichlet_BC_nodes: List[int],
+        prescribed_displacements: np.ndarray
+    ) -> np.ndarray:
+        # Wrong! Doesn't handle node ordering properly but won't crash
+        n_nodes = K_global.shape[0]
+        all_nodes = set(range(n_nodes))
+        free_nodes = list(all_nodes - set(dirichlet_BC_nodes))  # Not sorted!
+        
+        f = np.array(free_nodes)
+        s = np.array(dirichlet_BC_nodes)  # Not sorted!
+        
+        K_ff = K_global[np.ix_(f, f)]
+        K_fs = K_global[np.ix_(f, s)]
+        K_sf = K_global[np.ix_(s, f)]
+        K_ss = K_global[np.ix_(s, s)]
+        F_f = F_global[f]
+        F_s = F_global[s]
+        
+        # Wrong! Uses dirichlet_BC_nodes order instead of sorted s order
+        x_s = np.array(prescribed_displacements)
+        x_f = np.linalg.solve(K_ff, F_f - K_fs @ x_s)
+        
+        x = np.zeros(n_nodes)
+        for idx, i in enumerate(free_nodes):
+            x[i] = x_f[idx]
+        # Wrong! Mixes original dirichlet_BC_nodes with sorted s ordering
+        for idx, i in enumerate(dirichlet_BC_nodes):
+            x[i] = x_s[idx]
+        
+        R = K_sf @ x_f + K_ss @ x_s - F_s
+        return np.array([x, R], dtype=object)
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    # Simple 2x2 system
+    - input:
+        K_global: [[2, -1], [-1, 1]]
+        F_global: [0, 5]
+        dirichlet_BC_nodes: [0]
+        prescribed_displacements: [0.0]
+      tolerance: 1e-12
+
+    - input:
+        K_global: [[1, -1], [-1, 2]]
+        F_global: [3, 0]
+        dirichlet_BC_nodes: [1]
+        prescribed_displacements: [2.0]
+      tolerance: 1e-12
+
+    # 3x3 system from test
+    - input:
+        K_global: [[1, -1, 0], [-1, 2, -1], [0, -1, 1]]
+        F_global: [0, 10, 0]
+        dirichlet_BC_nodes: [0, 2]
+        prescribed_displacements: [0.0, 5.0]
+      tolerance: 1e-12
+
+    # Different boundary condition combinations
+    - input:
+        K_global: [[2, -1, 0], [-1, 2, -1], [0, -1, 1]]
+        F_global: [5, 0, 3]
+        dirichlet_BC_nodes: [1]
+        prescribed_displacements: [1.0]
+      tolerance: 1e-12
+
+    # Multiple non-adjacent constrained nodes
+    - input:
+        K_global: [[3, -1, 0, 0], [-1, 2, -1, 0], [0, -1, 2, -1], [0, 0, -1, 1]]
+        F_global: [0, 8, 0, 0]
+        dirichlet_BC_nodes: [0, 3]
+        prescribed_displacements: [0.0, 2.0]
+      tolerance: 1e-12
+
+    # All but one node constrained
+    - input:
+        K_global: [[2, -1, 0], [-1, 2, -1], [0, -1, 1]]
+        F_global: [0, 6, 0]
+        dirichlet_BC_nodes: [0, 2]
+        prescribed_displacements: [1.0, 3.0]
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "wrong_partitioning"
+      test_function: "test_solve_matrix_eqn"
+    - failure_type: "missing_prescribed_displacements"
+      test_function: "test_solve_matrix_eqn"
+    - failure_type: "wrong_reaction_computation"
+      test_function: "test_solve_matrix_eqn"
+    - failure_type: "no_node_ordering"
+      test_function: "test_solve_matrix_eqn"

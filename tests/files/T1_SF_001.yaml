@@ -1,0 +1,32 @@
+task_id: "T1_SF_001"
+category: "shape_functions"
+subcategory: "linear"
+title: "1D Linear Shape Functions"
+short_description: "Compute linear shape functions for 1D two-node element"
+version: "1.0"
+created_date: "2025-06-04"
+created_by: "elejeune11"
+prompt: |
+  Implement a function to compute 1D linear shape functions for a two-node element.
+expected_function_name: "compute_1d_linear_shape_functions"
+include_tests: true
+expected_test_functions:
+  - "test_partition_of_unity"
+function_signature:
+  parameters: ["xi"]
+  parameter_types: ["float"]
+  return_shape: "(2,)"
+task_dependencies:
+  required_functions: []
+reference_solution:
+  code: |
+    def compute_1d_linear_shape_functions(xi):
+        """Compute 1D linear shape functions."""
+        N1 = (1.0 - xi) / 2.0
+        N2 = (1.0 + xi) / 2.0
+        return np.array([N1, N2])
+failure_examples: {}
+reference_verification:
+  test_cases: []
+test_efficacy_verification:
+  expected_failures: []

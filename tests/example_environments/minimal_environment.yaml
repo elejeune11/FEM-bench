@@ -1,0 +1,29 @@
+# Minimal environment for testing
+environment_name: "minimal_env"
+tier: 1
+description: "Minimal environment with only required libraries"
+
+# Language and version
+language: "python"
+python_version: ">=3.8"
+
+# Required libraries (only numpy)
+required_libraries:
+  - name: "numpy"
+    version: ">=1.20.0"
+    import_as: "np"
+    purpose: "Numerical computations"
+
+# No allowed libraries
+allowed_libraries: []
+
+# Testing requirements
+testing:
+  framework: "pytest"
+  
+# Code requirements  
+code_requirements:
+  max_function_length: 100
+  
+# Import guidelines
+import_guidelines: "Minimal environment with only numpy"

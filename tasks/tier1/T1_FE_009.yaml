@@ -1,0 +1,840 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_FE_009.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_FE_009"
+category: "FE"
+subcategory: "solver"
+title: "Self-Contained 1D Linear Elastic Finite Element Solver"
+short_description: "Complete self-contained finite element solver for 1D linear elastic problems with integrated meshing and assembly."
+
+version: "1.0"
+created_date: "2025-06-19"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a complete self-contained finite element solver for 1D linear elastic problems that handles the entire solution pipeline from automatic meshing through final solution.
+  
+  The solver must implement all finite element components internally without calling external functions:
+  1. Automatic uniform mesh generation from domain bounds and element count
+  2. Material property assignment to elements based on coordinate ranges
+  3. Gauss quadrature setup for numerical integration (1, 2, or 3 point rules)
+  4. Global stiffness matrix assembly using linear shape functions
+  5. Global body force vector assembly from distributed loads
+  6. Neumann boundary condition application (point loads at specified coordinates)
+  7. Dirichlet boundary condition handling with coordinate-to-node mapping
+  8. System partitioning and solution with reaction force computation
+  
+  The function should satisfy:
+  - Correct uniform mesh generation with proper element connectivity
+  - Robust material property assignment using element centroid coordinates
+  - Accurate Gauss quadrature implementation for integration orders 1-3
+  - Proper linear shape function evaluation and derivative computation
+  - Correct stiffness matrix assembly using B^T * EA * B formulation
+  - Accurate body force integration using shape function interpolation
+  - Reliable coordinate-based boundary condition specification with tolerance matching
+  - Proper application of both Dirichlet and Neumann boundary conditions
+  - Accurate solution of the partitioned linear system with reaction computation
+  - Global equilibrium verification and physical behavior consistency
+  
+  Function input parameter definitions are:
+    x_min: Start coordinate of the 1D domain
+    x_max: End coordinate of the 1D domain  
+    num_elements: Number of linear elements to generate
+    prop_list: List of material property dictionaries with keys "coord_min", "coord_max", "E", "A"
+    body_force_fn: Callable function f(x) defining distributed body force per unit length
+    dirichlet_BC_locations: List of x-coordinates where displacements are prescribed
+    prescribed_displacements: List of displacement values at Dirichlet locations
+    neumann_bc_list: Optional list of point load dictionaries with keys "x_location", "load_mag"
+    n_gauss: Number of Gauss integration points per element (1, 2, or 3)
+  
+  Returns array containing:
+    x: Full displacement vector (n_nodes,) 
+    R: Reaction forces at Dirichlet boundary nodes (same order as dirichlet_BC_locations)
+  
+  Include comprehensive unit tests covering mesh generation, material assignment, integration accuracy, and various loading scenarios with both analytical and numerical verification.
+
+expected_function_name: "solve_linear_elastic_1D_self_contained"
+include_tests: true
+expected_test_functions: ["test_no_load_self_contained", "test_uniform_extension_self_contained", "test_multi_material_self_contained", "test_neumann_loads_self_contained"]
+
+function_signature:
+  parameters: ["x_min", "x_max", "num_elements", "prop_list", "body_force_fn", "dirichlet_BC_locations", "prescribed_displacements", "neumann_bc_list", "n_gauss"]
+  parameter_types: ["float", "float", "int", "List[Dict[str, float]]", "Callable[[float], float]", "List[float]", "List[float]", "List[Dict[str, float]]", "int"]
+  return_shape: "np.ndarray (dtype=object, containing [x, R])"
+
+task_dependencies:
+  required_functions: []
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def solve_linear_elastic_1D_self_contained(
+        x_min: float,
+        x_max: float,
+        num_elements: int,
+        prop_list: List[Dict[str, float]],
+        body_force_fn: Callable[[float], float],
+        dirichlet_BC_locations: List[float],
+        prescribed_displacements: List[float],
+        neumann_bc_list: List[Dict[str, float]] = None,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        """
+        Solve a 1D linear elastic finite element problem with integrated meshing.
+
+        Parameters:
+            x_min (float): Start coordinate of the domain
+            x_max (float): End coordinate of the domain
+            num_elements (int): Number of linear elements
+            prop_list (List[Dict]): List of material regions, each with keys:
+                "coord_min", "coord_max", "E", "A"
+            body_force_fn (Callable): Function f(x) for body force
+            dirichlet_BC_locations (List[float]): Positions where displacements are prescribed
+            prescribed_displacements (List[float]): Values of displacements at those positions
+            neumann_bc_list (List[Dict]): Each dict must contain:
+                {
+                    "x_location": float,  # coordinate of the node
+                    "load_mag": float     # magnitude of point load (positive = outward)
+                }
+            n_gauss (int): Number of Gauss points for numerical integration
+
+        Returns:
+            np.ndarray[np.ndarray, np.ndarray]:
+                - x (np.ndarray): Displacement vector (n_nodes,)
+                - R (np.ndarray): Reaction forces at Dirichlet BC nodes
+        """
+        
+        # Step 0: Generate mesh
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        
+        for e in range(num_elements):
+            element_connectivity[e, 0] = e
+            element_connectivity[e, 1] = e + 1
+        
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        
+        # Step 1: Assign material properties to elements
+        E_vector = np.zeros(n_elements)
+        A_vector = np.zeros(n_elements)
+        
+        for i in range(n_elements):
+            node_indices = element_connectivity[i]
+            x1, x2 = node_coords[node_indices[0]], node_coords[node_indices[1]]
+            x_center = 0.5 * (x1 + x2)
+            
+            assigned = False
+            for region in prop_list:
+                if region["coord_min"] <= x_center <= region["coord_max"]:
+                    E_vector[i] = region["E"]
+                    A_vector[i] = region["A"]
+                    assigned = True
+                    break
+            
+            if not assigned:
+                raise ValueError(f"Element {i} centered at x = {x_center:.3f} is not assigned to any material region.")
+        
+        # Step 2: Set up Gauss quadrature points and weights
+        if n_gauss == 1:
+            xi_points = np.array([0.0])
+            weights = np.array([2.0])
+        elif n_gauss == 2:
+            sqrt_3_inv = 1.0 / np.sqrt(3)
+            xi_points = np.array([-sqrt_3_inv, sqrt_3_inv])
+            weights = np.array([1.0, 1.0])
+        elif n_gauss == 3:
+            xi_points = np.array([-np.sqrt(3/5), 0.0, np.sqrt(3/5)])
+            weights = np.array([5/9, 8/9, 5/9])
+        else:
+            raise ValueError("Only 1 to 3 Gauss points are supported.")
+        
+        # Shape function derivatives (constant for linear elements)
+        dN_dxi = np.array([-0.5, 0.5])
+        
+        # Step 3: Assemble global stiffness matrix
+        K_global = np.zeros((n_nodes, n_nodes))
+        
+        for e in range(n_elements):
+            node_ids = element_connectivity[e]
+            x_elem = node_coords[node_ids]
+            E = E_vector[e]
+            A = A_vector[e]
+            
+            # Compute element stiffness matrix
+            k_elem = np.zeros((2, 2))
+            
+            for xi, w in zip(xi_points, weights):
+                # Jacobian
+                J = np.dot(dN_dxi, x_elem)
+                
+                # Physical derivatives
+                dN_dx = dN_dxi / J
+                B = dN_dx.reshape(1, 2)
+                
+                # Add contribution: k = ∫ Bᵀ * EA * B * J dξ
+                k_elem += E * A * J * w * (B.T @ B)
+            
+            # Assemble into global matrix
+            for a_local, a_global in enumerate(node_ids):
+                for b_local, b_global in enumerate(node_ids):
+                    K_global[a_global, b_global] += k_elem[a_local, b_local]
+        
+        # Step 4: Assemble global body force vector
+        F_global = np.zeros(n_nodes)
+        
+        for e in range(n_elements):
+            node_ids = element_connectivity[e]
+            x_elem = node_coords[node_ids]
+            
+            # Compute element body force vector
+            fe = np.zeros(2)
+            
+            for xi, w in zip(xi_points, weights):
+                # Shape functions at xi
+                N = np.array([0.5 * (1 - xi), 0.5 * (1 + xi)])
+                
+                # Jacobian
+                J = np.dot(dN_dxi, x_elem)
+                
+                # Physical coordinate
+                x_phys = np.dot(N, x_elem)
+                
+                # Body force at physical coordinate
+                f = body_force_fn(x_phys)
+                
+                # Add contribution
+                fe += w * f * J * N
+            
+            # Assemble into global force vector
+            for a_local, a_global in enumerate(node_ids):
+                F_global[a_global] += fe[a_local]
+        
+        # Step 5: Apply Neumann boundary conditions (point loads)
+        if neumann_bc_list is not None:
+            tol = 1e-8
+            for bc in neumann_bc_list:
+                x_target = bc["x_location"]
+                load = bc["load_mag"]
+                
+                matches = np.where(np.abs(node_coords - x_target) < tol)[0]
+                
+                if len(matches) == 0:
+                    raise ValueError(f"No node found at x = {x_target} within tolerance {tol}")
+                elif len(matches) > 1:
+                    raise ValueError(f"Multiple nodes found near x = {x_target}; check mesh or tolerance.")
+                
+                node_index = matches[0]
+                F_global[node_index] += load
+        
+        # Step 6: Find node indices for Dirichlet boundary conditions
+        dirichlet_BC_nodes = []
+        tol = 1e-8
+        
+        for x_target in dirichlet_BC_locations:
+            matches = np.where(np.abs(node_coords - x_target) < tol)[0]
+            
+            if len(matches) == 0:
+                raise ValueError(f"No node found at x = {x_target} within tolerance {tol}")
+            elif len(matches) > 1:
+                raise ValueError(f"Multiple nodes found near x = {x_target}; check mesh spacing or reduce tolerance.")
+            
+            dirichlet_BC_nodes.append(matches[0])
+        
+        # Step 7: Partition system
+        all_nodes = set(range(n_nodes))
+        free_nodes = sorted(all_nodes - set(dirichlet_BC_nodes))
+        supported_nodes = sorted(dirichlet_BC_nodes)
+        
+        # Convert to index arrays
+        f = np.array(free_nodes)
+        s = np.array(supported_nodes)
+        
+        # Partition stiffness matrix
+        K_ff = K_global[np.ix_(f, f)]
+        K_ss = K_global[np.ix_(s, s)]
+        K_fs = K_global[np.ix_(f, s)]
+        K_sf = K_global[np.ix_(s, f)]
+        
+        # Partition force vector
+        F_f = F_global[f]
+        F_s = F_global[s]
+        
+        # Step 8: Solve for displacements and reactions
+        x_s = np.array(prescribed_displacements)
+        x_f = np.linalg.solve(K_ff, F_f - K_fs @ x_s)
+        
+        # Build full displacement vector
+        x = np.zeros(n_nodes)
+        for idx, i in enumerate(free_nodes):
+            x[i] = x_f[idx]
+        for idx, i in enumerate(dirichlet_BC_nodes):
+            x[i] = x_s[idx]
+        
+        # Compute reaction forces at supported nodes
+        R = K_sf @ x_f + K_ss @ x_s - F_s
+        
+        return np.array([x, R], dtype=object)
+
+failure_examples:
+  "wrong_gauss_quadrature": |
+    def solve_linear_elastic_1D_self_contained(
+        x_min: float,
+        x_max: float,
+        num_elements: int,
+        prop_list: List[Dict[str, float]],
+        body_force_fn: Callable[[float], float],
+        dirichlet_BC_locations: List[float],
+        prescribed_displacements: List[float],
+        neumann_bc_list: List[Dict[str, float]] = None,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Generate mesh correctly
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        for e in range(num_elements):
+            element_connectivity[e, :] = [e, e + 1]
+        
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        
+        # Material assignment (simplified)
+        E_vector = np.full(n_elements, prop_list[0]["E"])
+        A_vector = np.full(n_elements, prop_list[0]["A"])
+        
+        # Wrong! Incorrect Gauss quadrature setup
+        if n_gauss == 2:
+            # Wrong points and weights
+            xi_points = np.array([-0.5, 0.5])  # Should be ±1/√3
+            weights = np.array([1.5, 1.5])     # Should be [1.0, 1.0]
+        else:
+            xi_points = np.array([0.0])
+            weights = np.array([2.0])
+        
+        # Simplified assembly with wrong quadrature
+        K_global = np.eye(n_nodes)  # Placeholder
+        F_global = np.zeros(n_nodes)
+        
+        # Simple solution
+        x = np.zeros(n_nodes)
+        R = np.zeros(len(dirichlet_BC_locations))
+        return np.array([x, R], dtype=object)
+        
+  "wrong_material_assignment": |
+    def solve_linear_elastic_1D_self_contained(
+        x_min: float,
+        x_max: float,
+        num_elements: int,
+        prop_list: List[Dict[str, float]],
+        body_force_fn: Callable[[float], float],
+        dirichlet_BC_locations: List[float],
+        prescribed_displacements: List[float],
+        neumann_bc_list: List[Dict[str, float]] = None,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Generate mesh correctly
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        for e in range(num_elements):
+            element_connectivity[e, :] = [e, e + 1]
+        
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        
+        # Wrong! Uses element index instead of coordinate for material assignment
+        E_vector = np.zeros(n_elements)
+        A_vector = np.zeros(n_elements)
+        
+        for i in range(n_elements):
+            # Wrong! Uses element index instead of element centroid coordinate
+            for region in prop_list:
+                if region["coord_min"] <= i <= region["coord_max"]:  # Should use x_center
+                    E_vector[i] = region["E"]
+                    A_vector[i] = region["A"]
+                    break
+            else:
+                E_vector[i] = prop_list[0]["E"]  # Default assignment
+                A_vector[i] = prop_list[0]["A"]
+        
+        # Simplified assembly
+        K_global = np.eye(n_nodes)
+        F_global = np.zeros(n_nodes)
+        
+        x = np.zeros(n_nodes)
+        R = np.zeros(len(dirichlet_BC_locations))
+        return np.array([x, R], dtype=object)
+        
+  "missing_neumann_application": |
+    def solve_linear_elastic_1D_self_contained(
+        x_min: float,
+        x_max: float,
+        num_elements: int,
+        prop_list: List[Dict[str, float]],
+        body_force_fn: Callable[[float], float],
+        dirichlet_BC_locations: List[float],
+        prescribed_displacements: List[float],
+        neumann_bc_list: List[Dict[str, float]] = None,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Generate mesh correctly
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        for e in range(num_elements):
+            element_connectivity[e, :] = [e, e + 1]
+        
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        
+        # Material assignment (simplified)
+        E_vector = np.full(n_elements, prop_list[0]["E"])
+        A_vector = np.full(n_elements, prop_list[0]["A"])
+        
+        # Basic assembly (simplified)
+        K_global = np.eye(n_nodes)
+        F_global = np.zeros(n_nodes)
+        
+        # Wrong! Skips Neumann BC application entirely
+        # Missing: point load application to F_global
+        
+        # Simplified solution process
+        x = np.zeros(n_nodes)
+        R = np.zeros(len(dirichlet_BC_locations))
+        return np.array([x, R], dtype=object)
+        
+  "constant_force_bug": |
+    def solve_linear_elastic_1D_self_contained(
+        x_min: float,
+        x_max: float,
+        num_elements: int,
+        prop_list: List[Dict[str, float]],
+        body_force_fn: Callable[[float], float],
+        dirichlet_BC_locations: List[float],
+        prescribed_displacements: List[float],
+        neumann_bc_list: List[Dict[str, float]] = None,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Generate mesh correctly
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        for e in range(num_elements):
+            element_connectivity[e, :] = [e, e + 1]
+        
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        
+        # Material assignment (simplified)
+        E_vector = np.full(n_elements, prop_list[0]["E"])
+        A_vector = np.full(n_elements, prop_list[0]["A"])
+        
+        # Basic assembly
+        K_global = np.eye(n_nodes)
+        F_global = np.zeros(n_nodes)
+        
+        # Wrong! Always adds spurious constant force
+        F_global += 100.0  # Adds 100 N to every node
+        
+        # Simplified solution
+        x = np.zeros(n_nodes)
+        R = np.zeros(len(dirichlet_BC_locations))
+        return np.array([x, R], dtype=object)
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    # Basic mesh generation tests
+    - input:
+        x_min: 0.0
+        x_max: 1.0
+        num_elements: 2
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 1.0
+            E: 2.0e11
+            A: 0.01
+        body_force_fn: "lambda x: 0.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 2
+      tolerance: 1e-12
+
+    - input:
+        x_min: -1.0
+        x_max: 3.0
+        num_elements: 4
+        prop_list:
+          - coord_min: -1.0
+            coord_max: 3.0
+            E: 1.0e11
+            A: 0.005
+        body_force_fn: "lambda x: 0.0"
+        dirichlet_BC_locations: [-1.0, 3.0]
+        prescribed_displacements: [0.0, 0.0]
+        neumann_bc_list: null
+        n_gauss: 1
+      tolerance: 1e-12
+
+    # Different integration rules
+    - input:
+        x_min: 0.0
+        x_max: 2.0
+        num_elements: 3
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 1.5e11
+            A: 0.008
+        body_force_fn: "lambda x: 100.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 1
+      tolerance: 1e-10
+
+    - input:
+        x_min: 0.0
+        x_max: 2.0
+        num_elements: 3
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 1.5e11
+            A: 0.008
+        body_force_fn: "lambda x: 100.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 3
+      tolerance: 1e-10
+
+    # Body force cases
+    - input:
+        x_min: 0.0
+        x_max: 3.0
+        num_elements: 5
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 3.0
+            E: 1.2e11
+            A: 0.009
+        body_force_fn: "lambda x: 200.0 * x"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 2
+      tolerance: 1e-10
+
+    - input:
+        x_min: 0.0
+        x_max: 2.0
+        num_elements: 4
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 1.8e11
+            A: 0.007
+        body_force_fn: "lambda x: x**2"
+        dirichlet_BC_locations: [0.0, 2.0]
+        prescribed_displacements: [0.0, 0.0]
+        neumann_bc_list: null
+        n_gauss: 3
+      tolerance: 1e-8
+
+    # Point load cases
+    - input:
+        x_min: 0.0
+        x_max: 2.0
+        num_elements: 4
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 2.0e11
+            A: 0.01
+        body_force_fn: "lambda x: 0.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list:
+          - x_location: 2.0
+            load_mag: 1000.0
+        n_gauss: 2
+      tolerance: 1e-10
+
+    - input:
+        x_min: 0.0
+        x_max: 3.0
+        num_elements: 6
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 3.0
+            E: 1.6e11
+            A: 0.006
+        body_force_fn: "lambda x: 0.0"
+        dirichlet_BC_locations: [0.0, 3.0]
+        prescribed_displacements: [0.0, 0.0]
+        neumann_bc_list:
+          - x_location: 1.0
+            load_mag: 500.0
+          - x_location: 2.0
+            load_mag: -300.0
+        n_gauss: 2
+      tolerance: 1e-8
+
+    # Multi-material systems
+    - input:
+        x_min: 0.0
+        x_max: 4.0
+        num_elements: 8
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 7.0e10
+            A: 0.012
+          - coord_min: 2.0
+            coord_max: 4.0
+            E: 2.1e11
+            A: 0.008
+        body_force_fn: "lambda x: 150.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 2
+      tolerance: 1e-8
+
+    - input:
+        x_min: 0.0
+        x_max: 3.0
+        num_elements: 9
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 1.0
+            E: 1.0e11
+            A: 0.01
+          - coord_min: 1.0
+            coord_max: 2.0
+            E: 1.5e11
+            A: 0.008
+          - coord_min: 2.0
+            coord_max: 3.0
+            E: 2.0e11
+            A: 0.006
+        body_force_fn: "lambda x: 0.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list:
+          - x_location: 3.0
+            load_mag: 1200.0
+        n_gauss: 2
+      tolerance: 1e-8
+
+    # Combined loading scenarios
+    - input:
+        x_min: 0.0
+        x_max: 3.0
+        num_elements: 6
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 3.0
+            E: 1.6e11
+            A: 0.009
+        body_force_fn: "lambda x: 200.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list:
+          - x_location: 3.0
+            load_mag: 800.0
+        n_gauss: 2
+      tolerance: 1e-8
+
+    - input:
+        x_min: 0.0
+        x_max: 4.0
+        num_elements: 8
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 1.1e11
+            A: 0.008
+          - coord_min: 2.0
+            coord_max: 4.0
+            E: 1.8e11
+            A: 0.006
+        body_force_fn: "lambda x: 50.0 * x"
+        dirichlet_BC_locations: [0.0, 4.0]
+        prescribed_displacements: [0.0, 0.05]
+        neumann_bc_list:
+          - x_location: 2.0
+            load_mag: 300.0
+        n_gauss: 2
+      tolerance: 1e-8
+
+    # Prescribed displacement cases
+    - input:
+        x_min: 0.0
+        x_max: 2.0
+        num_elements: 4
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 2.0e11
+            A: 0.01
+        body_force_fn: "lambda x: 0.0"
+        dirichlet_BC_locations: [0.0, 2.0]
+        prescribed_displacements: [0.0, 0.002]
+        neumann_bc_list: null
+        n_gauss: 2
+      tolerance: 1e-12
+
+    - input:
+        x_min: 0.0
+        x_max: 5.0
+        num_elements: 10
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 5.0
+            E: 1.8e11
+            A: 0.007
+        body_force_fn: "lambda x: 100.0"
+        dirichlet_BC_locations: [0.0, 2.0, 5.0]
+        prescribed_displacements: [0.0, 0.001, 0.003]
+        neumann_bc_list: null
+        n_gauss: 2
+      tolerance: 1e-10
+
+    # Different domain ranges
+    - input:
+        x_min: -2.0
+        x_max: 2.0
+        num_elements: 8
+        prop_list:
+          - coord_min: -2.0
+            coord_max: 2.0
+            E: 1.4e11
+            A: 0.009
+        body_force_fn: "lambda x: x"
+        dirichlet_BC_locations: [-2.0, 2.0]
+        prescribed_displacements: [0.0, 0.0]
+        neumann_bc_list:
+          - x_location: 0.0
+            load_mag: 400.0
+        n_gauss: 2
+      tolerance: 1e-8
+
+    - input:
+        x_min: 1.0
+        x_max: 6.0
+        num_elements: 5
+        prop_list:
+          - coord_min: 1.0
+            coord_max: 6.0
+            E: 1.9e11
+            A: 0.005
+        body_force_fn: "lambda x: 80.0"
+        dirichlet_BC_locations: [1.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 1
+      tolerance: 1e-10
+
+    # High-order polynomial body forces
+    - input:
+        x_min: 0.0
+        x_max: 2.0
+        num_elements: 6
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 2.0
+            E: 1.7e11
+            A: 0.008
+        body_force_fn: "lambda x: x**3 + 2*x**2 + x + 1"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list: null
+        n_gauss: 3
+      tolerance: 1e-7
+
+    - input:
+        x_min: 0.0
+        x_max: 1.5
+        num_elements: 6
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 1.5
+            E: 1.3e11
+            A: 0.011
+        body_force_fn: "lambda x: 50*x**2 + 30*x + 10"
+        dirichlet_BC_locations: [0.0, 1.5]
+        prescribed_displacements: [0.0, 0.0]
+        neumann_bc_list: null
+        n_gauss: 3
+      tolerance: 1e-8
+
+    # Fine mesh cases
+    - input:
+        x_min: 0.0
+        x_max: 1.0
+        num_elements: 20
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 1.0
+            E: 2.0e11
+            A: 0.01
+        body_force_fn: "lambda x: 500.0"
+        dirichlet_BC_locations: [0.0]
+        prescribed_displacements: [0.0]
+        neumann_bc_list:
+          - x_location: 1.0
+            load_mag: 250.0
+        n_gauss: 2
+      tolerance: 1e-10
+
+    - input:
+        x_min: 0.0
+        x_max: 3.0
+        num_elements: 15
+        prop_list:
+          - coord_min: 0.0
+            coord_max: 1.5
+            E: 8.0e10
+            A: 0.015
+          - coord_min: 1.5
+            coord_max: 3.0
+            E: 2.2e11
+            A: 0.008
+        body_force_fn: "lambda x: 120.0 * x + 60.0"
+        dirichlet_BC_locations: [0.0, 3.0]
+        prescribed_displacements: [0.0, 0.004]
+        neumann_bc_list:
+          - x_location: 1.5
+            load_mag: 350.0
+        n_gauss: 2
+      tolerance: 1e-8
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "constant_force_bug"
+      test_function: "test_no_load_self_contained"
+    - failure_type: "wrong_gauss_quadrature"
+      test_function: "test_uniform_extension_self_contained"
+    - failure_type: "wrong_material_assignment"
+      test_function: "test_multi_material_self_contained"
+    - failure_type: "missing_neumann_application"
+      test_function: "test_neumann_loads_self_contained"

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fem_bench"
+version = "0.1.0"
+description = "Finite Element Method Benchmark for LLMs"
+authors = [{name = "elejeune11"}]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.20.0",
+    "pyyaml",
+    "pytest>=6.0.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov",
+    "black",
+    "flake8",
+]
+full = [
+    "sympy",
+    "pandas",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

@@ -1,0 +1,9 @@
+{
+  "task_id": "T1_SF_001",
+  "fcn_correct_with_reference_provided": 1,
+  "fcn_correct_with_llm_chain": 1,
+  "total_tests": 4,
+  "tests_passed_on_reference": 0,
+  "total_expected_failures": 5,
+  "expected_failures_failed_on_reference": 5
+}

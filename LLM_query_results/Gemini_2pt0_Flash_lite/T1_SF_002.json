@@ -1,0 +1,11 @@
+{
+    "function_imports": [
+      "numpy"
+    ],
+    "shape_function_derivatives_1D_linear": "def shape_function_derivatives_1D_linear(xi: float) -> tuple:\n    \"\"\"Return constant derivatives of 1D linear shape functions with respect to parametric coordinate ξ.\n\n    Args:\n        xi (float): Parametric coordinate.\n\n    Returns:\n        tuple: A tuple containing the derivatives of the shape functions.\n    \"\"\"\n    return (-0.5, 0.5)",
+    "test_imports": [
+      "pytest",
+      "numpy"
+    ],
+    "test_shape_function_derivatives_1D_linear": "def test_shape_function_derivatives_1D_linear():\n    import numpy as np\n    from numpy.testing import assert_allclose\n    derivatives = shape_function_derivatives_1D_linear(0.0)\n    assert_allclose(derivatives, (-0.5, 0.5))\n    derivatives = shape_function_derivatives_1D_linear(0.5)\n    assert_allclose(derivatives, (-0.5, 0.5))\n    derivatives = shape_function_derivatives_1D_linear(-1.0)\n    assert_allclose(derivatives, (-0.5, 0.5))"
+  }

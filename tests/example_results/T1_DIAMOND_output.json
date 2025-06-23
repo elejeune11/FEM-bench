@@ -1,0 +1,6 @@
+{
+    "function_imports": [],
+    "test_imports": ["pytest"],
+    "diamond_function": "def diamond_function(x: float) -> float:\n    \"\"\"Diamond pattern combining left and right.\"\"\"\n    return diamond_left(x) * diamond_right(x)",
+    "test_diamond_function": "def test_diamond_function():\n    \"\"\"Test diamond function.\"\"\"\n    assert diamond_function(2.0) == 6.0"
+  }

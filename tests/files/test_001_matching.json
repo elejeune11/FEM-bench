@@ -1,0 +1,6 @@
+{
+    "function_imports": ["math"],
+    "test_imports": ["pytest"],
+    "calculate_sum": "def calculate_sum(a: int, b: int) -> int:\n    \"\"\"Add two integers together.\"\"\"\n    return a + b",
+    "test_calculate_sum": "def test_calculate_sum():\n    \"\"\"Test the calculate_sum function.\"\"\"\n    assert calculate_sum(2, 3) == 5\n    assert calculate_sum(0, 0) == 0\n    assert calculate_sum(-1, 1) == 0"
+  }

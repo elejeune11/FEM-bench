@@ -1,0 +1,298 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_FE_005.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_FE_005"
+category: "FE"
+subcategory: "assembly"
+title: "Global Stiffness Matrix Assembly for 1D Linear Elastic Bar"
+short_description: "Assemble the global stiffness matrix from element contributions for a 1D finite element mesh."
+
+version: "1.0"
+created_date: "2025-06-19"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that assembles the global stiffness matrix for a 1D linear elastic bar from individual element stiffness matrices.
+  
+  The global assembly process combines element-level stiffness matrices into a system-level matrix by mapping local element degrees of freedom to global degrees of freedom based on element connectivity.
+  
+  The assembly follows the standard finite element procedure:
+  K_global[i,j] += k_element[a,b] where i,j are global node IDs and a,b are local element node IDs
+  
+  The function should satisfy:
+  - Correct matrix dimensions: (n_nodes, n_nodes)
+  - Symmetry: K_global = K_global^T
+  - Singularity: det(K_global) = 0 due to rigid body motion (no constraints)
+  - Row sum equilibrium: sum of each row ≈ 0 (equilibrium condition)
+  
+  Function input parameter definitions are:
+    node_coords: 1D array of node coordinates (n_nodes,)
+    element_connectivity: 2D array of element node connections (n_elements, 2)
+    E_vector: Young's modulus for each element (n_elements,)
+    A_vector: Cross-sectional area for each element (n_elements,)
+    n_gauss: Number of Gauss integration points per element
+  
+  Include comprehensive unit tests that verify single element assembly, multi-element assembly with different materials, and fundamental matrix properties.
+
+expected_function_name: "assemble_global_stiffness_matrix_linear_elastic_1D"
+include_tests: true
+expected_test_functions: ["test_global_stiffness_single_element", "test_global_stiffness_two_elements", "test_global_stiffness_properties"]
+
+function_signature:
+  parameters: ["node_coords", "element_connectivity", "E_vector", "A_vector", "n_gauss"]
+  parameter_types: ["np.ndarray", "np.ndarray", "np.ndarray", "np.ndarray", "int"]
+  return_shape: "(n_nodes, n_nodes)"
+
+task_dependencies:
+  required_functions:
+    - source_task: "T1_FE_003"
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def assemble_global_stiffness_matrix_linear_elastic_1D(
+        node_coords: np.ndarray,
+        element_connectivity: np.ndarray,
+        E_vector: np.ndarray,
+        A_vector: np.ndarray,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        K_global = np.zeros((n_nodes, n_nodes))
+
+        for e in range(n_elements):
+            node_ids = element_connectivity[e]
+            x_elem = node_coords[node_ids]
+            E = E_vector[e]
+            A = A_vector[e]
+
+            # Compute element stiffness matrix using Galerkin method
+            k_elem = element_stiffness_linear_elastic_1D(x_elem, E, A, n_gauss)
+
+            # Assemble into global matrix
+            for a_local, a_global in enumerate(node_ids):
+                for b_local, b_global in enumerate(node_ids):
+                    K_global[a_global, b_global] += k_elem[a_local, b_local]
+
+        return K_global
+
+failure_examples:
+  "wrong_assembly_indexing": |
+    def assemble_global_stiffness_matrix_linear_elastic_1D(
+        node_coords: np.ndarray,
+        element_connectivity: np.ndarray,
+        E_vector: np.ndarray,
+        A_vector: np.ndarray,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Wrong! Incorrect indexing in assembly
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        K_global = np.zeros((n_nodes, n_nodes))
+
+        for e in range(n_elements):
+            node_ids = element_connectivity[e]
+            x_elem = node_coords[node_ids]
+            E = E_vector[e]
+            A = A_vector[e]
+
+            k_elem = element_stiffness_linear_elastic_1D(x_elem, E, A, n_gauss)
+
+            # Wrong! Always uses nodes [0,1] regardless of actual connectivity
+            K_global[0:2, 0:2] += k_elem
+
+        return K_global
+        
+  "missing_element_loop": |
+    def assemble_global_stiffness_matrix_linear_elastic_1D(
+        node_coords: np.ndarray,
+        element_connectivity: np.ndarray,
+        E_vector: np.ndarray,
+        A_vector: np.ndarray,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Wrong! Only processes first element
+        n_nodes = len(node_coords)
+        K_global = np.zeros((n_nodes, n_nodes))
+
+        # Wrong! Missing loop over elements
+        e = 0
+        node_ids = element_connectivity[e]
+        x_elem = node_coords[node_ids]
+        E = E_vector[e]
+        A = A_vector[e]
+
+        k_elem = element_stiffness_linear_elastic_1D(x_elem, E, A, n_gauss)
+
+        for a_local, a_global in enumerate(node_ids):
+            for b_local, b_global in enumerate(node_ids):
+                K_global[a_global, b_global] += k_elem[a_local, b_local]
+
+        return K_global
+        
+  "wrong_material_indexing": |
+    def assemble_global_stiffness_matrix_linear_elastic_1D(
+        node_coords: np.ndarray,
+        element_connectivity: np.ndarray,
+        E_vector: np.ndarray,
+        A_vector: np.ndarray,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Wrong! Uses same material properties for all elements
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        K_global = np.zeros((n_nodes, n_nodes))
+
+        for e in range(n_elements):
+            node_ids = element_connectivity[e]
+            x_elem = node_coords[node_ids]
+            E = E_vector[0]  # Wrong! Always uses first element's properties
+            A = A_vector[0]  # Wrong! Always uses first element's properties
+
+            k_elem = element_stiffness_linear_elastic_1D(x_elem, E, A, n_gauss)
+
+            for a_local, a_global in enumerate(node_ids):
+                for b_local, b_global in enumerate(node_ids):
+                    K_global[a_global, b_global] += k_elem[a_local, b_local]
+
+        return K_global
+        
+  "no_assembly_accumulation": |
+    def assemble_global_stiffness_matrix_linear_elastic_1D(
+        node_coords: np.ndarray,
+        element_connectivity: np.ndarray,
+        E_vector: np.ndarray,
+        A_vector: np.ndarray,
+        n_gauss: int = 2
+    ) -> np.ndarray:
+        # Wrong! Overwrites instead of accumulating
+        n_nodes = len(node_coords)
+        n_elements = element_connectivity.shape[0]
+        K_global = np.zeros((n_nodes, n_nodes))
+
+        for e in range(n_elements):
+            node_ids = element_connectivity[e]
+            x_elem = node_coords[node_ids]
+            E = E_vector[e]
+            A = A_vector[e]
+
+            k_elem = element_stiffness_linear_elastic_1D(x_elem, E, A, n_gauss)
+
+            # Wrong! Uses = instead of += (overwrites previous contributions)
+            for a_local, a_global in enumerate(node_ids):
+                for b_local, b_global in enumerate(node_ids):
+                    K_global[a_global, b_global] = k_elem[a_local, b_local]
+
+        return K_global
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    # Single element cases
+    - input:
+        node_coords: [0.0, 1.0]
+        element_connectivity: [[0, 1]]
+        E_vector: [200000000000.0]
+        A_vector: [0.01]
+        n_gauss: 2
+      tolerance: 1e-12
+
+    - input:
+        node_coords: [0.0, 2.0]
+        element_connectivity: [[0, 1]]
+        E_vector: [100000000000.0]
+        A_vector: [0.005]
+        n_gauss: 1
+      tolerance: 1e-12
+
+    - input:
+        node_coords: [-1.0, 1.0]
+        element_connectivity: [[0, 1]]
+        E_vector: [210000000000.0]
+        A_vector: [0.02]
+        n_gauss: 3
+      tolerance: 1e-12
+
+    # Two element cases - different materials
+    - input:
+        node_coords: [0.0, 1.0, 2.0]
+        element_connectivity: [[0, 1], [1, 2]]
+        E_vector: [100000000000.0, 200000000000.0]
+        A_vector: [0.01, 0.02]
+        n_gauss: 2
+      tolerance: 1e-10
+
+    - input:
+        node_coords: [0.0, 0.5, 1.5]
+        element_connectivity: [[0, 1], [1, 2]]
+        E_vector: [150000000000.0, 250000000000.0]
+        A_vector: [0.008, 0.012]
+        n_gauss: 1
+      tolerance: 1e-10
+
+    # Three element cases - uniform properties
+    - input:
+        node_coords: [0.0, 1.0, 2.0, 3.0]
+        element_connectivity: [[0, 1], [1, 2], [2, 3]]
+        E_vector: [200000000000.0, 200000000000.0, 200000000000.0]
+        A_vector: [0.01, 0.01, 0.01]
+        n_gauss: 2
+      tolerance: 1e-12
+
+    - input:
+        node_coords: [0.0, 1.0, 2.0, 3.0]
+        element_connectivity: [[0, 1], [1, 2], [2, 3]]
+        E_vector: [200000000000.0, 200000000000.0, 200000000000.0]
+        A_vector: [0.01, 0.01, 0.01]
+        n_gauss: 1
+      tolerance: 1e-12
+
+    # Three element cases - varying materials
+    - input:
+        node_coords: [0.0, 1.0, 2.0, 3.0]
+        element_connectivity: [[0, 1], [1, 2], [2, 3]]
+        E_vector: [100000000000.0, 200000000000.0, 150000000000.0]
+        A_vector: [0.01, 0.015, 0.008]
+        n_gauss: 2
+      tolerance: 1e-10
+
+    # Four element case
+    - input:
+        node_coords: [0.0, 1.0, 2.0, 3.0, 4.0]
+        element_connectivity: [[0, 1], [1, 2], [2, 3], [3, 4]]
+        E_vector: [200000000000.0, 200000000000.0, 200000000000.0, 200000000000.0]
+        A_vector: [0.01, 0.01, 0.01, 0.01]
+        n_gauss: 2
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "wrong_assembly_indexing"
+      test_function: "test_global_stiffness_single_element"
+    - failure_type: "wrong_assembly_indexing"
+      test_function: "test_global_stiffness_two_elements"
+    - failure_type: "missing_element_loop"
+      test_function: "test_global_stiffness_two_elements"
+    - failure_type: "missing_element_loop"
+      test_function: "test_global_stiffness_properties"
+    - failure_type: "wrong_material_indexing"
+      test_function: "test_global_stiffness_two_elements"
+    - failure_type: "no_assembly_accumulation"
+      test_function: "test_global_stiffness_two_elements"
+    - failure_type: "no_assembly_accumulation"
+      test_function: "test_global_stiffness_properties"

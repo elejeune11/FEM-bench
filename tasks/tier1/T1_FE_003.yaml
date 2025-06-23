@@ -1,0 +1,222 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_FE_003.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_FE_003"
+category: "FE"
+subcategory: "stiffness_matrix"
+title: "1D Linear Element Stiffness Matrix"
+short_description: "Compute the element stiffness matrix for a 1D linear elastic bar using numerical integration and the Galerkin method."
+
+version: "1.0"
+created_date: "2025-06-19"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that computes the element stiffness matrix for a 1D linear elastic bar using the Galerkin finite element method with numerical integration.
+  
+  The function should use Gauss quadrature to numerically integrate the weak form and assemble the 2x2 element stiffness matrix relating nodal forces to nodal displacements.
+  
+  The stiffness matrix should satisfy:
+  - Symmetry: K = K^T
+  - Singular (determinant = 0) due to rigid body motion
+  - Matches analytical solution: K = (EA/L) * [[1, -1], [-1, 1]]
+  - Independence from integration rule (1, 2, or 3 Gauss points should give identical results for linear elements)
+  - Proper scaling with material properties (E, A) and element geometry
+  
+  Function input parameter definitions are:
+    x_elem: Nodal coordinates of the element [x1, x2]
+    E: Young's modulus
+    A: Cross-sectional area
+    num_gauss_pts: Number of Gauss integration points
+  
+  Include comprehensive unit tests that verify these mathematical properties and compare against analytical solutions.
+
+expected_function_name: "element_stiffness_linear_elastic_1D"
+include_tests: true
+expected_test_functions: ["test_stiffness_matrix_properties", "test_analytical_comparison", "test_integration_rule_independence"]
+
+function_signature:
+  parameters: ["x_elem", "E", "A", "num_gauss_pts"]
+  parameter_types: ["np.ndarray", "float", "float", "int"]
+  return_shape: "(2, 2)"
+
+task_dependencies:
+  required_functions:
+    - source_task: "T1_NI_001"
+    - source_task: "T1_FE_001" 
+    - source_task: "T1_SF_002"
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def element_stiffness_linear_elastic_1D(
+        x_elem: np.ndarray,  # nodal coordinates [x1, x2]
+        E: float,
+        A: float,
+        num_gauss_pts: int = 1
+    ) -> np.ndarray:
+        k_elem = np.zeros((2, 2))
+        xi_points, weights = gauss_quadrature_1D(num_gauss_pts)
+        dN_dxi = shape_function_derivatives_1D_linear()
+
+        for xi, w in zip(xi_points, weights):
+            J = compute_jacobian_1D(dN_dxi, x_elem)
+            dN_dx = dN_dxi / J  # physical shape function derivatives
+            B = dN_dx.reshape(1, 2)  # row vector
+
+            # k = ∫ Bᵀ * EA * B * J dξ ≈ Σ Bᵀ * EA * B * J * w
+            k_elem += E * A * J * w * (B.T @ B)
+
+        return k_elem
+
+failure_examples:
+  "asymmetric_matrix": |
+    def element_stiffness_linear_elastic_1D(
+        x_elem: np.ndarray,
+        E: float,
+        A: float,
+        num_gauss_pts: int = 2
+    ) -> np.ndarray:
+        # Wrong! Produces asymmetric matrix due to sign error in assembly
+        k_elem = np.zeros((2, 2))
+        xi_points, weights = gauss_quadrature_1D(num_gauss_pts)
+        dN_dxi = shape_function_derivatives_1D_linear()
+
+        for xi, w in zip(xi_points, weights):
+            J = compute_jacobian_1D(dN_dxi, x_elem)
+            dN_dx = dN_dxi / J
+            B = dN_dx.reshape(1, 2)
+
+            k_integrand = E * A * J * w * (B.T @ B)
+            # Wrong! Introduces asymmetry in assembly
+            k_elem[0, :] += k_integrand[0, :]
+            k_elem[1, :] -= k_integrand[1, :]  # Wrong sign
+
+        return k_elem
+        
+  "non_singular_matrix": |
+    def element_stiffness_linear_elastic_1D(
+        x_elem: np.ndarray,
+        E: float,
+        A: float,
+        num_gauss_pts: int = 2
+    ) -> np.ndarray:
+        # Wrong! Adds artificial stiffness making matrix non-singular
+        k_elem = np.zeros((2, 2))
+        xi_points, weights = gauss_quadrature_1D(num_gauss_pts)
+        dN_dxi = shape_function_derivatives_1D_linear()
+
+        for xi, w in zip(xi_points, weights):
+            J = compute_jacobian_1D(dN_dxi, x_elem)
+            dN_dx = dN_dxi / J
+            B = dN_dx.reshape(1, 2)
+
+            k_elem += E * A * J * w * (B.T @ B)
+
+        # Wrong! Adding diagonal terms destroys singularity
+        k_elem += 1e-6 * np.eye(2)
+        return k_elem
+        
+  "wrong_analytical_formula": |
+    def element_stiffness_linear_elastic_1D(
+        x_elem: np.ndarray,
+        E: float,
+        A: float,
+        num_gauss_pts: int = 2
+    ) -> np.ndarray:
+        # Wrong! Incorrect scaling - missing area or wrong length formula
+        k_elem = np.zeros((2, 2))
+        xi_points, weights = gauss_quadrature_1D(num_gauss_pts)
+        dN_dxi = shape_function_derivatives_1D_linear()
+
+        for xi, w in zip(xi_points, weights):
+            J = compute_jacobian_1D(dN_dxi, x_elem)
+            dN_dx = dN_dxi / J
+            B = dN_dx.reshape(1, 2)
+
+            # Wrong! Missing area A in the integration
+            k_elem += E * J * w * (B.T @ B)
+
+        return k_elem
+        
+  "integration_rule_dependent": |
+    def element_stiffness_linear_elastic_1D(
+        x_elem: np.ndarray,
+        E: float,
+        A: float,
+        num_gauss_pts: int = 2
+    ) -> np.ndarray:
+        # Wrong! Artificially depends on number of integration points
+        k_elem = np.zeros((2, 2))
+        xi_points, weights = gauss_quadrature_1D(num_gauss_pts)
+        dN_dxi = shape_function_derivatives_1D_linear()
+
+        for xi, w in zip(xi_points, weights):
+            J = compute_jacobian_1D(dN_dxi, x_elem)
+            dN_dx = dN_dxi / J
+            B = dN_dx.reshape(1, 2)
+
+            # Wrong! Artificially scales with number of integration points
+            k_elem += E * A * J * w * (B.T @ B) * num_gauss_pts
+
+        return k_elem
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    # 1 ─ 2-m bar, 2-point Gauss
+    - input:
+        x_elem: [0.0, 2.0]
+        E: 2.0e11          # 200 GPa
+        A: 0.01
+        num_gauss_pts: 2
+      tolerance: 1e-12
+
+    # 2 ─ 2-m bar, 1-point Gauss, lower stiffness/area
+    - input:
+        x_elem: [1.0, 3.0]
+        E: 7.0e10          # 70 GPa
+        A: 0.005
+        num_gauss_pts: 1
+      tolerance: 1e-12
+
+    # 3 ─ centred bar crossing zero, 3-point Gauss
+    - input:
+        x_elem: [-1.0, 1.0]
+        E: 2.10e11         # 210 GPa
+        A: 0.02
+        num_gauss_pts: 3
+      tolerance: 1e-12
+
+    # 4 ─ short 0.5-m bar, 2-point Gauss
+    - input:
+        x_elem: [0.0, 0.5]
+        E: 1.0e11          # 100 GPa
+        A: 0.008
+        num_gauss_pts: 2
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "asymmetric_matrix"
+      test_function: "test_stiffness_matrix_properties"
+    - failure_type: "non_singular_matrix"
+      test_function: "test_stiffness_matrix_properties"
+    - failure_type: "wrong_analytical_formula"
+      test_function: "test_analytical_comparison"
+    - failure_type: "integration_rule_dependent"
+      test_function: "test_integration_rule_independence"

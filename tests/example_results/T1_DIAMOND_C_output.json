@@ -1,0 +1,6 @@
+{
+    "function_imports": [],
+    "test_imports": ["pytest"],
+    "diamond_right": "def diamond_right(x: float) -> float:\n    \"\"\"Right side using shared dependency.\"\"\"\n    return function_d(x) * 3.0",
+    "test_diamond_right": "def test_diamond_right():\n    \"\"\"Test diamond right.\"\"\"\n    assert diamond_right(2.0) == 3.0"
+  }

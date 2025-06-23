@@ -1,0 +1,6 @@
+{
+    "function_imports": [],
+    "test_imports": ["pytest"],
+    "standalone_function": "def standalone_function(x: float) -> float:\n    \"\"\"Standalone function.\"\"\"\n    return x * 5.0",
+    "test_standalone": "def test_standalone():\n    \"\"\"Test standalone function.\"\"\"\n    assert standalone_function(1.0) == 5.0"
+  }

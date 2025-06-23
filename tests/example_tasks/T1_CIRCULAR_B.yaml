@@ -1,0 +1,38 @@
+task_id: "T1_CIRCULAR_B"
+category: "test"
+subcategory: "circular"
+title: "Circular B"
+short_description: "Part of circular dependency B → A → B"
+version: "1.0"
+created_date: "2025-01-01"
+created_by: "test_suite"
+
+prompt: "Implement function B that depends on A."
+expected_function_name: "circular_function_b"
+include_tests: true
+expected_test_functions: ["test_circular_b"]
+
+function_signature:
+  parameters: ["x"]
+  parameter_types: ["float"]
+  return_shape: "float"
+
+task_dependencies:
+  required_functions:
+    - source_task: "T1_CIRCULAR_A"
+
+reference_solution:
+  code: |
+    def circular_function_b(x: float) -> float:
+        """Function B that depends on A."""
+        return circular_function_a(x) * 2.0
+
+failure_examples: {}
+
+reference_verification:
+  test_cases:
+    - input: {"x": 2.0}
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures: []

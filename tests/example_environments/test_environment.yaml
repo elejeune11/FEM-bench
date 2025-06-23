@@ -1,0 +1,48 @@
+# Test environment for build_environment_imports testing
+environment_name: "test_env"
+tier: 1
+description: "Test environment for import building"
+
+# Language and version
+language: "python"
+python_version: ">=3.8"
+
+# Required libraries (always available)
+required_libraries:
+  - name: "numpy"
+    version: ">=1.20.0"
+    import_as: "np"
+    purpose: "Numerical computations"
+  
+  - name: "pytest" 
+    version: ">=6.0.0"
+    import_as: null
+    purpose: "Testing framework"
+
+# Allowed libraries
+allowed_libraries:
+  - name: "math"
+    version: "builtin"
+    import_as: null
+    purpose: "Basic mathematical functions"
+    
+  - name: "scipy"
+    version: ">=1.7.0"
+    import_as: "scipy"
+    purpose: "Advanced numerical methods"
+    
+  - name: "matplotlib.pyplot"
+    version: ">=3.3.0"
+    import_as: "plt"
+    purpose: "Plotting and visualization"
+
+# Testing requirements
+testing:
+  framework: "pytest"
+  
+# Code requirements  
+code_requirements:
+  max_function_length: 100
+  
+# Import guidelines
+import_guidelines: "Standard test environment imports"

@@ -1,0 +1,149 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_NI_001.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_NI_001"
+category: "numerical_integration"
+subcategory: "gauss_quadrature"
+title: "1D Gauss Quadrature"
+short_description: "Return Gauss quadrature points and weights for numerical integration over the standard interval [-1, 1]."
+
+version: "1.0"
+created_date: "2025-06-18"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that returns Gauss quadrature points and weights for 1D numerical integration over the interval [-1, 1].
+  
+  The function should support 1, 2, or 3 quadrature points and return the corresponding points and weights that enable accurate numerical integration.
+  
+  The quadrature rule should satisfy:
+  - Weights sum to 2 (the length of the integration interval [-1, 1])
+  - All quadrature points lie within the interval [-1, 1]
+  - All weights are positive
+  - Polynomial exactness: n-point Gauss rule integrates polynomials of degree 2n-1 exactly
+  
+  Include comprehensive unit tests that verify these mathematical properties for all supported numbers of quadrature points.
+
+expected_function_name: "gauss_quadrature_1D"
+include_tests: true
+expected_test_functions: ["test_gauss_quadrature_basic_properties", "test_gauss_quadrature_polynomial_exactness"]
+
+function_signature:
+  parameters: ["n"]
+  parameter_types: ["int"]
+  return_shape: "(2,)"
+
+task_dependencies:
+  required_functions: []
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def gauss_quadrature_1D(n: int) -> np.ndarray:
+        if n == 1:
+            points = np.array([0.0])
+            weights = np.array([2.0])
+        elif n == 2:
+            sqrt_3_inv = 1.0 / np.sqrt(3)
+            points = np.array([-sqrt_3_inv, sqrt_3_inv])
+            weights = np.array([1.0, 1.0])
+        elif n == 3:
+            points = np.array([
+                -np.sqrt(3/5), 0.0, np.sqrt(3/5)
+            ])
+            weights = np.array([
+                5/9, 8/9, 5/9
+            ])
+        else:
+            raise ValueError("Only 1 to 3 Gauss points are supported.")
+        
+        return np.array([points, weights], dtype=object)
+
+failure_examples:
+  "wrong_weight_sum": |
+    def gauss_quadrature_1D(n: int) -> np.ndarray:
+        # Weights don't sum to 2 - using unit weights instead
+        if n == 1:
+            points = np.array([0.0])
+            weights = np.array([1.0])  # Should be 2.0
+        elif n == 2:
+            sqrt_3_inv = 1.0 / np.sqrt(3)
+            points = np.array([-sqrt_3_inv, sqrt_3_inv])
+            weights = np.array([1.0, 1.0])  # Correct by coincidence
+        elif n == 3:
+            points = np.array([-np.sqrt(3/5), 0.0, np.sqrt(3/5)])
+            weights = np.array([1.0, 1.0, 1.0])  # Should be [5/9, 8/9, 5/9]
+        else:
+            raise ValueError("Only 1 to 3 Gauss points are supported.")
+        return np.array([points, weights], dtype=object)
+        
+  "wrong_point_locations": |
+    def gauss_quadrature_1D(n: int) -> np.ndarray:
+        # Uses equally spaced points instead of optimal Gauss points
+        if n == 1:
+            points = np.array([0.0])
+            weights = np.array([2.0])
+        elif n == 2:
+            points = np.array([-0.5, 0.5])  # Should be ±1/√3
+            weights = np.array([1.0, 1.0])
+        elif n == 3:
+            points = np.array([-1.0, 0.0, 1.0])  # Should be ±√(3/5), 0
+            weights = np.array([5/9, 8/9, 5/9])
+        else:
+            raise ValueError("Only 1 to 3 Gauss points are supported.")
+        return np.array([points, weights], dtype=object)
+        
+  "asymmetric_points": |
+    def gauss_quadrature_1D(n: int) -> np.ndarray:
+        # Points are not symmetric about origin
+        if n == 1:
+            points = np.array([0.1])  # Should be 0.0
+            weights = np.array([2.0])
+        elif n == 2:
+            sqrt_3_inv = 1.0 / np.sqrt(3)
+            points = np.array([-sqrt_3_inv, sqrt_3_inv + 0.1])  # Asymmetric
+            weights = np.array([1.0, 1.0])
+        elif n == 3:
+            points = np.array([-np.sqrt(3/5), 0.1, np.sqrt(3/5)])  # Center offset
+            weights = np.array([5/9, 8/9, 5/9])
+        else:
+            raise ValueError("Only 1 to 3 Gauss points are supported.")
+        return np.array([points, weights], dtype=object)
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    - input:
+        n: 1
+      tolerance: 1e-12
+
+    - input:
+        n: 2
+      tolerance: 1e-12
+
+    - input:
+        n: 3
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "wrong_weight_sum"
+      test_function: "test_gauss_quadrature_basic_properties"
+    - failure_type: "wrong_point_locations"
+      test_function: "test_gauss_quadrature_polynomial_exactness"
+    - failure_type: "asymmetric_points"
+      test_function: "test_gauss_quadrature_polynomial_exactness"

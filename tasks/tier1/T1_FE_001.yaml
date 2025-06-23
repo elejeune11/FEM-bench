@@ -1,0 +1,101 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_FE_001.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_FE_001"
+category: "FE"
+subcategory: "jacobian"
+title: "1D Jacobian Computation"
+short_description: "Compute the Jacobian for 1D isoparametric mapping between parametric and physical coordinates."
+
+version: "1.0"
+created_date: "2025-06-18"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that computes the Jacobian for 1D isoparametric mapping.
+  
+  The function should calculate the transformation between parametric coordinate ξ and 
+  physical coordinate x for a finite element. This transformation is essential for 
+  numerical integration and coordinate mapping in finite element analysis.
+  It represents the rate of change of physical coordinate with respect to parametric coordinate (dx/dξ). 
+
+  Include comprehensive unit tests that verify correct Jacobian computation for 1D various element configurations.
+
+expected_function_name: "compute_jacobian_1D"
+include_tests: true
+expected_test_functions: ["test_jacobian_basic_functionality", "test_jacobian_edge_cases"]
+
+function_signature:
+  parameters: ["dN_dxi", "x_elem"]
+  parameter_types: ["np.ndarray", "np.ndarray"]
+  return_shape: "()"
+
+task_dependencies:
+  required_functions: []
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> np.ndarray:
+        return np.array(np.dot(dN_dxi, x_elem))
+
+failure_examples:
+  "element_length_only": |
+    def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> np.ndarray:
+        # Ignores shape function derivatives, returns full element length instead.
+        return np.array(x_elem[1] - x_elem[0])
+        
+  "always_positive": |
+    def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> np.ndarray:
+        # Takes absolute value, fails for reversed elements that should have negative Jacobian
+        jacobian = np.dot(dN_dxi, x_elem)
+        return np.array(abs(jacobian))
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    - input:
+        dN_dxi: [-0.5, 0.5]
+        x_elem: [0.0, 2.0]
+      tolerance: 1e-12
+
+    - input:
+        dN_dxi: [-0.5, 0.5]
+        x_elem: [1.0, 3.0]
+      tolerance: 1e-12
+
+    - input:
+        dN_dxi: [-0.5, 0.5]
+        x_elem: [-1.0, 1.0]
+      tolerance: 1e-12
+
+    - input:
+        dN_dxi: [-0.5, 0.5]
+        x_elem: [5.0, 5.5]
+      tolerance: 1e-12
+
+    - input:
+        dN_dxi: [-0.5, 0.5]
+        x_elem: [3.0, 1.0]
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "element_length_only"
+      test_function: "test_jacobian_basic_functionality"
+    - failure_type: "always_positive"
+      test_function: "test_jacobian_edge_cases"

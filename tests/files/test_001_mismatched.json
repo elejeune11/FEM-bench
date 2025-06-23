@@ -1,0 +1,6 @@
+{
+    "function_imports": ["numpy"],
+    "test_imports": ["pytest"],
+    "wrong_function_name": "def wrong_function_name(x: str, y: str) -> str:\n    \"\"\"Wrong function that doesn't match task.\"\"\"\n    return x + y",
+    "test_wrong_function": "def test_wrong_function():\n    \"\"\"Test for wrong function.\"\"\"\n    assert wrong_function_name('a', 'b') == 'ab'"
+  }

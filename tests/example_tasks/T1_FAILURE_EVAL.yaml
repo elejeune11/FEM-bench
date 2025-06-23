@@ -1,0 +1,26 @@
+task_id: "T1_FAILURE_EVAL"
+category: "test_quality"
+subcategory: "test"
+title: "Failure detection test"
+short_description: "Ensure LLM test functions detect known bugs"
+prompt: "Write a linear function"
+expected_function_name: "linear_function"
+include_tests: true
+expected_test_functions: ["test_linear_function"]
+function_signature:
+  parameters: ["x"]
+  parameter_types: ["float"]
+  return_shape: "float"
+task_dependencies: {}
+reference_solution:
+  code: |
+    def linear_function(x: float) -> float:
+        return 2.0 * x + 1.0
+reference_verification: {}
+failure_examples:
+  wrong_slope: |
+    def linear_function(x: float) -> float:
+        return 3.0 * x + 2.0
+expected_failures:
+  - failure_type: "wrong_slope"
+    test_function: "test_linear_function"

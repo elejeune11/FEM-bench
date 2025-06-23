@@ -1,0 +1,6 @@
+{
+    "function_imports": [],
+    "test_imports": ["pytest"],
+    "function_d": "def function_d(x: float) -> float:\n    \"\"\"Foundation function D.\"\"\"\n    return x / 2.0",
+    "test_function_d": "def test_function_d():\n    \"\"\"Test function D.\"\"\"\n    assert function_d(4.0) == 2.0"
+  }

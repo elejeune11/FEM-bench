@@ -1,0 +1,12 @@
+{
+    "function_imports": [
+      "numpy"
+    ],
+    "compute_jacobian_1D": "import numpy as np\n\ndef compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray):\n    \"\"\"Compute the Jacobian for 1D isoparametric mapping.\n\n    Args:\n        dN_dxi (np.ndarray): Derivatives of shape functions with respect to xi.\n        x_elem (np.ndarray): Nodal coordinates of the element.\n\n    Returns:\n        float: The Jacobian determinant.\n    \"\"\"\n    return np.dot(dN_dxi, x_elem)",
+    "test_imports": [
+      "pytest",
+      "numpy"
+    ],
+    "test_jacobian_basic_functionality": "import numpy as np\nimport pytest\n\ndef test_jacobian_basic_functionality():\n    \"\"\"Test basic Jacobian calculation with a simple element.\n    \"\"\"\n    dN_dxi = np.array([-1, 1])\n    x_elem = np.array([0, 1])\n    J = compute_jacobian_1D(dN_dxi, x_elem)\n    assert J == 1.0",
+    "test_jacobian_edge_cases": "import numpy as np\nimport pytest\n\ndef test_jacobian_edge_cases():\n    \"\"\"Test Jacobian calculation with zero and negative element lengths.\n    \"\"\"\n    # Test case 1: Zero length\n    dN_dxi = np.array([-1, 1])\n    x_elem = np.array([0, 0])\n    J = compute_jacobian_1D(dN_dxi, x_elem)\n    assert J == 0.0\n\n    # Test case 2: Negative length\n    dN_dxi = np.array([-1, 1])\n    x_elem = np.array([1, 0])\n    J = compute_jacobian_1D(dN_dxi, x_elem)\n    assert J == -1.0"
+  }

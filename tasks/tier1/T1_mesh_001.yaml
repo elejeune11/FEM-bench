@@ -1,0 +1,142 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_mesh_001.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_mesh_001"
+category: "mesh"
+subcategory: "1D mesh"
+title: "1D uniform mesh generation"
+short_description: "Create a 1D finite element mesh with evenly spaced nodes and linear elements between a start and end point."
+
+version: "1.0"
+created_date: "2025-06-17"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that generates a 1D finite element mesh with uniform spacing.
+
+  The output finite element mesh is defined by a 1D array that specifies nodal coordinates
+  where the index of the array refers to node number, and a 2D array that specifies element
+  connectivity via node index where the index of the array refers to element number. The 
+  output should be in the order node_coords, element_connectivity
+  
+  The function should create evenly spaced nodes between x_min and x_max, and define 
+  linear elements connecting consecutive nodes with coord_node_0 < coord_node_1.
+  
+  Include a unit test that verifies correct number of nodes and elements, proper node spacing,
+  and valid element connectivity for multiple examples.
+
+expected_function_name: "linear_uniform_mesh_1D"
+include_tests: true
+expected_test_functions: ["test_linear_uniform_mesh_1D"]
+
+function_signature:
+  parameters: ["x_min", "x_max", "num_elements"]
+  parameter_types: ["float", "float", "int"]
+  return_shape: "(2,)"
+
+task_dependencies:
+  required_functions: []
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+
+        for e in range(num_elements):
+            element_connectivity[e, 0] = e
+            element_connectivity[e, 1] = e + 1
+
+        return np.array([node_coords, element_connectivity], dtype=object)
+
+failure_examples:
+  "incorrect_num_nodes_and_elements": |
+    def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
+        actual_elements = num_elements - 1
+        num_nodes = actual_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((actual_elements, 2), dtype=int)
+        
+        for e in range(actual_elements):
+            element_connectivity[e, 0] = e
+            element_connectivity[e, 1] = e + 1
+        
+        return np.array([node_coords, element_connectivity], dtype=object)
+        
+  "non_uniform_spacing": |
+    def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
+        num_nodes = num_elements + 1
+        # Creates quadratically spaced nodes instead of uniform
+        t = np.linspace(0, 1, num_nodes)
+        node_coords = x_min + (x_max - x_min) * t**2
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        
+        for e in range(num_elements):
+            element_connectivity[e, 0] = e
+            element_connectivity[e, 1] = e + 1
+        
+        return np.array([node_coords, element_connectivity], dtype=object)
+        
+  "invalid_element_connectivity": |
+    def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
+        num_nodes = num_elements + 1
+        node_coords = np.linspace(x_min, x_max, num_nodes)
+        element_connectivity = np.zeros((num_elements, 2), dtype=int)
+        
+        for e in range(num_elements):
+            element_connectivity[e, 0] = e + 1
+            element_connectivity[e, 1] = e + 2
+        
+        return np.array([node_coords, element_connectivity], dtype=object)
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    - input:
+        x_min: 0
+        x_max: 10
+        num_elements: 10
+      tolerance: 1e-12
+
+    - input:
+        x_min: -5
+        x_max: 1
+        num_elements: 4
+      tolerance: 1e-12
+
+    - input:
+        x_min: 5
+        x_max: 10
+        num_elements: 5
+      tolerance: 1e-12
+
+    - input:
+        x_min: -1
+        x_max: 1
+        num_elements: 13
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "incorrect_num_nodes_and_elements"
+      test_function: "test_linear_uniform_mesh_1D"
+    - failure_type: "non_uniform_spacing"
+      test_function: "test_linear_uniform_mesh_1D"
+    - failure_type: "invalid_element_connectivity"
+      test_function: "test_linear_uniform_mesh_1D"

@@ -1,0 +1,105 @@
+# Tier 1 Task Template
+# Filename should match task_id: T1_SF_002.yaml
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: "T1_SF_002"
+category: "shape_functions"
+subcategory: "linear"
+title: "1D Linear Shape Function Derivatives"
+short_description: "Return constant derivatives of 1D linear shape functions with respect to parametric coordinate ξ."
+
+version: "1.0"
+created_date: "2025-06-18"
+created_by: "elejeune11"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  Implement a function that returns the derivatives of 1D linear shape functions with respect to the parametric coordinate ξ.
+  
+  The function should take a parametric coordinate xi (ranging from -1 to 1) and return 
+  the values of the two shape function N1 and N2 derivatives at that coordinate.
+  
+  Include a comprehensive unit test that ensures that the function returns the correct values.
+
+expected_function_name: "shape_function_derivatives_1D_linear"
+include_tests: true
+expected_test_functions: ["test_shape_function_derivatives_1D_linear"]
+
+function_signature:
+  parameters: ["xi"]
+  parameter_types: ["float"]
+  return_shape: "(2,)"
+
+task_dependencies:
+  required_functions: []
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    def shape_function_derivatives_1D_linear() -> np.ndarray:
+        return np.array([-0.5, 0.5])
+
+failure_examples:
+  "wrong_signs": |
+    def shape_function_derivatives_1D_linear() -> np.ndarray:
+        # Wrong signs for the derivatives
+        return np.array([0.5, -0.5])
+        
+  "wrong_magnitude": |
+    def shape_function_derivatives_1D_linear() -> np.ndarray:
+        # Wrong magnitude - missing factor of 1/2
+        return np.array([-1.0, 1.0])
+        
+  "zero_derivatives": |
+    def shape_function_derivatives_1D_linear() -> np.ndarray:
+        # Returns zero derivatives (constant functions)
+        return np.array([0.0, 0.0])
+
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases:
+    - input:
+        xi: -1.0
+      tolerance: 1e-12
+
+    - input:
+        xi: 0.0
+      tolerance: 1e-12
+
+    - input:
+        xi: 1.0
+      tolerance: 1e-12
+
+    - input:
+        xi: -0.5
+      tolerance: 1e-12
+
+    - input:
+        xi: 0.5
+      tolerance: 1e-12
+
+    - input:
+        xi: 0.25
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "wrong_signs"
+      test_function: "test_shape_function_derivatives_1D_linear"
+    - failure_type: "wrong_magnitude"
+      test_function: "test_shape_function_derivatives_1D_linear"
+    - failure_type: "zero_derivatives"
+      test_function: "test_shape_function_derivatives_1D_linear"

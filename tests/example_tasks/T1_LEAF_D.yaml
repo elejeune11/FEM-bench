@@ -1,0 +1,37 @@
+task_id: "T1_LEAF_D"
+category: "foundation"
+subcategory: "basic"
+title: "Foundation Task D"
+short_description: "Leaf node D - no dependencies"
+version: "1.0"
+created_date: "2025-01-01"
+created_by: "test_suite"
+
+prompt: "Implement foundation function D."
+expected_function_name: "function_d"
+include_tests: true
+expected_test_functions: ["test_function_d"]
+
+function_signature:
+  parameters: ["x"]
+  parameter_types: ["float"]
+  return_shape: "float"
+
+task_dependencies:
+  required_functions: []
+
+reference_solution:
+  code: |
+    def function_d(x: float) -> float:
+        """Foundation function D."""
+        return x / 2.0
+
+failure_examples: {}
+
+reference_verification:
+  test_cases:
+    - input: {"x": 4.0}
+      tolerance: 1e-12
+
+test_efficacy_verification:
+  expected_failures: []

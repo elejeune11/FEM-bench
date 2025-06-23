@@ -1,0 +1,14 @@
+environment_name: "test_env"
+tier: 1
+description: "Simple test environment"
+language: "python"
+python_version: "3.8+"
+
+required_libraries: []
+allowed_libraries: []
+
+testing:
+  framework: "pytest"
+  
+code_requirements: {}
+import_guidelines: ""

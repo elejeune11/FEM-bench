@@ -1,0 +1,57 @@
+# Test task for verification function testing
+task_id: "T1_TEST_VERIFY"
+category: "shape_functions"
+subcategory: "linear"
+title: "Simple Linear Function for Testing"
+short_description: "Basic linear function for verification testing"
+
+version: "1.0"
+created_date: "2025-01-01"
+created_by: "test_user"
+
+prompt: |
+  Implement a simple linear function that computes: f(x) = 2*x + 1
+  
+  The function should:
+  - Take a single float parameter x
+  - Return 2*x + 1 as a float
+  - Include unit tests
+
+expected_function_name: "linear_function"
+include_tests: true
+expected_test_functions: ["test_linear_basic", "test_linear_zero"]
+
+function_signature:
+  parameters: ["x"]
+  parameter_types: ["float"]
+  return_shape: "()"
+
+task_dependencies:
+  required_functions: []
+
+reference_solution:
+  code: |
+    def linear_function(x: float) -> float:
+        """Simple linear function: f(x) = 2*x + 1."""
+        return 2.0 * x + 1.0
+
+failure_examples:
+  "wrong_formula": |
+    def linear_function(x: float) -> float:
+        return 3.0 * x + 2.0
+
+reference_verification:
+  test_cases:
+    - input: {"x": 0.0}
+      tolerance: 1e-12
+    - input: {"x": 1.0}
+      tolerance: 1e-12  
+    - input: {"x": -2.5}
+      tolerance: 1e-12
+    - input: {"x": 10.0}
+      tolerance: 1e-10
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "wrong_formula"
+      test_function: "test_linear_basic"

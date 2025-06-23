@@ -1,0 +1,12 @@
+{
+    "function_imports": [
+      "numpy"
+    ],
+    "gauss_quadrature_1D": "import numpy as np\n\ndef gauss_quadrature_1D(n: int):\n    \"\"\"Return Gauss quadrature points and weights for numerical integration over the standard interval [-1, 1].\"\"\"\n    if n == 1:\n        return np.array([0.0]), np.array([2.0])\n    elif n == 2:\n        return np.array([-1/np.sqrt(3), 1/np.sqrt(3)]), np.array([1.0, 1.0])\n    elif n == 3:\n        return np.array([-np.sqrt(3/5), 0, np.sqrt(3/5)]), np.array([5/9, 8/9, 5/9])\n    elif n == 4:\n        return np.array([-np.sqrt(3/7 + 2/7*np.sqrt(6/5)), -np.sqrt(3/7 - 2/7*np.sqrt(6/5)), np.sqrt(3/7 - 2/7*np.sqrt(6/5)), np.sqrt(3/7 + 2/7*np.sqrt(6/5))]), np.array([(18-np.sqrt(30))/36, (18+np.sqrt(30))/36, (18+np.sqrt(30))/36, (18-np.sqrt(30))/36])\n    else:\n        raise NotImplementedError(f\"Gauss quadrature for n={n} is not implemented.\")",
+    "test_imports": [
+      "pytest",
+      "numpy"
+    ],
+    "test_gauss_quadrature_basic_properties": "import numpy as np\n\ndef test_gauss_quadrature_basic_properties():\n    \"\"\"Test basic properties of Gauss quadrature.\n    Checks that weights are positive and that the sum of the weights is 2.\n    \"\"\"\n    from your_module import gauss_quadrature_1D\n    for n in range(1, 5):\n        points, weights = gauss_quadrature_1D(n)\n        assert np.all(weights > 0), f\"Weights are not positive for n={n}\"\n        assert np.isclose(np.sum(weights), 2.0), f\"Sum of weights is not 2 for n={n}\"",
+    "test_gauss_quadrature_polynomial_exactness": "import numpy as np\n\ndef test_gauss_quadrature_polynomial_exactness():\n    \"\"\"Test the exactness of Gauss quadrature for polynomials.\n    Tests up to degree 2n-1.\n    \"\"\"\n    from your_module import gauss_quadrature_1D\n    for n in range(1, 5):\n        points, weights = gauss_quadrature_1D(n)\n        for degree in range(2 * n):\n            # Define the polynomial to integrate\n            def polynomial(x):\n                return x**degree\n\n            # Calculate the integral using Gauss quadrature\n            integral_gauss = np.sum(weights * polynomial(points))\n\n            # Calculate the exact integral\n            integral_exact = (1 if degree == 0 else (2 if degree % 2 == 0 else 0)/(degree + 1)) if degree < 2*n else 0 # correct handling for degree>2n\n\n            assert np.isclose(integral_gauss, integral_exact), f\"Gauss quadrature is not exact for degree={degree}, n={n}. Gauss: {integral_gauss}, Exact: {integral_exact}\""
+  }

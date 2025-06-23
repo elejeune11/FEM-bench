@@ -1,0 +1,84 @@
+# Tier 1 Task Template
+# Filename should match task_id: {task_id}.yaml (e.g., T1_SF_001.yaml)
+# Environment: Uses tier1_standard (see environments/tier1_environment.yaml)
+
+# ============================================================================
+# Task metadata
+# ============================================================================
+task_id: ""                    # Format: T1_{CATEGORY}_{sequential:003d} (e.g., "T1_SF_001", "T1_INT_007")
+category: ""                   # "shape_functions" | "integration" | "assembly" | "mesh" | "boundary_conditions"
+subcategory: ""                # See subcategory options below for each category
+title: ""                     # Human-readable task name
+short_description: ""          # One-line summary for task lists/dashboards
+
+# Organization and maintenance
+version: "1.0"                # Task version for change tracking as needed
+created_date: ""              # YYYY-MM-DD format
+created_by: ""                # GitHub account info of creator, for the template it is elejeune11
+
+# Category abbreviations for task_id:
+# SF=shape_functions, INT=integration, ASM=assembly, MESH=mesh, BC=boundary_conditions
+#
+# Subcategory options by category:
+# shape_functions: "linear" | "quadratic" | "lagrange" | "hermite" | "1d" | "2d"
+# integration: "gauss_quadrature" | "element_integrals" | "mass_matrix" | "stiffness_matrix"  
+# assembly: "global_matrix" | "element_contribution" | "connectivity"
+# mesh: "nodes" | "elements" | "connectivity" | "reference_mapping"
+# boundary_conditions: "dirichlet" | "neumann" | "essential" | "natural"
+
+# ============================================================================
+# Task specification -- note this forms the main LLM prompt
+# ============================================================================
+
+prompt: |
+  # Main task description and unit test requirements for the LLM
+
+expected_function_name: ""     # Primary function name to implement
+include_tests: true            # Require unit tests in implementation
+expected_test_functions: []    # List of test function names (e.g., ["test_property_1", "test_property_2"])
+
+function_signature:
+  parameters: []               # List of parameter names in order
+  parameter_types: []          # Expected types (e.g., "float", "numpy.ndarray")
+  return_shape: ""             # Array shape description (e.g., "(4,)", "(n, 2)", "()")
+
+task_dependencies:
+  required_functions: []       # Functions from previous FEM-bench tasks that MUST be available
+    # Example format (uncomment and modify as needed):
+    #   source_task: "T1_{CATEGORY}_{sequential:003d}"
+    #   source_task: "T1_{CATEGORY}_{sequential:003d}"
+    
+    # For tasks with no dependencies, leave this section empty (no list items)
+
+# ============================================================================
+# Reference solutions and failure examples for evaluation testing
+# ============================================================================
+
+reference_solution:
+  code: |
+    # Gold standard implementation of the main function
+
+failure_examples:
+  # Template format (uncomment and modify as needed):
+  # "error_type_name": |
+  #   # Problematic implementation code here, must be stand alone and match function signature
+  # "another_error_type": |
+  #   # Another problematic implementation, must be stand alone and match function signature
+
+# ============================================================================
+# Evaluation configuration
+# ============================================================================
+
+reference_verification:
+  test_cases: []              # List of inputs to test both reference and LLM implementations
+    # Template format (uncomment and modify as needed):
+    # - input: {}             # Dict of parameter_name: value
+    #   tolerance: 1e-12      # For comparing reference vs LLM outputs, modify as needed
+    # - input: {}             # Another test case
+    #   tolerance: 1e-12      # For comparing reference vs LLM outputs, modify as needed
+
+test_efficacy_verification:
+  expected_failures: []       # Which LLM test functions should catch which failure examples
+    # Template format (uncomment and modify as needed):
+    # - failure_type: "error_type_name"        # Must match key from failure_examples
+    #   test_function: "test_property_1"       # Must match name from expected_test_functions
