@@ -55,7 +55,6 @@ testing:
 code_requirements:
   max_function_length: 1000      # Lines of code
   docstring_required: false
-  type_hints_encouraged: true
   vectorization_preferred: true # Use numpy operations over loops when possible
   
 # Import guidelines
@@ -63,7 +62,6 @@ import_guidelines: |
   Standard imports for all tasks:
   - import numpy as np
   - import pytest
-  - from typing import List, Dict, Tuple, Callable, Any, Optional, Union
   
   Additional imports when needed:
   - import math

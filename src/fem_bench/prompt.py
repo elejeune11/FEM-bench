@@ -47,48 +47,47 @@ def build_dependency_code(task, task_dir=None):
     Build dependency information string by loading YAML files for each dependency.
     
     Args:
-        task: Task object with task_dependencies list
+        task: Task object with task_dependencies dict
         task_dir: Directory to look for task files (optional, defaults to current dir)
         
     Returns:
         Nicely formatted dependency info for the prompt
     """
-    # Check if task has dependencies
-    if not hasattr(task, 'task_dependencies') or not task.task_dependencies:
+    if not task.task_dependencies or "required_functions" not in task.task_dependencies:
         return ""
-    
+
     dependency_sections = []
-    
-    # Process each dependency
-    for dep in task.task_dependencies:
-        # Determine the task file path
-        if task_dir:
-            task_file = Path(task_dir) / f"{dep.source_task}.yaml"
-        else:
-            task_file = Path(f"{dep.source_task}.yaml")
-            
+
+    for dep in task.task_dependencies["required_functions"]:
+        # Use attribute access (not dict) since dep is a TaskDependency model
+        task_file = Path(task_dir or ".") / f"{dep.source_task}.yaml"
         source_task = load_task(task_file)
-        
-        # Extract required information
+
         function_name = source_task.expected_function_name
         description = source_task.short_description
         signature = source_task.function_signature
-        
-        # Build parameter string with types
-        params_with_types = []
-        for param, param_type in zip(signature.parameters, signature.parameter_types):
-            params_with_types.append(f"{param}: {param_type}")
-        
-        # Create full function signature
-        full_signature = f"def {function_name}({', '.join(params_with_types)}) -> {signature.return_shape}"
-        
-        # Format nicely for the prompt
+
+        # Build parameter list: name: type
+        param_strs = [
+            f"{param.name}: {param.type}"
+            for param in signature.input_parameters
+        ]
+
+        # Return type: handle single or multiple return values
+        if len(signature.return_parameters) == 1:
+            return_type = signature.return_parameters[0].type
+        else:
+            return_type = f"Tuple[{', '.join(p.type for p in signature.return_parameters)}]"
+
+        # Full function signature
+        full_signature = f"def {function_name}({', '.join(param_strs)}) -> {return_type}"
+
+        # Format for prompt
         dependency_sections.append(f"**{function_name}** (from {dep.source_task}):")
         dependency_sections.append(f"- Description: {description}")
         dependency_sections.append(f"- Signature: `{full_signature}`")
-        dependency_sections.append("")  # Blank line between dependencies
-    
-    # Join all sections and return
+        dependency_sections.append("")  # blank line
+
     return "\n".join(dependency_sections).strip()
 
 # Original version -- now depreciated
@@ -351,9 +350,29 @@ def _libs_to_markdown(libs, heading: str, *, verbosity: str) -> str:
     return _section(heading, [bullet(lib) for lib in libs])
 
 
-def _dict_to_bullets(d: Dict[str, Any]) -> List[str]:
-    """Turn a shallow dict into `- **key**: value` bullet lines."""
-    return [f"- **{k}**: {v}" for k, v in d.items()]
+def _dict_to_bullets(d: Any, sort_keys: bool = True) -> List[str]:
+    """
+    Convert a shallow dict or Pydantic model into bullet-point lines.
+    Each line is formatted as: - **key**: value
+
+    Parameters:
+        d (dict or Pydantic model): The source data.
+        sort_keys (bool): Whether to sort keys alphabetically.
+
+    Returns:
+        List[str]: A list of bullet lines.
+    """
+    if hasattr(d, "model_dump"):
+        d = d.model_dump()
+
+    if not isinstance(d, dict):
+        raise TypeError(f"_dict_to_bullets expects a dict or Pydantic model, got {type(d)}")
+
+    items = d.items()
+    if sort_keys:
+        items = sorted(items)
+
+    return [f"- **{k}**: {v}" for k, v in items]
 
 
 def _make_task_specific_skeleton(task) -> dict:
@@ -381,7 +400,7 @@ def build_prompt(
 ) -> str:
     """
     Build the LLM prompt for a FEM-bench task, including environment specs,
-    user-supplied description (`task.prompt`), and JSON-format instructions.
+    user-supplied description (`task.prompt_description`), and JSON-format instructions.
     """
     from fem_bench.prompt import build_dependency_code  # local import to avoid cycles
 
@@ -405,11 +424,10 @@ def build_prompt(
         lines.append(_section("Import Guidelines", environment.import_guidelines.strip().splitlines()))
 
     if environment.code_requirements:
-        lines.append(_section("Code Requirements", _dict_to_bullets(environment.code_requirements)))
+        lines.append(_section("Code Requirements", _dict_to_bullets(environment.code_requirements.model_dump())))
 
     if environment.testing:
-        test_lines = _dict_to_bullets(environment.testing)
-        lines.append(_section("Testing Requirements", test_lines))
+        lines.append(_section("Testing Requirements", _dict_to_bullets(environment.testing.model_dump())))
 
     # ── 2. Task dependencies (if any) ─────────────────────────────────────
     dep_block = build_dependency_code(task, task_dir=task_dir)
@@ -418,18 +436,22 @@ def build_prompt(
 
     # ── 3. Task specification ────────────────────────────────────────────
     sig = task.function_signature
-    params = ", ".join(f"{p}: {t}" for p, t in zip(sig.parameters, sig.parameter_types))
+    params = ", ".join(f"{param.name}: {param.type}" for param in sig.input_parameters)
+    if len(sig.return_parameters) == 1:
+        return_type = sig.return_parameters[0].type
+    else:
+        return_type = f"Tuple[{', '.join(p.type for p in sig.return_parameters)}]"
     task_spec = [
         f"**Task**: {task.title}",
         f"**Function**: `{task.expected_function_name}`",
-        f"**Signature**: `def {task.expected_function_name}({params}) -> {sig.return_shape}`",
+        f"**Signature**: `def {task.expected_function_name}({params}) -> {return_type}`",
         task.short_description,
     ]
     lines.append(_section("Task Specification", task_spec))
 
     # ── 4. Main task description (verbatim from YAML) ────────────────────
-    if task.prompt:
-        lines.append(_section("Main Task Description", task.prompt.strip().splitlines()))
+    if task.prompt_description:
+        lines.append(_section("Main Task Description", task.prompt_description.strip().splitlines()))
 
     # ── 5. Output-format rules + JSON skeleton ───────────────────────────
     skeleton_dict = _make_task_specific_skeleton(task)
@@ -443,14 +465,12 @@ def build_prompt(
                 "Example:",
                 f"```json\n{json_example}\n```",
                 _FORMATTING_WARNING,
-                _FORMAT_WINDOWS_LINE_ENDINGS := _FORMATTING_RULES,  # keeps name short below
+                _FORMAT_WINDOWS_LINE_ENDINGS := _FORMATTING_RULES,
             ],
         )
     )
 
-    # ── Final assembly ───────────────────────────────────────────────────
     return "\n".join(filter(None, lines)).rstrip() + "\n"
-
 
 
 # --------------------------------------------------------------------------
@@ -554,7 +574,7 @@ def parse_llm_json_output(json_data: Union[str, Dict[str, Any], Path]) -> Parsed
 
     # ── 2. Validate + normalise import arrays ─────────────────────────────
     function_imports = _ensure_str_list(data.get("function_imports"), "function_imports")
-    test_imports     = _ensure_str_list(data.get("test_imports"),     "test_imports")
+    test_imports = _ensure_str_list(data.get("test_imports"),     "test_imports")
 
     # ── 3. Locate main + test functions ----------------------------------
     main_function_name = None
@@ -850,3 +870,5 @@ def validate_llm_output(json_data: Union[str, Dict, Path], task=None) -> tuple[P
         errors.extend(task_errors)
     
     return parsed_code, errors
+
+

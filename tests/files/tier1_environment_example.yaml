@@ -1,72 +1,60 @@
-# ============================================================================
-# Tier 1 Standard Environment
-# ============================================================================
-
-# This file defines the standardized environment for all Tier 1 tasks
-# Reference this in documentation and evaluation code
-
-environment_name: "tier1_standard"
+environment_name: tier1_standard
 tier: 1
-description: "Foundational FEM concepts using Python scientific stack"
-
-# Language and version
-language: "python"
-python_version: ">=3.8"
-
-# Required libraries (always available)
+description: Foundational FEM concepts using Python scientific stack
+language: python
+python_version: '>=3.8'
 required_libraries:
-  - name: "numpy"
-    version: ">=1.20.0"
-    import_as: "np"
-    purpose: "Numerical computations and arrays"
-  
-  - name: "pytest" 
-    version: ">=6.0.0"
-    import_as: null
-    purpose: "Test framework for LLM-generated tests"
-
-# Allowed libraries (can be used when needed)
+- name: numpy
+  version: '>=1.20.0'
+  import_as: np
+  purpose: Numerical computations and arrays
+- name: pytest
+  version: '>=6.0.0'
+  import_as: null
+  purpose: Test framework for LLM-generated tests
 allowed_libraries:
-  - name: "math"
-    version: "builtin"
-    import_as: null
-    purpose: "Basic mathematical functions (sin, cos, sqrt, etc.)"
-    
-  - name: "scipy"
-    version: ">=1.7.0"
-    import_as: "scipy"
-    purpose: "Advanced numerical methods (sparse matrices, optimization, etc.)"
-    usage: "when_needed"    # Not required by default
-    
-  - name: "matplotlib"
-    version: ">=3.3.0"
-    import_as: "plt"
-    purpose: "Plotting and visualization"
-    usage: "when_needed"    # For tasks that require visualization
-
-# Testing requirements
+- name: math
+  version: builtin
+  import_as: null
+  purpose: Basic mathematical functions (sin, cos, sqrt, etc.)
+- name: scipy
+  version: '>=1.7.0'
+  import_as: scipy
+  purpose: Advanced numerical methods (sparse matrices, optimization, etc.)
+  usage: when_needed
+- name: matplotlib
+  version: '>=3.3.0'
+  import_as: plt
+  purpose: Plotting and visualization
+  usage: when_needed
 testing:
-  framework: "pytest"
-  required_imports: ["numpy as np", "pytest"]
-  allowed_imports: ["math", "scipy", "matplotlib.pyplot as plt"]
-  naming_convention: "test_*"
-  
-# Code requirements  
+  framework: pytest
+  required_imports:
+  - numpy as np
+  - pytest
+  allowed_imports:
+  - math
+  - scipy
+  - matplotlib.pyplot as plt
+  naming_convention: test_*
 code_requirements:
-  max_function_length: 100      # Lines of code
+  max_function_length: 100
   docstring_required: true
-  type_hints_encouraged: true
-  vectorization_preferred: true # Use numpy operations over loops when possible
-  
-# Import guidelines
-import_guidelines: |
-  Standard imports for all tasks:
+  vectorization_preferred: true
+import_guidelines: 'Standard imports for all tasks:
+
   - import numpy as np
+
   - import pytest
-  
+
+
   Additional imports when needed:
+
   - import math
+
   - import scipy
+
   - import matplotlib.pyplot as plt
-  
-  LLMs should only import what they actually use in their implementation.
+
+
+  LLMs should only import what they actually use in their implementation.'

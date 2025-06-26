@@ -1,49 +1,47 @@
-# tests/files/T1_SF_002.yaml
-task_id: "T1_SF_002"
-category: "shape_functions"
-subcategory: "quadratic"
-title: "1D Quadratic Shape Functions"
-short_description: "Compute quadratic shape functions for 1D three-node element"
-version: "1.0"
-created_date: "2025-06-04"
-created_by: "elejeune11"
-prompt: |
-  Implement a function to compute 1D quadratic shape functions for a three-node element.
-  
-  The shape functions should satisfy:
-  - Partition of unity: N1(xi) + N2(xi) + N3(xi) = 1
-  - Interpolation property at nodes xi = -1, 0, 1
-  
-  where xi is the natural coordinate ranging from -1 to 1.
+task_id: T1_SF_002
+category: shape_functions
+subcategory: quadratic
+title: 1D Quadratic Shape Functions
+short_description: Compute quadratic shape functions for 1D three-node element
+version: '1.0'
+created_date: '2025-06-04'
+created_by: elejeune11
+prompt_description: 'Implement a function to compute 1D quadratic shape functions
+  for a three-node element.
 
-expected_function_name: "compute_1d_quadratic_shape_functions"
+
+  The shape functions should satisfy:
+
+  - Partition of unity: N1(xi) + N2(xi) + N3(xi) = 1
+
+  - Interpolation property at nodes xi = -1, 0, 1
+
+
+  where xi is the natural coordinate ranging from -1 to 1.'
+expected_function_name: compute_1d_quadratic_shape_functions
 include_tests: true
 expected_test_functions:
-  - "test_quadratic_partition"
-  - "test_quadratic_interpolation"
-
+- test_quadratic_partition
+- test_quadratic_interpolation
 function_signature:
-  parameters: ["xi"]
-  parameter_types: ["float"]
-  return_shape: "(3,)"
-
+  input_parameters:
+  - name: xi
+    type: float
+    shape: ''
+  return_parameters:
+  - name: N
+    type: numpy.ndarray
+    shape: (3,)
 task_dependencies:
   required_functions:
-    - source_task: "T1_SF_001"
-
+  - function_name: compute_1d_linear_shape_functions
+    source_task: T1_SF_001
 reference_solution:
-  code: |
-    def compute_1d_quadratic_shape_functions(xi):
-        """Compute 1D quadratic shape functions."""
-        N1 = xi * (xi - 1.0) / 2.0
-        N2 = 1.0 - xi * xi
-        N3 = xi * (xi + 1.0) / 2.0
-        return np.array([N1, N2, N3])
-
+  code: "def compute_1d_quadratic_shape_functions(xi):\n    \"\"\"Compute 1D quadratic\
+    \ shape functions.\"\"\"\n    N1 = xi * (xi - 1.0) / 2.0\n    N2 = 1.0 - xi *\
+    \ xi\n    N3 = xi * (xi + 1.0) / 2.0\n    return np.array([N1, N2, N3])"
 failure_examples: {}
-
 reference_verification:
   test_cases: []
-
 test_efficacy_verification:
   expected_failures: []

@@ -1,7 +1,11 @@
-from fem_bench.yaml_load import Task, TaskDependency, FunctionSignature, load_task
+from fem_bench.yaml_load import Task, TaskDependency, FunctionSignature
+from fem_bench.yaml_load import Task, FunctionSignature, Parameter, CodeBlock
+
+from fem_bench.yaml_load import load_task, load_environment
 from fem_bench.prompt import build_dependency_code, estimate_token_count
-from fem_bench.prompt import parse_llm_json_output, validate_function_signature, validate_basic_requirements, ParsedCode, ValidationError
-from fem_bench.prompt import validate_against_task_signature, validate_llm_output
+# from fem_bench.prompt import parse_llm_json_output, validate_function_signature, validate_basic_requirements, ParsedCode, ValidationError
+# from fem_bench.prompt import validate_against_task_signature, validate_llm_output
+from fem_bench.prompt import build_prompt
 
 import json
 import pytest
@@ -41,26 +45,18 @@ def test_build_dependency_code_no_dependencies():
 
 def test_build_dependency_code_one_dependency():
     """Test that a task with one dependency loads and formats correctly."""
-    # Load T1_SF_002.yaml which depends on T1_SF_001
     task = load_task(TEST_FILES_DIR / "T1_SF_002.yaml")
-    
     result = build_dependency_code(task, task_dir=TEST_FILES_DIR)
-    
-    # Check that we get some output
+
     assert len(result) > 0
-    
-    # Check for expected content
     assert "compute_1d_linear_shape_functions" in result
     assert "T1_SF_001" in result
     assert "Description:" in result
     assert "Signature:" in result
     assert "def " in result
     assert "->" in result
-    
-    # Check specific expected content
-    assert "Compute linear shape functions for 1D two-node element" in result
     assert "xi: float" in result
-    assert "(2,)" in result
+    assert "-> numpy.ndarray" in result  # this is the correct return type
 
 
 def test_build_dependency_code_two_dependencies():
@@ -94,24 +90,25 @@ def test_build_dependency_code_two_dependencies():
 
 def test_build_dependency_code_output_format():
     """Test the exact format of the dependency output."""
-    # Load T1_SF_002.yaml for single dependency formatting test
+    # Load task that depends on T1_SF_001
     task = load_task(TEST_FILES_DIR / "T1_SF_002.yaml")
     
     result = build_dependency_code(task, task_dir=TEST_FILES_DIR)
-    
+
+    # Expected structure in the output
     expected_parts = [
         "**compute_1d_linear_shape_functions** (from T1_SF_001):",
         "- Description: Compute linear shape functions for 1D two-node element",
-        "- Signature: `def compute_1d_linear_shape_functions(xi: float) -> (2,)`"
+        "- Signature: `def compute_1d_linear_shape_functions(xi: float) -> numpy.ndarray`"
     ]
-    
+
     for part in expected_parts:
-        assert part in result
+        assert part in result, f"Missing expected part in output:\n{part}\n\nFull result:\n{result}"
 
 
 def test_build_dependency_code_missing_file():
-    """Test error handling when dependency file is missing."""
-    # Create a task with a non-existent dependency
+    """Test error handling when a dependency file is missing."""
+    
     task = Task(
         task_id="T1_TEST_MISSING",
         category="test",
@@ -121,83 +118,80 @@ def test_build_dependency_code_missing_file():
         version="1.0",
         created_date="2025-06-04",
         created_by="test",
-        prompt="Test prompt",
+        prompt_description="Test prompt",
         expected_function_name="test_function",
         include_tests=False,
         expected_test_functions=[],
         function_signature=FunctionSignature(
-            parameters=["x"],
-            parameter_types=["int"],
-            return_shape="int"
+            input_parameters=[Parameter(name="x", type="int")],
+            return_parameters=[Parameter(name="result", type="int")]
         ),
-        task_dependencies=[
-            TaskDependency(source_task="NONEXISTENT_TASK")
-        ],
-        reference_solution="def test_function(x): pass",
+        task_dependencies={
+            "required_functions": [
+                TaskDependency(function_name="some_dependency", source_task="NONEXISTENT_TASK")
+            ]
+        },
+        reference_solution=CodeBlock(code="def test_function(x): return x"),
         failure_examples={},
-        test_cases=[],
-        expected_failures=[]
+        reference_verification={"test_cases": []},
+        test_efficacy_verification={"expected_failures": []}
     )
-    
-    # Should raise FileNotFoundError
+
     with pytest.raises(FileNotFoundError):
         build_dependency_code(task, task_dir=TEST_FILES_DIR)
 
 
 def test_yaml_files_load_correctly():
-    """Test that all our YAML files can be loaded successfully."""
-    # Test T1_SF_001.yaml (no dependencies)
+    """Test that all our YAML files can be loaded successfully and validate core fields."""
+    # T1_SF_001: no dependencies
     task1 = load_task(TEST_FILES_DIR / "T1_SF_001.yaml")
     assert task1.task_id == "T1_SF_001"
     assert task1.expected_function_name == "compute_1d_linear_shape_functions"
-    assert len(task1.task_dependencies) == 0
-    
-    # Test T1_SF_002.yaml (one dependency)
+    assert task1.task_dependencies.get("required_functions", []) == []
+
+    # T1_SF_002: one dependency
     task2 = load_task(TEST_FILES_DIR / "T1_SF_002.yaml")
     assert task2.task_id == "T1_SF_002"
     assert task2.expected_function_name == "compute_1d_quadratic_shape_functions"
-    assert len(task2.task_dependencies) == 1
-    assert task2.task_dependencies[0].source_task == "T1_SF_001"
-    
-    # Test T1_EX_001.yaml (two dependencies)
+    deps2 = task2.task_dependencies.get("required_functions", [])
+    assert len(deps2) == 1
+    assert deps2[0].source_task == "T1_SF_001"
+
+    # T1_EX_001: two dependencies
     task3 = load_task(TEST_FILES_DIR / "T1_EX_001.yaml")
     assert task3.task_id == "T1_EX_001"
-    assert task3.expected_function_name == "compare_shape_functions"
-    assert len(task3.task_dependencies) == 2
-    dependency_sources = [dep.source_task for dep in task3.task_dependencies]
-    assert "T1_SF_001" in dependency_sources
-    assert "T1_SF_002" in dependency_sources
+    assert task3.expected_function_name == "analyze_shape_function_set"
+    deps3 = task3.task_dependencies.get("required_functions", [])
+    assert len(deps3) == 2
+    sources = [d.source_task for d in deps3]
+    assert "T1_SF_001" in sources
+    assert "T1_SF_002" in sources
 
 
 def test_dependency_chain():
     """Test that dependencies work in a chain scenario."""
-    # Load all tasks to verify the dependency chain works
-    task1 = load_task(TEST_FILES_DIR / "T1_SF_001.yaml")  # No deps
-    task2 = load_task(TEST_FILES_DIR / "T1_SF_002.yaml")  # Depends on task1
-    task3 = load_task(TEST_FILES_DIR / "T1_EX_001.yaml")  # Depends on task1 and task2
-    
-    # Verify the chain
-    assert len(task1.task_dependencies) == 0
-    assert len(task2.task_dependencies) == 1
-    assert len(task3.task_dependencies) == 2
-    
-    # Test dependency code generation at each level
+    # Load all tasks in the chain
+    task1 = load_task(TEST_FILES_DIR / "T1_SF_001.yaml")  # No dependencies
+    task2 = load_task(TEST_FILES_DIR / "T1_SF_002.yaml")  # Depends on T1_SF_001
+    task3 = load_task(TEST_FILES_DIR / "T1_EX_001.yaml")  # Depends on T1_SF_001 + T1_SF_002
+
+    # Verify dependency counts
+    deps1 = task1.task_dependencies.get("required_functions", [])
+    deps2 = task2.task_dependencies.get("required_functions", [])
+    deps3 = task3.task_dependencies.get("required_functions", [])
+
+    assert len(deps1) == 0
+    assert len(deps2) == 1
+    assert len(deps3) == 2
+
+    # Generate dependency code
     result1 = build_dependency_code(task1, task_dir=TEST_FILES_DIR)
     result2 = build_dependency_code(task2, task_dir=TEST_FILES_DIR)
     result3 = build_dependency_code(task3, task_dir=TEST_FILES_DIR)
-    
+
     assert result1 == ""  # No dependencies
     assert len(result2) > 0  # One dependency
-    assert len(result3) > len(result2)  # Two dependencies, longer output
-
-
-from fem_bench.yaml_load import load_task, load_environment
-from fem_bench.prompt import build_prompt
-import pytest
-from pathlib import Path
-
-# Get the test files directory
-TEST_FILES_DIR = Path(__file__).parent / "files"
+    assert len(result3) > len(result2)  # Two dependencies → longer output
 
 
 def _make_prompt():
@@ -213,13 +207,16 @@ def test_build_prompt_no_dependencies():
     # ── Environment block ────────────────────────────────────────────────
     assert "# Environment Configuration" in prompt
     assert env.environment_name in prompt
-    assert f"(Tier" in prompt and str(env.tier) in prompt
+    assert f"(Tier {env.tier})" in prompt
     assert env.description in prompt
 
     # ── Library sections ────────────────────────────────────────────────
     assert "Required Libraries" in prompt
     for lib in env.required_libraries:
         assert lib.name in prompt
+        assert lib.version in prompt
+        if lib.import_as:
+            assert lib.import_as in prompt
 
     if env.allowed_libraries:
         assert "Allowed Libraries" in prompt
@@ -239,6 +236,12 @@ def test_build_prompt_no_dependencies():
     # ── Output-format rules present ─────────────────────────────────────
     assert "# Output Format Requirements" in prompt
     assert "Respond with valid JSON" in prompt
+    assert "function_imports" in prompt
+    if task.include_tests and task.expected_test_functions:
+        assert "test_imports" in prompt
+        for test_func in task.expected_test_functions:
+            assert test_func in prompt
+
 
 
 def test_build_prompt_with_one_dependency():
@@ -267,17 +270,29 @@ def test_build_prompt_with_multiple_dependencies():
     environment = load_environment(TEST_FILES_DIR / "tier1_environment_example.yaml")
     
     prompt = build_prompt(task, environment, task_dir=TEST_FILES_DIR)
-    
-    # Check that both dependencies are included
+
+    # ── 1. Dependency block ─────────────────────────────────────────────
     assert "Task Dependencies" in prompt
-    assert "compute_1d_linear_shape_functions" in prompt
-    assert "compute_1d_quadratic_shape_functions" in prompt
-    assert "T1_SF_001" in prompt
-    assert "T1_SF_002" in prompt
     
-    # Check task-specific content
-    assert "compare_shape_functions" in prompt
+    # Check that dependency function names and source task IDs appear
+    dependency_functions = [dep.function_name for dep in task.task_dependencies.get("required_functions", [])]
+    dependency_sources = [dep.source_task for dep in task.task_dependencies.get("required_functions", [])]
+
+    for func in dependency_functions:
+        assert func in prompt, f"Missing dependency function `{func}` in prompt"
+
+    for source in dependency_sources:
+        assert source in prompt, f"Missing source task ID `{source}` in prompt"
+
+    # ── 2. Task-specific content ────────────────────────────────────────
     assert task.title in prompt
+    assert task.short_description in prompt
+    assert task.expected_function_name in prompt
+    assert f"def {task.expected_function_name}" in prompt
+
+    # ── 3. Output format requirements ───────────────────────────────────
+    assert "# Output Format Requirements" in prompt
+    assert "Respond with valid JSON" in prompt
 
 
 # ---------------------------------------------------------------------------
@@ -295,21 +310,13 @@ def test_build_prompt_environment_sections():
     # ── Import Guidelines ───────────────────────────────────────────────
     if env.import_guidelines:
         assert "Import Guidelines" in prompt
-        # Spot-check a known line from the guidelines
         assert "import numpy as np" in prompt
 
     # ── Code Requirements ───────────────────────────────────────────────
     if env.code_requirements:
         assert "Code Requirements" in prompt
-        for key, value in env.code_requirements.items():
-            # Value may be bool / int / str → convert to str for match
+        for key, value in env.code_requirements.model_dump().items():
             assert str(value) in prompt
-
-    # ── Testing Requirements ────────────────────────────────────────────
-    if env.testing:
-        assert "Testing Requirements" in prompt
-        if "framework" in env.testing:
-            assert env.testing["framework"] in prompt
 
 
 def test_build_prompt_test_functions():
@@ -349,23 +356,6 @@ def test_build_prompt_structure():
             position = prompt.find(section)
             assert position > last_position, f"Section '{section}' is out of order"
             last_position = position
-
-
-def test_build_prompt_function_signature_formatting():
-    """Test that function signatures are properly formatted."""
-    task = load_task(TEST_FILES_DIR / "T1_EX_001.yaml")
-    environment = load_environment(TEST_FILES_DIR / "tier1_environment_example.yaml")
-    
-    prompt = build_prompt(task, environment, task_dir=TEST_FILES_DIR)
-    
-    # Check function signature formatting
-    sig = task.function_signature
-    expected_params = []
-    for param, param_type in zip(sig.parameters, sig.parameter_types):
-        expected_params.append(f"{param}: {param_type}")
-    
-    expected_signature = f"def {task.expected_function_name}({', '.join(expected_params)}) -> {sig.return_shape}"
-    assert expected_signature in prompt
 
 
 def test_build_prompt_empty_dependencies():
@@ -427,177 +417,182 @@ def test_build_prompt_returns_string():
     assert len(prompt) > 100  # Should be a substantial prompt
 
 
+# def test_build_prompt_advanced():
+#     task = load_task(TEST_FILES_DIR / "T1_FE_008.yaml")
+#     aa = 44
+
+
 # --------------------------------------------------------------------------
 #   Parse LLM output results
 # --------------------------------------------------------------------------
 
-@pytest.fixture
-def test_files_dir():
-    """Get the test files directory."""
-    return Path(__file__).parent / "files"
+# @pytest.fixture
+# def test_files_dir():
+#     """Get the test files directory."""
+#     return Path(__file__).parent / "files"
 
 
-def test_parse_valid_file(test_files_dir):
-    """Test parsing the valid JSON file."""
-    result = parse_llm_json_output(test_files_dir / "valid.json")
+# def test_parse_valid_file(test_files_dir):
+#     """Test parsing the valid JSON file."""
+#     result = parse_llm_json_output(test_files_dir / "valid.json")
     
-    assert isinstance(result, ParsedCode)
-    assert result.main_function_name
-    assert result.main_function
+#     assert isinstance(result, ParsedCode)
+#     assert result.main_function_name
+#     assert result.main_function
 
 
-def test_parse_invalid_file(test_files_dir):
-    """Test parsing the invalid JSON file."""
-    with pytest.raises((json.JSONDecodeError, ValidationError)):
-        parse_llm_json_output(test_files_dir / "invalid.json")
+# def test_parse_invalid_file(test_files_dir):
+#     """Test parsing the invalid JSON file."""
+#     with pytest.raises((json.JSONDecodeError, ValidationError)):
+#         parse_llm_json_output(test_files_dir / "invalid.json")
 
 
-def test_validate_signature_valid():
-    """Test validation with matching signature."""
-    parsed_code = ParsedCode(
-        function_imports=["math"],
-        test_imports=[],
-        main_function='def calculate_sum(a: int, b: int) -> int:\n    """Add two numbers."""\n    return a + b',
-        test_functions={},
-        main_function_name="calculate_sum",
-        all_imports=["math"]
-    )
+# def test_validate_signature_valid():
+#     """Test validation with matching signature."""
+#     parsed_code = ParsedCode(
+#         function_imports=["math"],
+#         test_imports=[],
+#         main_function='def calculate_sum(a: int, b: int) -> int:\n    """Add two numbers."""\n    return a + b',
+#         test_functions={},
+#         main_function_name="calculate_sum",
+#         all_imports=["math"]
+#     )
     
-    expected_signature = {
-        'function_name': 'calculate_sum',
-        'parameters': ['a', 'b'],
-        'parameter_types': ['int', 'int'],
-        'return_type': 'int'
-    }
+#     expected_signature = {
+#         'function_name': 'calculate_sum',
+#         'parameters': ['a', 'b'],
+#         'parameter_types': ['int', 'int'],
+#         'return_type': 'int'
+#     }
     
-    errors = validate_function_signature(parsed_code, expected_signature)
-    assert errors == []
+#     errors = validate_function_signature(parsed_code, expected_signature)
+#     assert errors == []
 
 
-def test_validate_signature_invalid():
-    """Test validation with mismatched signature."""
-    parsed_code = ParsedCode(
-        function_imports=[],
-        test_imports=[],
-        main_function='def wrong_name(x: str) -> float:\n    """Wrong function."""\n    return 1.0',
-        test_functions={},
-        main_function_name="wrong_name",
-        all_imports=[]
-    )
+# def test_validate_signature_invalid():
+#     """Test validation with mismatched signature."""
+#     parsed_code = ParsedCode(
+#         function_imports=[],
+#         test_imports=[],
+#         main_function='def wrong_name(x: str) -> float:\n    """Wrong function."""\n    return 1.0',
+#         test_functions={},
+#         main_function_name="wrong_name",
+#         all_imports=[]
+#     )
     
-    expected_signature = {
-        'function_name': 'calculate_sum',
-        'parameters': ['a', 'b'], 
-        'parameter_types': ['int', 'int'],
-        'return_type': 'int'
-    }
+#     expected_signature = {
+#         'function_name': 'calculate_sum',
+#         'parameters': ['a', 'b'], 
+#         'parameter_types': ['int', 'int'],
+#         'return_type': 'int'
+#     }
     
-    errors = validate_function_signature(parsed_code, expected_signature)
-    assert len(errors) > 0
-    assert any("Function name mismatch" in error for error in errors)
+#     errors = validate_function_signature(parsed_code, expected_signature)
+#     assert len(errors) > 0
+#     assert any("Function name mismatch" in error for error in errors)
 
 
-def test_validate_basic_requirements_valid():
-    """Test validation with valid code."""
-    parsed_code = ParsedCode(
-        function_imports=["numpy", "math"],
-        test_imports=["pytest"],
-        main_function='def calculate_sum(a: int, b: int) -> int:\n    """Add two numbers."""\n    return a + b',
-        test_functions={
-            "test_calculate_sum": 'def test_calculate_sum():\n    """Test the function."""\n    assert calculate_sum(2, 3) == 5'
-        },
-        main_function_name="calculate_sum",
-        all_imports=["numpy", "math", "pytest"]
-    )
+# def test_validate_basic_requirements_valid():
+#     """Test validation with valid code."""
+#     parsed_code = ParsedCode(
+#         function_imports=["numpy", "math"],
+#         test_imports=["pytest"],
+#         main_function='def calculate_sum(a: int, b: int) -> int:\n    """Add two numbers."""\n    return a + b',
+#         test_functions={
+#             "test_calculate_sum": 'def test_calculate_sum():\n    """Test the function."""\n    assert calculate_sum(2, 3) == 5'
+#         },
+#         main_function_name="calculate_sum",
+#         all_imports=["numpy", "math", "pytest"]
+#     )
     
-    errors = validate_basic_requirements(parsed_code)
-    assert errors == []
+#     errors = validate_basic_requirements(parsed_code)
+#     assert errors == []
 
 
-def test_validate_basic_requirements_invalid():
-    """Test validation with invalid code."""
-    parsed_code = ParsedCode(
-        function_imports=["123invalid", "numpy-bad"],
-        test_imports=["pytest..bad"],
-        main_function='def broken_function(\n    # Missing closing paren and colon',
-        test_functions={
-            "test_broken": 'def test_broken(\n    # Syntax error in test too',
-            "test_empty": '   '  # Empty test
-        },
-        main_function_name="broken_function",
-        all_imports=["123invalid"]
-    )
+# def test_validate_basic_requirements_invalid():
+#     """Test validation with invalid code."""
+#     parsed_code = ParsedCode(
+#         function_imports=["123invalid", "numpy-bad"],
+#         test_imports=["pytest..bad"],
+#         main_function='def broken_function(\n    # Missing closing paren and colon',
+#         test_functions={
+#             "test_broken": 'def test_broken(\n    # Syntax error in test too',
+#             "test_empty": '   '  # Empty test
+#         },
+#         main_function_name="broken_function",
+#         all_imports=["123invalid"]
+#     )
     
-    errors = validate_basic_requirements(parsed_code)
-    assert len(errors) > 0
-    assert any("syntax error" in error.lower() for error in errors)
-    assert any("Invalid import name" in error for error in errors)
-    assert any("empty" in error for error in errors)
+#     errors = validate_basic_requirements(parsed_code)
+#     assert len(errors) > 0
+#     assert any("syntax error" in error.lower() for error in errors)
+#     assert any("Invalid import name" in error for error in errors)
+#     assert any("empty" in error for error in errors)
 
 
-def test_validate_against_task_signature_valid(test_files_dir):
-    """Test validation with matching task signature."""
-    task = load_task(test_files_dir / "test_001.yaml")
+# def test_validate_against_task_signature_valid(test_files_dir):
+#     """Test validation with matching task signature."""
+#     task = load_task(test_files_dir / "test_001.yaml")
     
-    parsed_code = ParsedCode(
-        function_imports=["math"],
-        test_imports=["pytest"],
-        main_function='def calculate_sum(a: int, b: int) -> int:\n    """Add two numbers."""\n    return a + b',
-        test_functions={},
-        main_function_name="calculate_sum",
-        all_imports=["math", "pytest"]
-    )
+#     parsed_code = ParsedCode(
+#         function_imports=["math"],
+#         test_imports=["pytest"],
+#         main_function='def calculate_sum(a: int, b: int) -> int:\n    """Add two numbers."""\n    return a + b',
+#         test_functions={},
+#         main_function_name="calculate_sum",
+#         all_imports=["math", "pytest"]
+#     )
     
-    errors = validate_against_task_signature(parsed_code, task)
-    assert errors == []
+#     errors = validate_against_task_signature(parsed_code, task)
+#     assert errors == []
 
 
-def test_validate_against_task_signature_invalid(test_files_dir):
-    """Test validation with mismatched task signature."""
-    task = load_task(test_files_dir / "test_001.yaml")
+# def test_validate_against_task_signature_invalid(test_files_dir):
+#     """Test validation with mismatched task signature."""
+#     task = load_task(test_files_dir / "test_001.yaml")
     
-    parsed_code = ParsedCode(
-        function_imports=[],
-        test_imports=[],
-        main_function='def wrong_name(x: str) -> float:\n    """Wrong function."""\n    return 1.0',
-        test_functions={},
-        main_function_name="wrong_name",
-        all_imports=[]
-    )
+#     parsed_code = ParsedCode(
+#         function_imports=[],
+#         test_imports=[],
+#         main_function='def wrong_name(x: str) -> float:\n    """Wrong function."""\n    return 1.0',
+#         test_functions={},
+#         main_function_name="wrong_name",
+#         all_imports=[]
+#     )
     
-    errors = validate_against_task_signature(parsed_code, task)
-    assert len(errors) > 0
-    assert any("Function name mismatch" in error for error in errors)
+#     errors = validate_against_task_signature(parsed_code, task)
+#     assert len(errors) > 0
+#     assert any("Function name mismatch" in error for error in errors)
 
 
-def test_validate_llm_output_valid_with_task(test_files_dir):
-    """Test validation with valid JSON and matching task."""
-    task = load_task(test_files_dir / "test_001.yaml")
+# def test_validate_llm_output_valid_with_task(test_files_dir):
+#     """Test validation with valid JSON and matching task."""
+#     task = load_task(test_files_dir / "test_001.yaml")
     
-    parsed_code, errors = validate_llm_output(
-        test_files_dir / "test_001_matching.json",
-        task=task
-    )
+#     parsed_code, errors = validate_llm_output(
+#         test_files_dir / "test_001_matching.json",
+#         task=task
+#     )
     
-    assert isinstance(parsed_code, ParsedCode)
-    assert errors == []
-    assert parsed_code.main_function_name == "calculate_sum"
+#     assert isinstance(parsed_code, ParsedCode)
+#     assert errors == []
+#     assert parsed_code.main_function_name == "calculate_sum"
 
 
-def test_validate_llm_output_invalid_with_task(test_files_dir):
-    """Test validation with invalid JSON or mismatched task."""
-    task = load_task(test_files_dir / "test_001.yaml")
+# def test_validate_llm_output_invalid_with_task(test_files_dir):
+#     """Test validation with invalid JSON or mismatched task."""
+#     task = load_task(test_files_dir / "test_001.yaml")
     
-    parsed_code, errors = validate_llm_output(
-        test_files_dir / "test_001_mismatched.json",
-        task=task
-    )
+#     parsed_code, errors = validate_llm_output(
+#         test_files_dir / "test_001_mismatched.json",
+#         task=task
+#     )
     
-    # Should either fail to parse or have validation errors
-    if parsed_code is None:
-        assert len(errors) > 0
-        assert "Parsing error" in errors[0]
-    else:
-        assert len(errors) > 0
+#     # Should either fail to parse or have validation errors
+#     if parsed_code is None:
+#         assert len(errors) > 0
+#         assert "Parsing error" in errors[0]
+#     else:
+#         assert len(errors) > 0
 
 

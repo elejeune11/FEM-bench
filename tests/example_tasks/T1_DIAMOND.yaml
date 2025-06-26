@@ -1,39 +1,36 @@
-task_id: "T1_DIAMOND"
-category: "test"
-subcategory: "diamond"
-title: "Diamond Dependencies"
-short_description: "Diamond: T1_DIAMOND → T1_DIAMOND_B, T1_DIAMOND_C; both → T1_LEAF_D"
-version: "1.0"
-created_date: "2025-01-01"
-created_by: "test_suite"
-
-prompt: "Implement function with diamond dependency pattern."
-expected_function_name: "diamond_function"
+task_id: T1_DIAMOND
+category: test
+subcategory: diamond
+title: Diamond Dependencies
+short_description: "Diamond: T1_DIAMOND \u2192 T1_DIAMOND_B, T1_DIAMOND_C; both \u2192\
+  \ T1_LEAF_D"
+version: '1.0'
+created_date: '2025-01-01'
+created_by: test_suite
+prompt_description: Implement function with diamond dependency pattern.
+expected_function_name: diamond_function
 include_tests: true
-expected_test_functions: ["test_diamond"]
-
+expected_test_functions:
+- test_diamond
 function_signature:
-  parameters: ["x"]
-  parameter_types: ["float"]
-  return_shape: "float"
-
+  input_parameters: []
+  return_parameters:
+  - name: result
+    type: Any
+    shape: ''
 task_dependencies:
   required_functions:
-    - source_task: "T1_DIAMOND_B"
-    - source_task: "T1_DIAMOND_C"
-
+    required_functions:
+      required_functions:
+      - source_task: T1_DIAMOND_B
+      - source_task: T1_DIAMOND_C
 reference_solution:
-  code: |
-    def diamond_function(x: float) -> float:
-        """Diamond function with shared dependency."""
-        return diamond_left(x) * diamond_right(x)
-
+  code:
+    code:
+      code: "def diamond_function(x: float) -> float:\n    \"\"\"Diamond function\
+        \ with shared dependency.\"\"\"\n    return diamond_left(x) * diamond_right(x)\n"
 failure_examples: {}
-
 reference_verification:
-  test_cases:
-    - input: {"x": 2.0}
-      tolerance: 1e-12
-
+  test_cases: []
 test_efficacy_verification:
   expected_failures: []

@@ -1,37 +1,34 @@
-task_id: "T1_NO_DEPS"
-category: "test"
-subcategory: "isolated"
-title: "No Dependencies"
-short_description: "Standalone task with no dependencies"
-version: "1.0"
-created_date: "2025-01-01"
-created_by: "test_suite"
-
-prompt: "Implement a standalone function."
-expected_function_name: "standalone_function"
+task_id: T1_NO_DEPS
+category: test
+subcategory: isolated
+title: No Dependencies
+short_description: Standalone task with no dependencies
+version: '1.0'
+created_date: '2025-01-01'
+created_by: test_suite
+prompt_description: Implement a standalone function.
+expected_function_name: standalone_function
 include_tests: true
-expected_test_functions: ["test_standalone"]
-
+expected_test_functions:
+- test_standalone
 function_signature:
-  parameters: ["x"]
-  parameter_types: ["float"]
-  return_shape: "float"
-
+  input_parameters:
+  - name: x
+    type: float
+    shape: ''
+  return_parameters:
+  - name: result
+    type: float
+    shape: float
 task_dependencies:
-  required_functions: []
-
+  required_functions:
+    required_functions: []
 reference_solution:
-  code: |
-    def standalone_function(x: float) -> float:
-        """Standalone function."""
-        return x * 5.0
-
+  code:
+    code: "def standalone_function(x: float) -> float:\n    \"\"\"Standalone function.\"\
+      \"\"\n    return x * 5.0\n"
 failure_examples: {}
-
 reference_verification:
-  test_cases:
-    - input: {"x": 1.0}
-      tolerance: 1e-12
-
+  test_cases: []
 test_efficacy_verification:
   expected_failures: []

@@ -1,58 +1,55 @@
 task_id: "T1_EX_001"
-category: "examples"
-subcategory: "multi_dependency"
-title: "Shape Function Comparison Example"
-short_description: "Compare different shape functions for analysis"
+category: "shape_functions"
+subcategory: "composite"
+title: "Multi-Element Shape Function Analysis"
+short_description: "Analyze shape functions using two dependency functions"
 version: "1.0"
-created_date: "2025-06-04"
+created_date: "2025-06-23"
 created_by: "elejeune11"
 
-prompt: |
-  Implement a function that compares linear and quadratic shape functions.
-  
-  This function should:
-  - Use both linear and quadratic shape functions from previous tasks
-  - Evaluate them at given points
-  - Return a comparison analysis
-  
-  The function demonstrates how to combine results from multiple dependency functions.
+prompt_description: |
+  Implement a function that combines or analyzes results from 1D linear and quadratic shape functions.
 
-expected_function_name: "compare_shape_functions"
+  You may call `compute_1d_linear_shape_functions` and `compute_1d_quadratic_shape_functions`
+  from your implementation.
+
+expected_function_name: "analyze_shape_function_set"
 include_tests: true
 expected_test_functions:
-  - "test_comparison_at_zero"
-  - "test_comparison_consistency"
+  - "test_linear_usage"
+  - "test_quadratic_usage"
 
 function_signature:
-  parameters: ["xi", "analysis_type"]
-  parameter_types: ["float", "str"]
-  return_shape: "dict"
+  input_parameters:
+    - name: "xi"
+      type: "float"
+      shape: ""
+    - name: "analysis_type"
+      type: "str"
+      shape: ""
+  return_parameters:
+    - name: "results"
+      type: "dict"
+      shape: ""
 
 task_dependencies:
   required_functions:
-    - source_task: "T1_SF_001"
-    - source_task: "T1_SF_002"
+    - function_name: "compute_1d_linear_shape_functions"
+      source_task: "T1_SF_001"
+    - function_name: "compute_1d_quadratic_shape_functions"
+      source_task: "T1_SF_002"
 
 reference_solution:
   code: |
-    def compare_shape_functions(xi, analysis_type="basic"):
-        """Compare linear and quadratic shape functions."""
-        linear_funcs = compute_1d_linear_shape_functions(xi)
-        quadratic_funcs = compute_1d_quadratic_shape_functions(xi)
-        
-        if analysis_type == "basic":
-            return {
-                "linear": linear_funcs.tolist(),
-                "quadratic": quadratic_funcs.tolist(),
-                "xi": xi
-            }
-        elif analysis_type == "difference":
-            return {
-                "max_difference": np.max(np.abs(quadratic_funcs[:2] - linear_funcs)),
-                "xi": xi
-            }
+    def analyze_shape_function_set(xi, analysis_type):
+        linear = compute_1d_linear_shape_functions(xi)
+        quadratic = compute_1d_quadratic_shape_functions(xi)
+        if analysis_type == "max":
+            return {"linear_max": float(max(linear)), "quadratic_max": float(max(quadratic))}
+        elif analysis_type == "sum":
+            return {"linear_sum": float(sum(linear)), "quadratic_sum": float(sum(quadratic))}
         else:
-            return {"error": "Unknown analysis type"}
+            return {"linear": linear.tolist(), "quadratic": quadratic.tolist()}
 
 failure_examples: {}
 

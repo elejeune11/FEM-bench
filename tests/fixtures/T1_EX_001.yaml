@@ -1,0 +1,73 @@
+task_id: "T1_EX_001"
+category: "example"
+subcategory: "basic"
+title: "Example Task"
+short_description: "This is a basic example task."
+
+version: "1.0"
+created_date: "2025-06-23"
+created_by: "example_user"
+
+prompt_description: |
+  Implement an example function that adds two numbers.
+
+expected_function_name: "add_two_numbers"
+
+function_signature:
+  input_parameters:
+    - name: "param1"
+      type: "float"
+      shape: ""
+    - name: "param2"
+      type: "numpy.ndarray"
+      shape: "(2,)"
+
+  return_parameters:
+    - name: "result"
+      type: "numpy.ndarray"
+      shape: "(2,)"
+
+include_tests: true
+expected_test_functions:
+  - "test_add_two_numbers"
+
+task_dependencies:
+  required_functions: []
+
+reference_solution:
+  code: |
+    def add_two_numbers(param1, param2):
+        import numpy as np
+        return np.array([param1 + v for v in param2])
+
+failure_examples:
+  incorrect_loop:
+    code: |
+      def add_two_numbers(param1, param2):
+          for i in range(len(param2)):
+              pass  # no actual addition
+
+  wrong_shape:
+    code: |
+      def add_two_numbers(param1, param2):
+          return param1 + param2.T
+
+reference_verification:
+  test_cases:
+    - input:
+        param1: 1.0
+        param2: [1.0, 2.0]
+      tolerance: 1e-12
+
+    - input:
+        param1: 0.0
+        param2: [0.0, 1.0]
+      tolerance: 1e-10
+
+test_efficacy_verification:
+  expected_failures:
+    - failure_type: "incorrect_loop"
+      test_function: "test_loop_logic"
+
+    - failure_type: "wrong_shape"
+      test_function: "test_shape_consistency"

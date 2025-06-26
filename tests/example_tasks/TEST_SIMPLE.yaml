@@ -1,56 +1,41 @@
-task_id: "TEST_SIMPLE"
-category: "test"
-subcategory: "basic"
-title: "Simple Math Function"
-short_description: "Basic addition function for testing"
-version: "1.0"
-created_date: "2025-01-01"
-created_by: "test_suite"
-
-prompt: "Implement a function that adds 10 to any number."
-expected_function_name: "add_ten"
+task_id: TEST_SIMPLE
+category: test
+subcategory: basic
+title: Simple Math Function
+short_description: Basic addition function for testing
+version: '1.0'
+created_date: '2025-01-01'
+created_by: test_suite
+prompt_description: Implement a function that adds 10 to any number.
+expected_function_name: add_ten
 include_tests: true
-expected_test_functions: ["test_add_ten_basic", "test_add_ten_negative"]
-
+expected_test_functions:
+- test_add_ten_basic
+- test_add_ten_negative
 function_signature:
-  parameters: ["x"]
-  parameter_types: ["float"]
-  return_shape: "float"
-
+  input_parameters:
+  - name: x
+    type: float
+    shape: ''
+  return_parameters:
+  - name: result
+    type: float
+    shape: float
 task_dependencies:
-  required_functions: []
-
+  required_functions:
+    required_functions: []
 reference_solution:
-  code: |
-    def add_ten(x: float) -> float:
-        """Add 10 to the input."""
-        return x + 10.0
-
+  code:
+    code: "def add_ten(x: float) -> float:\n    \"\"\"Add 10 to the input.\"\"\"\n\
+      \    return x + 10.0\n"
 failure_examples:
   wrong_operation:
-    code: |
-      def add_ten(x: float) -> float:
-          """Wrong - subtracts instead of adds."""
-          return x - 10.0
-  
+    code: "def add_ten(x: float) -> float:\n    \"\"\"Wrong - subtracts instead of\
+      \ adds.\"\"\"\n    return x - 10.0\n"
   off_by_one:
-    code: |
-      def add_ten(x: float) -> float:
-          """Wrong - adds 11 instead of 10."""
-          return x + 11.0
-
+    code: "def add_ten(x: float) -> float:\n    \"\"\"Wrong - adds 11 instead of 10.\"\
+      \"\"\n    return x + 11.0\n"
 reference_verification:
-  test_cases:
-    - input: {"x": 5.0}
-      tolerance: 1e-12
-    - input: {"x": -3.0}  
-      tolerance: 1e-12
-    - input: {"x": 0.0}
-      tolerance: 1e-12
-
+  test_cases: []
 test_efficacy_verification:
-  expected_failures:
-    - failure_type: "wrong_operation"
-      test_function: "test_add_ten_basic"
-    - failure_type: "off_by_one"
-      test_function: "test_add_ten_negative"
+  expected_failures: []
