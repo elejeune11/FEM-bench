@@ -1,0 +1,5 @@
+{
+  "task_id": "solve_linear_elastic_1D_self_contained",
+  "llm_name": "gpt41",
+  "matches_reference": true
+}

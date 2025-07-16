@@ -1,5 +1,0 @@
-{
-    "function_imports": ["math"],
-    "test_imports": ["pytest"],
-    "test_only_function": "def test_only_function():\n    \"\"\"This JSON only has test functions, no main function.\"\"\"\n    assert True"
-  }

@@ -1,0 +1,29 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports: import numpy as np
+import pytest
+- You may call only the helper functions listed below (if any)
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Function Signature:
+def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
+    """
+    Generate a 1D linear mesh.
+
+    Parameters:
+        x_min (float): Start coordinate of the domain.
+        x_max (float): End coordinate of the domain.
+        num_elements (int): Number of linear elements.
+
+    Returns:
+        (node_coords, element_connectivity):
+            - node_coords: 1D numpy array of node coordinates (shape: [num_nodes])
+            - element_connectivity: 2D numpy array of element connectivity 
+              (shape: [num_elements, 2]) with node indices per element
+    """

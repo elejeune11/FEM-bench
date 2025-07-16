@@ -1,7 +1,0 @@
-{
-    "function_imports": [],
-    "test_imports": [],
-    "add_ten": "def add_ten(x: float) -> float:\n    \"\"\"Add 10 to the input.\"\"\"\n    return x + 10.0",
-    "test_add_ten_basic": "def test_add_ten_basic():\n    \"\"\"Test with wrong assertions.\"\"\"\n    assert add_ten(5.0) == 16.0",
-    "test_add_ten_negative": "def test_add_ten_negative():\n    \"\"\"Test that will fail on reference.\"\"\"\n    assert add_ten(-3.0) == 8.0"
-}

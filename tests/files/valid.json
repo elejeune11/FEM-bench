@@ -1,6 +1,0 @@
-{
-    "function_imports": ["numpy", "math"],
-    "test_imports": ["pytest"],
-    "calculate_statistics": "def calculate_statistics(numbers: list) -> dict:\n    \"\"\"Calculate basic statistics for a list of numbers.\"\"\"\n    if not numbers:\n        return {'mean': 0, 'sum': 0, 'count': 0}\n    \n    total = sum(numbers)\n    count = len(numbers)\n    mean = total / count\n    \n    return {\n        'mean': mean,\n        'sum': total,\n        'count': count\n    }",
-    "test_calculate_statistics": "def test_calculate_statistics():\n    \"\"\"Test the calculate_statistics function.\"\"\"\n    result = calculate_statistics([1, 2, 3, 4, 5])\n    assert result['mean'] == 3.0\n    assert result['sum'] == 15\n    assert result['count'] == 5\n    \n    # Test empty list\n    empty_result = calculate_statistics([])\n    assert empty_result['mean'] == 0\n    assert empty_result['sum'] == 0\n    assert empty_result['count'] == 0"
-  }

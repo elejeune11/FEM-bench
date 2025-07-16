@@ -1,0 +1,38 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Function Signature:
+def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
+    """
+    Generate a 1D linear mesh.
+
+    Parameters:
+        x_min (float): Start coordinate of the domain.
+        x_max (float): End coordinate of the domain.
+        num_elements (int): Number of linear elements.
+
+    Returns:
+        (node_coords, element_connectivity):
+            - node_coords: 1D numpy array of node coordinates (shape: [num_nodes])
+            - element_connectivity: 2D numpy array of element connectivity 
+              (shape: [num_elements, 2]) with node indices per element
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_basic_mesh_creation: "Test basic mesh creation with simple parameters."
+- test_single_element_mesh: "Test edge case with only one element."
+
+# Output:
+# One or more valid pytest functions matching the names and purposes above

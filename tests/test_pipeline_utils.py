@@ -1,420 +1,300 @@
-"""
-Test for FEMBenchPipeline initialization.
-"""
-import json
-import pytest
-import tempfile
-import shutil
-from pathlib import Path
-
-from fem_bench.pipeline_utils import FEMBenchPipeline, PipelineConfig
-
-
-"""
-Test for FEMBenchPipeline initialization.
-"""
-import pytest
-import tempfile
-import shutil
-from pathlib import Path
-
 from fem_bench.pipeline_utils import FEMBenchPipeline
+from fem_bench.task_base import Task
+import json
+from pathlib import Path
+import pytest
+import tempfile
+
+
+def test_fembench_pipeline_init():
+    """Test initialization of FEMBenchPipeline and creation of required directories."""
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tasks_dir = Path(tmp) / "tasks"
+        llm_outputs_dir = Path(tmp) / "llm_outputs"
+        prompts_dir = Path(tmp) / "prompts"
+        results_dir = Path(tmp) / "results"
+
+        pipeline = FEMBenchPipeline(
+            tasks_dir=str(tasks_dir),
+            llm_outputs_dir=str(llm_outputs_dir),
+            prompts_dir=str(prompts_dir),
+            results_dir=str(results_dir)
+        )
+
+        # Check directory paths are stored correctly
+        assert pipeline.tasks_dir == tasks_dir
+        assert pipeline.llm_outputs_dir == llm_outputs_dir
+        assert pipeline.prompts_dir == prompts_dir
+        assert pipeline.results_dir == results_dir
+
+        # Check required directories exist
+        assert prompts_dir.exists() and prompts_dir.is_dir()
+        assert results_dir.exists() and results_dir.is_dir()
+
+        # Check internal state is empty as expected
+        assert pipeline.tasks == {}
+        assert pipeline.prompts == {}
+        assert pipeline.llm_outputs == {}
+        assert pipeline.results == {}
+
+        # Check repr output
+        assert "FEMBenchPipeline" in repr(pipeline)
+        assert "tasks=0" in repr(pipeline)
+
+
+def test_load_tasks_from_local_tasks_dir():
+    """
+    Load all real task modules from 'tests/tasks_dir' and verify they return Task objects.
+    """
+    # Locate this test file's directory
+    current_dir = Path(__file__).resolve().parent
+
+    # Reference local tasks_dir under the tests directory
+    tasks_dir = current_dir / "tasks_dir"
+    llm_outputs_dir = current_dir / "llm_outputs_dir"
+    prompts_dir = current_dir / "prompts_dir"
+    results_dir = current_dir / "results_dir"
+
+    # Instantiate and load
+    pipeline = FEMBenchPipeline(
+        tasks_dir=str(tasks_dir),
+        llm_outputs_dir=str(llm_outputs_dir),
+        prompts_dir=str(prompts_dir),
+        results_dir=str(results_dir)
+    )
+
+    pipeline.load_all_tasks()
+
+    # Sanity check
+    assert len(pipeline.tasks) > 0, "No tasks loaded from tasks_dir"
+
+    for task_id, task in pipeline.tasks.items():
+        assert isinstance(task, Task), f"Task {task_id} is not a Task object"
+        assert task.task_id == task_id
+        assert task.main_fcn_code.strip().startswith("def"), f"Missing or malformed code in {task_id}"
+
+
+def test_generate_and_save_task_prompts():
+    """
+    Generate and save code-generation prompts for real tasks in 'tests/tasks_dir'.
+    """
+    current_dir = Path(__file__).resolve().parent
+    tasks_dir = current_dir / "tasks_dir"
+    llm_outputs_dir = current_dir / "llm_outputs_dir"
+    prompts_dir = current_dir / "prompts_dir"
+    results_dir = current_dir / "results_dir"
+
+    pipeline = FEMBenchPipeline(
+        tasks_dir=str(tasks_dir),
+        llm_outputs_dir=str(llm_outputs_dir),
+        prompts_dir=str(prompts_dir),
+        results_dir=str(results_dir)
+    )
+    pipeline.load_all_tasks()
+    pipeline.generate_and_save_task_prompts()
+
+    for task_id in pipeline.tasks:
+        prompt_file = prompts_dir / f"{task_id}_code_prompt.txt"
+        assert prompt_file.exists(), f"Missing code prompt file for task '{task_id}'"
+        content = prompt_file.read_text()
+        assert "def " in content, "Prompt does not include function signature"
+        assert "docstring" in content.lower(), "Prompt appears incomplete"
+        assert "## Function Signature:" in content
+
+
+def test_generate_and_save_test_prompts():
+    """
+    Generate and save test-generation prompts for real tasks in 'tests/tasks_dir'.
+    """
+    current_dir = Path(__file__).resolve().parent
+    tasks_dir = current_dir / "tasks_dir"
+    llm_outputs_dir = current_dir / "llm_outputs_dir"
+    prompts_dir = current_dir / "prompts_dir"
+    results_dir = current_dir / "results_dir"
+
+    pipeline = FEMBenchPipeline(
+        tasks_dir=str(tasks_dir),
+        llm_outputs_dir=str(llm_outputs_dir),
+        prompts_dir=str(prompts_dir),
+        results_dir=str(results_dir)
+    )
+    pipeline.load_all_tasks()
+    pipeline.generate_and_save_test_prompts()
+
+    for task_id in pipeline.tasks:
+        prompt_file = prompts_dir / f"{task_id}_test_prompt.txt"
+        assert prompt_file.exists(), f"Missing test prompt file for task '{task_id}'"
+        content = prompt_file.read_text()
+        assert "pytest" in content.lower(), "Prompt does not mention pytest"
+        assert "## Test Functions to Implement:" in content
+        assert "def " in content or "- " in content, "Prompt appears incomplete"
 
 
 @pytest.fixture
-def test_paths():
-    """Set up test paths using example files."""
-    test_dir = Path(__file__).parent
-    temp_dir = Path(tempfile.mkdtemp())
-    
-    # Use example directories from the tests folder
-    tasks_dir = test_dir / "example_tasks"
-    outputs_dir = test_dir / "example_results" 
-    env_file = test_dir / "example_environments" / "simple_environment.yaml"
-    
-    # Verify example files exist
-    if not tasks_dir.exists():
-        pytest.skip(f"Example tasks directory not found: {tasks_dir}")
-    if not env_file.exists():
-        pytest.skip(f"Example environment file not found: {env_file}")
-    
-    yield {
-        'temp_dir': temp_dir,
-        'tasks_dir': tasks_dir,
-        'outputs_dir': outputs_dir,
-        'env_file': env_file
-    }
-    
-    # Cleanup
-    if temp_dir.exists():
-        shutil.rmtree(temp_dir)
-
-
-def test_basic_initialization(test_paths):
-    """Test basic pipeline initialization."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
+def real_pipeline() -> FEMBenchPipeline:
+    base_dir = Path(__file__).parent
+    return FEMBenchPipeline(
+        tasks_dir=base_dir / "tasks_dir",              # You can point to a dummy or real task dir
+        llm_outputs_dir=base_dir / "llm_outputs_dir",  # <-- REAL directory with Gemini files
+        prompts_dir=base_dir / "prompts_dir",
+        results_dir=base_dir / "results_dir"
     )
-    
-    # Check paths are set correctly
-    assert pipeline.tasks_directory == test_paths['tasks_dir']
-    assert pipeline.environment_file == test_paths['env_file']
-    assert pipeline.llm_outputs_directory is None
-    
-    # Check state is uninitialized
-    assert pipeline.environment is None
-    assert pipeline.tasks == []
 
 
-def test_initialization_with_llm_outputs(test_paths):
-    """Test initialization with LLM outputs directory."""
+def test_load_all_llm_outputs(real_pipeline):
+    real_pipeline.load_all_llm_outputs()
+
+    task_id = "element_stiffness_linear_elastic_1D"
+    llm_name = "gemini"
+
+    # ── Verify structure ──────────────────────────────────────────────
+    assert task_id in real_pipeline.llm_outputs, f"{task_id} not found in llm_outputs"
+    assert llm_name in real_pipeline.llm_outputs[task_id], f"{llm_name} not found for task {task_id}"
+
+    llm_block = real_pipeline.llm_outputs[task_id][llm_name]
+
+    # ── Check code block ──────────────────────────────────────────────
+    assert "code" in llm_block, "Missing 'code' in LLM output"
+    code_str = llm_block["code"]
+    assert isinstance(code_str, str), "Code block must be a string"
+    assert code_str.strip().startswith("def "), "Code must begin with a function definition"
+    assert "import" not in code_str, "Code block should not contain import statements"
+
+    # ── Check test block ──────────────────────────────────────────────
+    assert "test" in llm_block, "Missing 'test' in LLM output"
+    test_dict = llm_block["test"]
+    assert isinstance(test_dict, dict), "Test block must be a dictionary"
+    assert all(
+        name.startswith("test_") for name in test_dict
+    ), "All test keys should start with 'test_'"
+    assert all(
+        "def " in body for body in test_dict.values()
+    ), "Each test function should include a function definition"
+
+
+def test_evaluate_all_llm_outputs_real_example():
+    base_dir = Path(__file__).parent
     pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        llm_outputs_directory=test_paths['outputs_dir']
+        tasks_dir=base_dir / "tasks_dir",
+        llm_outputs_dir=base_dir / "llm_outputs_dir",
+        prompts_dir=base_dir / "prompts_dir",
+        results_dir=base_dir / "results_dir",
     )
-    
-    assert pipeline.llm_outputs_directory == test_paths['outputs_dir']
+
+    pipeline.load_all_tasks()
+    pipeline.load_all_llm_outputs()
+    pipeline.evaluate_all_llm_outputs()
+
+    task_id = "element_stiffness_linear_elastic_1D"
+    llm_name = "gemini"
+    result_path = pipeline.results_dir / f"{task_id}_eval_{llm_name}.json"
+
+    # ── Check results are present ─────────────────────────────
+    assert task_id in pipeline.results
+    assert llm_name in pipeline.results[task_id]
+    result_dict = pipeline.results[task_id][llm_name]
+    assert isinstance(result_dict, dict)
+    assert "matches_reference" in result_dict
+
+    # ── Check file written ────────────────────────────────────
+    assert result_path.exists()
+    parsed = json.loads(result_path.read_text())
+    assert parsed == result_dict
 
 
-def test_missing_required_paths_raise_errors(test_paths):
-    """Test that missing required paths raise FileNotFoundError."""
-    missing_dir = test_paths['temp_dir'] / "missing"
-    
-    # Missing tasks directory
-    with pytest.raises(FileNotFoundError, match="Tasks directory not found"):
-        FEMBenchPipeline(
-            tasks_directory=missing_dir,
-            environment_file=test_paths['env_file']
-        )
-    
-    # Missing environment file
-    with pytest.raises(FileNotFoundError, match="Environment file not found"):
-        FEMBenchPipeline(
-            tasks_directory=test_paths['tasks_dir'],
-            environment_file=missing_dir / "missing.yaml"
-        )
-
-
-def test_load_tasks(test_paths):
-    """Test loading tasks from directory."""
+def test_evaluate_all_llm_tests_real_example():
+    base_dir = Path(__file__).parent
     pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
+        tasks_dir=base_dir / "tasks_dir",
+        llm_outputs_dir=base_dir / "llm_outputs_dir",
+        prompts_dir=base_dir / "prompts_dir",
+        results_dir=base_dir / "results_dir",
     )
+
+    pipeline.load_all_tasks()
+    pipeline.load_all_llm_outputs()
+    pipeline.evaluate_all_llm_tests()
+
+    task_id = "element_stiffness_linear_elastic_1D"
+    llm_name = "gemini"
+    result_path = pipeline.results_dir / f"{task_id}_tests_{llm_name}.json"
+
+    # ── Validate results structure ─────────────────────────────
+    assert task_id in pipeline.results
+    assert llm_name in pipeline.results[task_id]
+    result = pipeline.results[task_id][llm_name]
+    assert "tests" in result
+
+    test_block = result["tests"]
+    assert test_block["task_id"] == task_id
+    assert test_block["llm_name"] == llm_name
+    assert test_block["tests_run"] is True
+    assert "test_results" in test_block
+
+    test_results = test_block["test_results"]
+    assert isinstance(test_results, dict)
+    assert "reference_pass" in test_results
+    assert "failure_fail" in test_results
+
+    # Validate contents of reference_pass
+    assert isinstance(test_results["reference_pass"], list)
+    for pair in test_results["reference_pass"]:
+        assert isinstance(pair, (list, tuple)) and len(pair) == 2
+        assert isinstance(pair[0], str) and isinstance(pair[1], bool)
+
+    # ── Confirm file written and contents match ───────────────
+    assert result_path.exists()
+    parsed = json.loads(result_path.read_text())
     
-    # Initially no tasks loaded
-    assert pipeline.tasks == []
-    
-    # Load tasks
-    tasks = pipeline.load_tasks()
-    
-    # Should have loaded tasks
-    assert len(tasks) > 0
-    assert len(pipeline.tasks) > 0
-    assert pipeline.tasks == tasks
-    
-    # Tasks should be sorted by task_id
-    task_ids = [task.task_id for task in tasks]
-    assert task_ids == sorted(task_ids)
+    # Normalize tuples to lists for comparison
+    def normalize(result_dict):
+        for key in ("reference_pass", "failure_fail"):
+            if key in result_dict["test_results"]:
+                result_dict["test_results"][key] = [
+                    list(item) for item in result_dict["test_results"][key]
+                ]
+        return result_dict
+
+    assert normalize(parsed) == normalize(test_block)
 
 
-def test_load_tasks_empty_directory(test_paths):
-    """Test loading tasks from empty directory raises ValueError."""
-    empty_dir = test_paths['temp_dir'] / "empty_tasks"
-    empty_dir.mkdir()
-    
+def test_compute_aggregate_score_real_example():
+    base_dir = Path(__file__).parent
     pipeline = FEMBenchPipeline(
-        tasks_directory=empty_dir,
-        environment_file=test_paths['env_file']
+        tasks_dir=base_dir / "tasks_dir",
+        llm_outputs_dir=base_dir / "llm_outputs_dir",
+        prompts_dir=base_dir / "prompts_dir",
+        results_dir=base_dir / "results_dir",
     )
-    
-    with pytest.raises(ValueError, match="No valid tasks found"):
-        pipeline.load_tasks()
 
+    # Load and evaluate
+    pipeline.load_all_tasks()
+    pipeline.load_all_llm_outputs()
+    pipeline.evaluate_all_llm_outputs()
+    pipeline.evaluate_all_llm_tests()
 
-def test_generate_prompts(test_paths):
-    """Test generating prompts for all tasks."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
-    )
-    
-    # Load prerequisites
-    pipeline.load_tasks()
-    pipeline.load_environment()
-    
-    # Generate prompts without saving
-    prompts = pipeline.generate_prompts(save=False)
-    
-    # Should have prompts for all tasks
-    assert len(prompts) == len(pipeline.tasks)
-    
-    # Check prompt content
-    for task in pipeline.tasks:
-        assert task.task_id in prompts
-        prompt = prompts[task.task_id]
-        assert len(prompt) > 0
-        assert task.title in prompt
-        assert task.expected_function_name in prompt
+    # Run aggregation
+    score_dict = pipeline.compute_aggregate_score()
 
+    # Assert structure
+    assert isinstance(score_dict, dict)
+    assert len(score_dict) > 0, "No LLM scores returned"
 
-def test_generate_prompts_saves_files(test_paths):
-    """Test that generate_prompts saves files when save=True."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        output_directory=test_paths['temp_dir'] / "output"
-    )
-    
-    # Load prerequisites
-    pipeline.load_tasks()
-    pipeline.load_environment()
-    
-    # Generate and save prompts
-    prompts = pipeline.generate_prompts(save=True)
-    
-    # Check files were created
-    assert pipeline.prompts_directory.exists()
-    
-    for task_id in prompts:
-        prompt_file = pipeline.prompts_directory / f"{task_id}_prompt.txt"
-        assert prompt_file.exists()
-        
-        # Verify file content matches
-        with open(prompt_file, 'r', encoding='utf-8') as f:
-            file_content = f.read()
-        assert file_content == prompts[task_id]
-
-
-def test_generate_prompts_requires_prerequisites(test_paths):
-    """Test that generate_prompts requires tasks and environment to be loaded."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
-    )
-    
-    # Should fail without tasks loaded
-    with pytest.raises(ValueError, match="No tasks loaded"):
-        pipeline.generate_prompts()
-    
-    # Load tasks but not environment
-    pipeline.load_tasks()
-    
-    # Should fail without environment loaded
-    with pytest.raises(ValueError, match="Environment not loaded"):
-        pipeline.generate_prompts()
-
-
-def test_load_llm_outputs(test_paths):
-    """Test loading LLM outputs from JSON files."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        llm_outputs_directory=test_paths['outputs_dir']
-    )
-    
-    # Initially no outputs loaded
-    assert pipeline.llm_outputs == {}
-    
-    # Load outputs
-    outputs = pipeline.load_llm_outputs()
-    
-    # Should have loaded outputs
-    assert len(outputs) > 0
-    assert len(pipeline.llm_outputs) > 0
-    assert pipeline.llm_outputs == outputs
-    
-    # Check that outputs are ParsedCode objects
-    for task_id, parsed_code in outputs.items():
-        assert hasattr(parsed_code, 'main_function')
-        assert hasattr(parsed_code, 'function_imports')
-
-
-def test_load_llm_outputs_no_directory_configured(test_paths):
-    """Test that load_llm_outputs fails if no llm_outputs_directory configured."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
-        # No llm_outputs_directory provided
-    )
-    
-    with pytest.raises(ValueError, match="llm_outputs_directory not configured"):
-        pipeline.load_llm_outputs()
-
-
-def test_evaluate_all_tasks(test_paths):
-    """Test evaluating all tasks."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        llm_outputs_directory=test_paths['outputs_dir'],
-        output_directory=test_paths['temp_dir'] / "output"
-    )
-    
-    # Load all prerequisites
-    pipeline.load_tasks()
-    pipeline.load_environment()
-    pipeline.load_llm_outputs()
-    
-    # Initially no results
-    assert pipeline.evaluation_results == []
-    
-    # Evaluate all tasks without saving individual files
-    results = pipeline.evaluate_all_tasks(save_individual=False)
-    
-    # Should have results for all tasks
-    assert len(results) > 0
-    assert len(pipeline.evaluation_results) > 0
-    assert pipeline.evaluation_results == results
-    
-    # Check result structure
-    for result in results:
-        assert "task_id" in result
-        assert "fcn_correct_with_reference_provided" in result
-        assert "fcn_correct_with_llm_chain" in result
-        assert "total_tests" in result
-        assert "tests_passed_on_reference" in result
-        assert "total_expected_failures" in result
-        assert "expected_failures_failed_on_reference" in result
-
-
-def test_evaluate_all_tasks_saves_individual_files(test_paths):
-    """Test that evaluate_all_tasks saves individual JSON files."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        llm_outputs_directory=test_paths['outputs_dir'],
-        output_directory=test_paths['temp_dir'] / "output"
-    )
-    
-    # Load prerequisites
-    pipeline.load_tasks()
-    pipeline.load_environment()
-    pipeline.load_llm_outputs()
-    
-    # Evaluate and save individual files
-    results = pipeline.evaluate_all_tasks(save_individual=True)
-    
-    # Check individual files were created
-    results_dir = pipeline.output_directory / "individual_results"
-    assert results_dir.exists()
-    
-    for result in results:
-        task_id = result["task_id"]
-        result_file = results_dir / f"{task_id}_result.json"
-        assert result_file.exists()
-        
-        # Verify file content matches
-        with open(result_file, 'r', encoding='utf-8') as f:
-            file_content = json.load(f)
-        assert file_content == result
-
-
-def test_evaluate_all_tasks_requires_prerequisites(test_paths):
-    """Test that evaluate_all_tasks requires all prerequisites to be loaded."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        llm_outputs_directory=test_paths['outputs_dir']
-    )
-    
-    # Should fail without tasks loaded
-    with pytest.raises(ValueError, match="No tasks loaded"):
-        pipeline.evaluate_all_tasks()
-    
-    # Load tasks but not environment
-    pipeline.load_tasks()
-    with pytest.raises(ValueError, match="Environment not loaded"):
-        pipeline.evaluate_all_tasks()
-    
-    # Load environment but not LLM outputs
-    pipeline.load_environment()
-    with pytest.raises(ValueError, match="No LLM outputs loaded"):
-        pipeline.evaluate_all_tasks()
-
-
-def test_compute_aggregate_score(test_paths):
-    """Test computing aggregate scores from evaluation results."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file'],
-        llm_outputs_directory=test_paths['outputs_dir']
-    )
-    
-    # Load prerequisites and evaluate
-    pipeline.load_tasks()
-    pipeline.load_environment()
-    pipeline.load_llm_outputs()
-    pipeline.evaluate_all_tasks(save_individual=False)
-    
-    # Compute aggregate score
-    scores = pipeline.compute_aggregate_score()
-    
-    # Check structure
-    expected_keys = {
-        "fcn_correct_with_reference_provided_pct",
-        "fcn_correct_with_llm_chain_pct", 
-        "avg_tests_passed_on_reference_pct",
-        "avg_expected_failures_detected_pct"
-    }
-    assert set(scores.keys()) == expected_keys
-    
-    # Check values are percentages (0-100)
-    for key, value in scores.items():
-        assert isinstance(value, float)
-        assert 0.0 <= value <= 100.0
-
-
-def test_compute_aggregate_score_requires_evaluation_results(test_paths):
-    """Test that compute_aggregate_score requires evaluation results."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
-    )
-    
-    with pytest.raises(ValueError, match="No evaluation results available"):
-        pipeline.compute_aggregate_score()
-
-
-def test_compute_aggregate_score_handles_edge_cases(test_paths):
-    """Test aggregate score computation with edge cases."""
-    pipeline = FEMBenchPipeline(
-        tasks_directory=test_paths['tasks_dir'],
-        environment_file=test_paths['env_file']
-    )
-    
-    # Mock evaluation results with edge cases (bypassing normal loading)
-    pipeline.evaluation_results = [
-        {
-            "task_id": "test1",
-            "fcn_correct_with_reference_provided": 1,
-            "fcn_correct_with_llm_chain": 0,
-            "total_tests": 0,  # No tests
-            "tests_passed_on_reference": 0,
-            "total_expected_failures": 0,  # No expected failures
-            "expected_failures_failed_on_reference": 0
-        },
-        {
-            "task_id": "test2", 
-            "fcn_correct_with_reference_provided": 0,
-            "fcn_correct_with_llm_chain": 1,
-            "total_tests": 4,
-            "tests_passed_on_reference": 2,  # 50% pass rate
-            "total_expected_failures": 3,
-            "expected_failures_failed_on_reference": 1  # 33% detection rate
+    for llm_name, metrics in score_dict.items():
+        assert isinstance(metrics, dict)
+        assert set(metrics.keys()) == {
+            "fcn_correct_pct",
+            "avg_tests_passed_on_reference_pct",
+            "avg_expected_failures_detected_pct"
         }
-    ]
-    
-    scores = pipeline.compute_aggregate_score()
-    
-    # Function correctness: 1/2 = 50% for ref, 1/2 = 50% for llm
-    assert scores["fcn_correct_with_reference_provided_pct"] == 50.0
-    assert scores["fcn_correct_with_llm_chain_pct"] == 50.0
-    
-    # Test pass rate: only test2 has tests, 2/4 = 50%
-    assert scores["avg_tests_passed_on_reference_pct"] == 50.0
-    
-    # Failure detection: only test2 has expected failures, 1/3 ≈ 33.33%
-    assert abs(scores["avg_expected_failures_detected_pct"] - 33.333333333333336) < 1e-10
+
+        # Confirm all values are floats
+        for val in metrics.values():
+            assert isinstance(val, float)
+
+        # Confirm JSON file written and content matches
+        file_path = pipeline.results_dir / f"llm_aggregate_{llm_name}.json"
+        assert file_path.exists(), f"Missing output: {file_path}"
+        file_metrics = json.loads(file_path.read_text())
+        assert file_metrics == metrics
