@@ -151,6 +151,7 @@ class FEMBenchPipeline:
                     "task_id": task_id,
                     "llm_name": llm_name,
                     "matches_reference": False,
+                    "test_results": []
                 }
 
                 try:
@@ -159,12 +160,15 @@ class FEMBenchPipeline:
                         required_imports=task.required_imports,
                         fcn_dependencies=task.fcn_dependency_code
                     )
-                    ok = evaluate_function_output_match(
+                    
+                    ok, detailed_results = evaluate_function_output_match(
                         ref_fn,
                         gen_fn,
                         task.reference_verification_inputs
                     )
+                    
                     result["matches_reference"] = ok
+                    result["test_results"] = detailed_results
 
                 except Exception as e:
                     result["error"] = str(e)

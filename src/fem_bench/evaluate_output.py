@@ -262,17 +262,84 @@ def evaluate_function_output_match(
     generated_fcn,
     inputs: list[list],
     atol: float = 1e-8
-) -> bool:
-    """Returns True if all outputs from generated_fcn match those from reference_fcn."""
-    for input_args in inputs:
+) -> tuple[bool, list]:
+    """
+    Returns (match_result, detailed_results).
+    
+    match_result: True if all outputs from generated_fcn match those from reference_fcn
+    detailed_results: List of dicts with inputs, reference output, generated output for each test
+    """
+    detailed_results = []
+    all_match = True
+    
+    for i, input_args in enumerate(inputs):
+        test_result = {
+            "test_case": i + 1,
+            "inputs": _serialize_inputs(input_args),
+            "reference_output": None,
+            "generated_output": None,
+            "match": False,
+            "error": None
+        }
+        
         try:
             ref_out = reference_fcn(*input_args)
             gen_out = generated_fcn(*input_args)
-            if not _values_match(ref_out, gen_out, atol=atol):
-                return False
-        except Exception:
-            return False
-    return True
+            
+            test_result["reference_output"] = _serialize_output(ref_out)
+            test_result["generated_output"] = _serialize_output(gen_out)
+            
+            match = _values_match(ref_out, gen_out, atol=atol)
+            test_result["match"] = match
+            
+            if not match:
+                all_match = False
+                
+        except Exception as e:
+            test_result["error"] = str(e)
+            all_match = False
+        
+        detailed_results.append(test_result)
+    
+    return all_match, detailed_results
+
+
+def _serialize_inputs(input_args):
+    """Serialize input arguments for JSON storage."""
+    serialized = []
+    for arg in input_args:
+        serialized.append(_serialize_value(arg))
+    return serialized
+
+
+def _serialize_output(output):
+    """Serialize output for JSON storage."""
+    if isinstance(output, dict):
+        return {k: _serialize_value(v) for k, v in output.items()}
+    else:
+        return _serialize_value(output)
+
+
+def _serialize_value(value):
+    """Serialize a single value for JSON storage."""
+    if isinstance(value, np.ndarray):
+        return {
+            "type": "ndarray",
+            "shape": list(value.shape),
+            "data": value.tolist()
+        }
+    elif isinstance(value, np.integer):
+        return int(value)
+    elif isinstance(value, np.floating):
+        return float(value)
+    elif callable(value):
+        return "<function>"
+    elif isinstance(value, (list, tuple)):
+        return [_serialize_value(item) for item in value]
+    elif isinstance(value, dict):
+        return {k: _serialize_value(v) for k, v in value.items()}
+    else:
+        return value
 
 
 def compile_function_from_string(code: str) -> Callable:

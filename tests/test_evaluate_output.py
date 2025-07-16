@@ -29,17 +29,29 @@ def gen_broken(x, y):
 
 def test_evaluate_function_output_match_success():
     inputs = [[1, 2], [3, 4]]
-    assert evaluate_function_output_match(ref_add_and_scale, gen_add_and_scale_correct, inputs)
+    match, detailed_results = evaluate_function_output_match(ref_add_and_scale, gen_add_and_scale_correct, inputs)
+    assert match
+    assert len(detailed_results) == 2
+    assert all(result["match"] for result in detailed_results)
+    assert all(result["error"] is None for result in detailed_results)
 
 
 def test_evaluate_function_output_match_mismatch():
     inputs = [[1, 2], [3, 4]]
-    assert not evaluate_function_output_match(ref_add_and_scale, gen_add_and_scale_wrong, inputs)
+    match, detailed_results = evaluate_function_output_match(ref_add_and_scale, gen_add_and_scale_wrong, inputs)
+    assert not match
+    assert len(detailed_results) == 2
+    assert not any(result["match"] for result in detailed_results)
+    assert all(result["error"] is None for result in detailed_results)
 
 
 def test_evaluate_function_output_match_exception():
     inputs = [[1, 2]]
-    assert not evaluate_function_output_match(ref_add_and_scale, gen_broken, inputs)
+    match, detailed_results = evaluate_function_output_match(ref_add_and_scale, gen_broken, inputs)
+    assert not match
+    assert len(detailed_results) == 1
+    assert not detailed_results[0]["match"]
+    assert detailed_results[0]["error"] is not None
 
 
 def test_loads_valid_function_and_executes():
