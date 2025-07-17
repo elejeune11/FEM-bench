@@ -5,6 +5,7 @@ from fem_bench.evaluate_output import evaluate_function_output_match, evaluate_t
 from fem_bench.evaluate_output import load_function_from_code, run_test_case
 from importlib.util import spec_from_file_location, module_from_spec
 import json
+import pandas as pd
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -347,3 +348,100 @@ class FEMBenchPipeline:
 
         return llm_metrics
 
+    def create_markdown_summary(self, filename="evaluation_summary.md"):
+        """
+        Save a Markdown summary of results across tasks and models.
+
+        Creates two tables:
+        1. Function correctness (✓ if matches_reference else ×)
+        2. Test evaluation (percent passed on reference, percent of expected failures caught)
+
+        The final row shows averages across all tasks for each model.
+        """
+        task_ids = sorted(self.results.keys())
+        llm_names = sorted({llm for task in self.results.values() for llm in task})
+
+        # Initialize tables
+        code_table = []
+        test_table_ref = []
+        test_table_fail = []
+
+        for task_id in task_ids:
+            row_code = [task_id]
+            row_ref = [task_id]
+            row_fail = [task_id]
+
+            for llm in llm_names:
+                task_result = self.results.get(task_id, {}).get(llm, {})
+                # Function correctness
+                if task_result.get("matches_reference"):
+                    row_code.append("✓")
+                else:
+                    row_code.append("×")
+
+                # Test pass rate
+                test_res = task_result.get("tests", {}).get("test_results", {})
+                ref_pass = test_res.get("reference_pass", [])
+                ef_fail = test_res.get("failure_fail", [])
+
+                if ref_pass:
+                    pct_pass = 100 * sum(ok for _, ok in ref_pass) / len(ref_pass)
+                    row_ref.append(f"{pct_pass:.1f}%")
+                else:
+                    row_ref.append("–")
+
+                if ef_fail:
+                    pct_fail = 100 * sum(ok for _, ok in ef_fail) / len(ef_fail)
+                    row_fail.append(f"{pct_fail:.1f}%")
+                else:
+                    row_fail.append("–")
+
+            code_table.append(row_code)
+            test_table_ref.append(row_ref)
+            test_table_fail.append(row_fail)
+
+        # Append total row
+        total_row_code = ["Total"]
+        total_row_ref = ["Avg Ref Pass %"]
+        total_row_fail = ["Avg Fail Detect %"]
+
+        for llm in llm_names:
+            total = sum(1 for task in self.results if llm in self.results[task])
+            correct = sum(
+                1 for task in self.results
+                if llm in self.results[task] and self.results[task][llm].get("matches_reference")
+            )
+            total_row_code.append(f"{correct}/{total}")
+
+            ref_vals = []
+            fail_vals = []
+            for task in self.results:
+                test_data = self.results[task].get(llm, {}).get("tests", {}).get("test_results", {})
+                ref = test_data.get("reference_pass", [])
+                fail = test_data.get("failure_fail", [])
+                if ref:
+                    ref_vals.append(100 * sum(ok for _, ok in ref) / len(ref))
+                if fail:
+                    fail_vals.append(100 * sum(ok for _, ok in fail) / len(fail))
+
+            total_row_ref.append(f"{sum(ref_vals)/len(ref_vals):.1f}%" if ref_vals else "–")
+            total_row_fail.append(f"{sum(fail_vals)/len(fail_vals):.1f}%" if fail_vals else "–")
+
+        code_table.append(total_row_code)
+        test_table_ref.append(total_row_ref)
+        test_table_fail.append(total_row_fail)
+
+        # Convert to Markdown
+        def write_table(data, headers, title):
+            df = pd.DataFrame(data, columns=headers)
+            return f"### {title}\n\n" + df.to_markdown(index=False) + "\n\n"
+
+        headers = ["Task"] + llm_names
+        md = ""
+        md += write_table(code_table, headers, "Function Correctness (✓ = Match)")
+        md += write_table(test_table_ref, headers, "Reference Tests Passed (%)")
+        md += write_table(test_table_fail, headers, "Expected Failures Detected (%)")
+
+        # Save
+        out_path = self.results_dir / filename
+        out_path.write_text(md)

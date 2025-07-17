@@ -298,3 +298,20 @@ def test_compute_aggregate_score_real_example():
         assert file_path.exists(), f"Missing output: {file_path}"
         file_metrics = json.loads(file_path.read_text())
         assert file_metrics == metrics
+
+
+def test_create_markdown_summary_real_example(real_pipeline):
+    real_pipeline.load_all_tasks()
+    real_pipeline.load_all_llm_outputs()
+    real_pipeline.evaluate_all_llm_outputs()
+    real_pipeline.evaluate_all_llm_tests()
+    real_pipeline.compute_aggregate_score()
+    real_pipeline.create_markdown_summary()
+
+    summary_path = real_pipeline.results_dir / "evaluation_summary.md"
+    assert summary_path.exists()
+    text = summary_path.read_text()
+
+    assert "### Function Correctness" in text
+    assert "### Reference Tests Passed" in text
+    assert "### Expected Failures Detected" in text
