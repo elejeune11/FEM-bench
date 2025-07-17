@@ -66,6 +66,7 @@ pipeline.load_all_llm_outputs()             # Load LLM responses
 pipeline.evaluate_all_llm_outputs()         # Evaluate implementations
 pipeline.evaluate_all_llm_tests()           # Evaluate test quality
 scores = pipeline.compute_aggregate_score()  # Compute final scores
+pipeline.create_markdown_summary()           # Creates markdown table summary of results
 ```
 
 ### Core Components
