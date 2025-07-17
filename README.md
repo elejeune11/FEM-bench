@@ -164,9 +164,10 @@ maiu = My AI University app see: https://my-ai-university.com/ and https://huggi
 
 
 ## Todo list
-[ ] Create additional tasks to form a complete initial benchmark
-[ ] Set up automation scripts to call LLM APIs
-[ ] Mulitple runs -- e.g., X of 10 correct
-[ ] Iterate on prompt strategy
-[ ] Make pipeline more robust + add additional validation
-[ ] Collate results
+- [ ] Create additional tasks to complete the initial benchmark set  
+- [ ] Set up automation scripts to call LLM APIs  
+- [ ] Support multiple LLM runs (e.g., report X out of 10 correct)  
+- [ ] Iterate on prompt strategy to improve output quality  
+- [ ] Validate tasks (e.g., ensure they are well-specified and testable)  
+- [ ] Improve pipeline robustness and add validation checks  
+- [ ] Collate and summarize results across tasks and models  
