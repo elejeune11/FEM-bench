@@ -1,6 +1,6 @@
 {
   "task_id": "linear_uniform_mesh_1D",
-  "llm_name": "gemini",
+  "llm_name": "maiu",
   "matches_reference": true,
   "test_results": [
     {
