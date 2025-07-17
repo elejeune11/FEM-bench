@@ -2,7 +2,7 @@
 
 A comprehensive benchmarking system for evaluating Large Language Models (LLMs) on finite element method (FEM) tasks, measuring both implementation ability and mathematical competency.
 
-** NOTE: this is a work in progress, new tasks and comprehensive results will be posted soon **
+**NOTE: this is a work in progress, new tasks and comprehensive results will be posted soon**
 
 ## Overview
 
