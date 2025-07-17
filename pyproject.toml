@@ -14,6 +14,8 @@ dependencies = [
     "pytest>=6.0.0",
     "scipy>=1.7.0",
     "matplotlib>=3.3.0",
+    "pandas",
+    "tabulate",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +27,6 @@ dev = [
 ]
 full = [
     "sympy",
-    "pandas",
 ]
 
 [tool.setuptools.packages.find]
