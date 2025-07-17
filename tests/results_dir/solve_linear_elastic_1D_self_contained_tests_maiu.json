@@ -3,7 +3,25 @@
   "llm_name": "maiu",
   "tests_run": true,
   "test_results": {
-    "reference_pass": [],
-    "failure_fail": []
+    "reference_pass": [
+      [
+        "test_no_load_self_contained",
+        true
+      ],
+      [
+        "test_uniform_extension_analytical_self_contained",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_no_load_self_contained",
+        true
+      ],
+      [
+        "test_uniform_extension_analytical_self_contained",
+        false
+      ]
+    ]
   }
 }

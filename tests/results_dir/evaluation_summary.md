@@ -13,8 +13,8 @@
 |:---------------------------------------|:----------|:---------|:--------|:-------|
 | element_stiffness_linear_elastic_1D    | 0.0%      | 0.0%     | 0.0%    | 0.0%   |
 | linear_uniform_mesh_1D                 | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| solve_linear_elastic_1D_self_contained | 50.0%     | 50.0%    | 100.0%  | –      |
-| Avg Ref Pass %                         | 50.0%     | 50.0%    | 66.7%   | 50.0%  |
+| solve_linear_elastic_1D_self_contained | 50.0%     | 50.0%    | 100.0%  | 100.0% |
+| Avg Ref Pass %                         | 50.0%     | 50.0%    | 66.7%   | 66.7%  |
 
 ### Expected Failures Detected (%)
 
@@ -22,6 +22,6 @@
 |:---------------------------------------|:----------|:---------|:--------|:-------|
 | element_stiffness_linear_elastic_1D    | 100.0%    | 100.0%   | 100.0%  | 100.0% |
 | linear_uniform_mesh_1D                 | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| solve_linear_elastic_1D_self_contained | 100.0%    | 100.0%   | 100.0%  | –      |
-| Avg Fail Detect %                      | 100.0%    | 100.0%   | 100.0%  | 100.0% |
+| solve_linear_elastic_1D_self_contained | 100.0%    | 100.0%   | 100.0%  | 50.0%  |
+| Avg Fail Detect %                      | 100.0%    | 100.0%   | 100.0%  | 83.3%  |
 

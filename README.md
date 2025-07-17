@@ -148,8 +148,8 @@ maiu = My AI University app see: https://my-ai-university.com/ and https://huggi
 |:---------------------------------------|:----------|:---------|:--------|:-------|
 | element_stiffness_linear_elastic_1D    | 0.0%      | 0.0%     | 0.0%    | 0.0%   |
 | linear_uniform_mesh_1D                 | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| solve_linear_elastic_1D_self_contained | 50.0%     | 50.0%    | 100.0%  | –      |
-| Avg Ref Pass %                         | 50.0%     | 50.0%    | 66.7%   | 50.0%  |
+| solve_linear_elastic_1D_self_contained | 50.0%     | 50.0%    | 100.0%  | 100.0% |
+| Avg Ref Pass %                         | 50.0%     | 50.0%    | 66.7%   | 66.7%  |
 
 ### Expected Failures Detected (%)
 
@@ -157,12 +157,15 @@ maiu = My AI University app see: https://my-ai-university.com/ and https://huggi
 |:---------------------------------------|:----------|:---------|:--------|:-------|
 | element_stiffness_linear_elastic_1D    | 100.0%    | 100.0%   | 100.0%  | 100.0% |
 | linear_uniform_mesh_1D                 | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| solve_linear_elastic_1D_self_contained | 100.0%    | 100.0%   | 100.0%  | –      |
-| Avg Fail Detect %                      | 100.0%    | 100.0%   | 100.0%  | 100.0% |
+| solve_linear_elastic_1D_self_contained | 100.0%    | 100.0%   | 100.0%  | 50.0%  |
+| Avg Fail Detect %                      | 100.0%    | 100.0%   | 100.0%  | 83.3%  |
 
 
 
 ## Todo list
-[] Create additional tasks to form a complete initial benchmark
-[] Set up automation scripts to call LLM APIs
-[] Collate results
+[ ] Create additional tasks to form a complete initial benchmark
+[ ] Set up automation scripts to call LLM APIs
+[ ] Mulitple runs -- e.g., X of 10 correct
+[ ] Iterate on prompt strategy
+[ ] Make pipeline more robust + add additional validation
+[ ] Collate results
