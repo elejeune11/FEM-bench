@@ -1,6 +1,6 @@
 # FEM-bench
 
-A comprehensive benchmarking system for evaluating Large Language Models (LLMs) on finite element method (FEM) tasks, measuring both implementation ability and mathematical competency.
+A comprehensive benchmarking system for evaluating Large Language Models (LLMs) on finite element method (FEM) tasks.
 
 **NOTE: this is a work in progress, new tasks and comprehensive results will be posted soon**
 
@@ -9,8 +9,6 @@ A comprehensive benchmarking system for evaluating Large Language Models (LLMs) 
 FEM-bench evaluates LLMs through a dual-task approach:
 1. **Implementation Tasks**: Generate correct finite element functions (shape functions, numerical integration, etc.)
 2. **Test Generation**: Write comprehensive pytest tests that validate mathematical properties (partition of unity, interpolation conditions, etc.)
-
-This approach measures mathematical competency by evaluating whether models can identify and verify the core mathematical properties that ensure FEM solution correctness, going beyond simple pattern-matching.
 
 ## Setup Instructions
 
@@ -124,3 +122,8 @@ fem-bench/
 deactivate
 rm -rf fem_bench_env  # To completely remove
 ```
+
+## Todo list
+[] Create additional tasks to form a complete initial benchmark
+[] Set up automation scripts to call LLM APIs
+[] Collate results
