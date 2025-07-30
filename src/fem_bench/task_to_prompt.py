@@ -25,28 +25,23 @@ def extract_signature_and_docstring(code: str) -> tuple[str, str]:
     signature = f"def {func_node.name}({args_str}){return_str}:"
 
     docstring = ast.get_docstring(func_node) or ""
-    docstring_indented = textwrap.indent(f'"""\n{docstring}\n"""', "    ")
+    docstring_clean = textwrap.dedent(docstring).strip()
+    docstring_indented = textwrap.indent(f'"""\n{docstring_clean}\n"""', "    ")
 
     return signature, docstring_indented
 
 
 def format_dependency_functions(dep_code_list: list[str]) -> str:
-    """Format dependency function signatures and docstrings."""
+    """Format full helper function definitions (code blocks)."""
     if not dep_code_list:
-        return ""
+        return "## Available Helper Functions:\n(None)\n"
 
-    blocks = []
+    formatted_blocks = []
     for code in dep_code_list:
-        try:
-            sig, doc = extract_signature_and_docstring(code)
-            blocks.append(f"{sig}\n{doc}")
-        except Exception:
-            continue  # skip if unparsable
+        code_block = textwrap.dedent(code).strip()
+        formatted_blocks.append(code_block)
 
-    if not blocks:
-        return ""
-
-    return "## Available Helper Functions:\n" + "\n\n".join(blocks) + "\n"
+    return "## Available Helper Functions:\n" + "\n\n".join(formatted_blocks) + "\n"
 
 
 def task_to_code_prompt(task: Task) -> str:
@@ -72,13 +67,20 @@ Write a Python function that matches the exact signature and docstring provided 
 - Keep the function name, parameter names, and docstring exactly as shown
 - Do not add any code outside the function definition
 {import_instruction}
-- You may call only the helper functions listed below (if any)
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
 - Output only valid Python code (no explanations, comments, or markdown)
 - Implement the functionality as described in the docstring
 
-{helper_section}## Function Signature:
+{helper_section}
+
+## Function Signature:
+## Only complete the function below:
 {signature}
 {docstring}
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.
 """
     return prompt
 
@@ -125,7 +127,7 @@ def task_to_test_prompt(task: Task) -> str:
 
 Below is the function you are testing. Use its signature and docstring to understand its behavior.
 
-## Function Signature:
+## Only complete the test functions below:
 {signature}
 {docstring}
 
@@ -140,10 +142,11 @@ Write pytest-style test functions that verify the correctness of the function ab
 - Do not include print statements, logging, or example usage
 - Output only valid Python code — no explanations, markdown, or comments
 
+## Function Signature:
 ## Test Functions to Implement:
 {test_block}
 
 # Output:
-# One or more valid pytest functions matching the names and purposes above
+# Only return valid pytest test functions — no prose, markdown, or commentary.
 """
     return prompt

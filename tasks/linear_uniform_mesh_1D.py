@@ -42,13 +42,13 @@ def fail_basic_mesh_creation(x_min: float, x_max: float, num_elements: int) -> n
     num_nodes = num_elements + 1
     node_coords = np.zeros((num_nodes))
     element_connectivity = np.zeros((num_elements, 2))
-    return np.array([node_coords, element_connectivity], dtype=object)
+    return (node_coords, element_connectivity)
 
 
 def fail_single_element_mesh(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
     node_coords = np.asarray([x_min, x_min])
     element_connectivity = np.asarray([0, 1])
-    return np.array([node_coords, element_connectivity], dtype=object)
+    return (node_coords, element_connectivity)
 
 
 def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
@@ -61,9 +61,9 @@ def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.
         num_elements (int): Number of linear elements.
 
     Returns:
-        np.ndarray[np.ndarray, np.ndarray]:
-            - node_coords: 1D array of node coordinates (shape: [num_nodes])
-            - element_connectivity: 2D array of element connectivity 
+        (node_coords, element_connectivity):
+            - node_coords: 1D numpy array of node coordinates (shape: [num_nodes])
+            - element_connectivity: 2D numpy array of element connectivity 
               (shape: [num_elements, 2]) with node indices per element
     """
     num_nodes = num_elements + 1
@@ -74,7 +74,7 @@ def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.
         element_connectivity[e, 0] = e
         element_connectivity[e, 1] = e + 1
 
-    return np.array([node_coords, element_connectivity], dtype=object)
+    return (node_coords, element_connectivity)
 
 
 def task_info():
@@ -83,7 +83,7 @@ def task_info():
     created_date = "2025-07-08"
     created_by = "elejeune11"
     main_fcn = linear_uniform_mesh_1D
-    required_imports = ["import numpy as np"]
+    required_imports = ["import numpy as np", "import pytest"]
     fcn_dependencies = []
     reference_verification_inputs = [[0.0, 10.0, 10],
                                      [-5.0, 5.0, 7],

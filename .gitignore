@@ -20,3 +20,5 @@ fem_bench_env/bin/*
 *.cfg
 
 fem_bench_env/share/
+
+.env

@@ -8,7 +8,7 @@ def import_task_module():
 
     # Dynamically import linear_uniform_mesh_1D.py from tests/files/
     test_dir = Path(__file__).parent
-    files_dir = test_dir / "files"
+    files_dir = test_dir / "tasks_dir"
     sys.path.insert(0, str(files_dir))
     import linear_uniform_mesh_1D
     return linear_uniform_mesh_1D
