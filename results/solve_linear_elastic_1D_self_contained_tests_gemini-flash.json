@@ -1,6 +1,6 @@
 {
   "task_id": "solve_linear_elastic_1D_self_contained",
-  "llm_name": "gpt4o",
+  "llm_name": "gemini-flash",
   "tests_run": true,
   "test_results": {
     "reference_pass": [
@@ -10,7 +10,7 @@
       ],
       [
         "test_uniform_extension_analytical_self_contained",
-        true
+        false
       ]
     ],
     "failure_fail": [

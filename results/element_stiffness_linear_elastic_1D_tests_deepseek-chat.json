@@ -1,6 +1,6 @@
 {
   "task_id": "element_stiffness_linear_elastic_1D",
-  "llm_name": "gpt4o",
+  "llm_name": "deepseek-chat",
   "tests_run": true,
   "test_results": {
     "reference_pass": [

@@ -1,0 +1,27 @@
+{
+  "task_id": "solve_linear_elastic_1D_self_contained",
+  "llm_name": "gemini-pro",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_no_load_self_contained",
+        true
+      ],
+      [
+        "test_uniform_extension_analytical_self_contained",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_no_load_self_contained",
+        true
+      ],
+      [
+        "test_uniform_extension_analytical_self_contained",
+        true
+      ]
+    ]
+  }
+}

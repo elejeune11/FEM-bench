@@ -6,8 +6,8 @@ def test_basic_mesh_creation(fcn):
     (node_coords, element_connectivity) = fcn(x_min, x_max, num_elements)
     expected_node_coords = np.array([0.0, 2.0, 4.0, 6.0, 8.0, 10.0])
     expected_element_connectivity = np.array([[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]])
-    assert np.allclose(node_coords, expected_node_coords), 'Node coordinates are incorrect'
-    assert np.array_equal(element_connectivity, expected_element_connectivity), 'Element connectivity is incorrect'
+    assert np.allclose(node_coords, expected_node_coords), 'Node coordinates do not match expected values.'
+    assert np.array_equal(element_connectivity, expected_element_connectivity), 'Element connectivity does not match expected values.'
 
 def test_single_element_mesh(fcn):
     """Test edge case with only one element."""
@@ -17,5 +17,5 @@ def test_single_element_mesh(fcn):
     (node_coords, element_connectivity) = fcn(x_min, x_max, num_elements)
     expected_node_coords = np.array([0.0, 1.0])
     expected_element_connectivity = np.array([[0, 1]])
-    assert np.allclose(node_coords, expected_node_coords), 'Node coordinates are incorrect for single element'
-    assert np.array_equal(element_connectivity, expected_element_connectivity), 'Element connectivity is incorrect for single element'
+    assert np.allclose(node_coords, expected_node_coords), 'Node coordinates do not match expected values for single element.'
+    assert np.array_equal(element_connectivity, expected_element_connectivity), 'Element connectivity does not match expected values for single element.'

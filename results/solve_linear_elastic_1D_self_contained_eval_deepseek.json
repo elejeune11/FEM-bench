@@ -1,6 +1,6 @@
 {
   "task_id": "solve_linear_elastic_1D_self_contained",
-  "llm_name": "gpt4o",
+  "llm_name": "deepseek",
   "matches_reference": true,
   "test_results": [
     {

@@ -9,11 +9,11 @@ def element_stiffness_linear_elastic_1D(x_elem: np.ndarray, E: float, A: float, 
     Returns:
         np.ndarray: 2x2 element stiffness matrix
     """
+    K_elem = np.zeros((2, 2))
     (gauss_points, gauss_weights) = gauss_quadrature_1D(n_gauss)
     dN_dxi = shape_function_derivatives_1D_linear()
-    jacobian = compute_jacobian_1D(dN_dxi, x_elem)
-    B = dN_dxi / jacobian
-    K = np.zeros((2, 2))
-    for i in range(n_gauss):
-        K += gauss_weights[i] * (E * A * np.outer(B, B) * jacobian)
-    return K
+    J = compute_jacobian_1D(dN_dxi, x_elem)
+    dN_dx = dN_dxi / J
+    for w in gauss_weights:
+        K_elem += w * E * A * np.outer(dN_dx, dN_dx) * J
+    return K_elem

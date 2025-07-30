@@ -16,6 +16,7 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
+
 def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
     for attempt in range(retries):
         try:
@@ -26,7 +27,8 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
             else:
                 raise
 
-def call_openai_chat(
+
+def call_openai_for_code(
     prompt: str,
     model: str = "gpt-4o",
     temperature: float = 0.0,
@@ -49,6 +51,7 @@ def call_openai_chat(
     response = retry_api_call(call)
     raw = response.choices[0].message.content
     return raw if return_raw else clean_and_extract_function(raw)
+
 
 def call_openai_for_tests(
     prompt: str,

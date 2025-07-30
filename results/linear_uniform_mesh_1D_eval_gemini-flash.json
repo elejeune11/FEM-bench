@@ -1,6 +1,6 @@
 {
   "task_id": "linear_uniform_mesh_1D",
-  "llm_name": "gpt4o",
+  "llm_name": "gemini-flash",
   "matches_reference": true,
   "test_results": [
     {

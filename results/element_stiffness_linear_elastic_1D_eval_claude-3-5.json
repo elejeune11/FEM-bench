@@ -1,6 +1,6 @@
 {
   "task_id": "element_stiffness_linear_elastic_1D",
-  "llm_name": "gpt4o",
+  "llm_name": "claude-3-5",
   "matches_reference": true,
   "test_results": [
     {

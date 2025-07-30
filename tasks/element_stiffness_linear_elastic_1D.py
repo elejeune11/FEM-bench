@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def gauss_quadrature_1D(n: int) -> np.ndarray:
+def gauss_quadrature_1D(n: int) -> tuple[np.ndarray, np.ndarray]:
     """
     Return Gauss points and weights for 1D quadrature over [-1, 1].
 
@@ -9,7 +9,7 @@ def gauss_quadrature_1D(n: int) -> np.ndarray:
         n (int): Number of Gauss points (1, 2, or 3 recommended)
 
     Returns:
-        np.ndarray[np.ndarray, np.ndarray]: (points, weights)
+        tuple[np.ndarray, np.ndarray]: (points, weights)
     """
     if n == 1:
         points = np.array([0.0])
@@ -28,7 +28,7 @@ def gauss_quadrature_1D(n: int) -> np.ndarray:
     else:
         raise ValueError("Only 1 to 3 Gauss points are supported.")
     
-    return np.array([points, weights], dtype=object)
+    return points, weights
 
 
 def shape_function_derivatives_1D_linear() -> np.ndarray:
@@ -55,7 +55,7 @@ def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> float:
     Returns:
         float: Jacobian dx/dξ
     """
-    return np.array(np.dot(dN_dxi, x_elem))
+    return np.dot(dN_dxi, x_elem)
 
 
 def element_stiffness_linear_elastic_1D(
