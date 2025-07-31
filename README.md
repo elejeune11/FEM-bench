@@ -69,6 +69,22 @@ scores = pipeline.compute_aggregate_score()  # Compute final scores
 pipeline.create_markdown_summary()           # Creates markdown table summary of results
 ```
 
+### User-Facing Pipeline API
+
+The table below summarizes all key methods available through the `FEMBenchPipeline` class. These are the only methods needed to run the full benchmark pipeline:
+
+| Method | Purpose |
+|--------|---------|
+| `load_all_tasks()` | Load all tasks from the specified `tasks_dir` and populate the internal registry. |
+| `generate_and_save_task_prompts()` | Create and save code-generation prompts (`*_code_prompt.txt`). |
+| `generate_and_save_test_prompts()` | Create and save test-generation prompts (`*_test_prompt.txt`). |
+| `load_all_llm_outputs(allowed_llms=None)` | Load LLM-generated Python outputs from the output directory. Supports optional LLM filtering. |
+| `evaluate_all_llm_outputs()` | Evaluate each LLM-generated function against the task reference function and store match results. |
+| `evaluate_all_llm_tests()` | Evaluate LLM-generated test functions by running them against both reference and intentionally incorrect implementations. |
+| `compute_aggregate_score()` | Compute summary metrics for each LLM including correctness, test pass rate, and expected failure detection rate. |
+| `create_markdown_summary(filename="evaluation_summary.md")` | Write a Markdown report of all results to `results_dir`. |
+
+
 ### Core Components
 
 - **Task Definition**: Tasks are defined as Python modules with a `task_info()` function
@@ -118,6 +134,51 @@ fem-bench/
 3. Run `pytest tests/` to verify changes
 4. Follow the existing code structure and documentation patterns
 
+## Defining Tasks for LLM Code Generation
+
+### Quick Start
+
+Create a new task by copying the template:
+
+```bash
+cp task_template.py tasks/my_new_task.py
+```
+
+### What Tasks Define
+
+Each task file contains:
+
+- **Reference implementation** (`main_fcn`) - The correct solution to synthesize
+- **Helper functions** - Any dependencies the main function needs  
+- **Test cases** - Functions that verify correctness with expected failures
+- **Input/output examples** - Sample data for automated evaluation
+
+All components are bundled together in a `task_info()` function that returns structured metadata.
+
+### From Task to LLM Prompt
+
+The pipeline automatically converts each task into prompts:
+
+**Code Generation Prompt:**
+```markdown
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring below.
+
+## Available Helper Functions:
+def calculate_area(radius: float) -> float:
+    """Calculate circle area."""
+    return np.pi * radius**2
+
+## Only complete the function below:
+def circle_volume(radius: float, height: float) -> float:
+    """Calculate cylinder volume using the helper function."""
+```
+
+**Test Generation Prompt:** Similar structure asking the LLM to write pytest-style test functions with specific names and assert statements.
+
+The generated code is then evaluated against your reference implementation and test cases to measure LLM performance.
+
 ## Deactivating Environment
 ```bash
 deactivate
@@ -126,47 +187,35 @@ rm -rf fem_bench_env  # To completely remove
 
 ## Preliminary Results
 
-claude4 = claude sonnet 4
-
-gemini = gemini 2.0 flash-lite
-
-gpt41 = openAI GPT-4.1
-
-maiu = My AI University app see: https://my-ai-university.com/ and https://huggingface.co/spaces/my-ai-university/finite-element-method
-
 ### Function Correctness (✓ = Match)
 
-| Task                                   | claude4   | gemini   | gpt41   | maiu   |
-|:---------------------------------------|:----------|:---------|:--------|:-------|
-| element_stiffness_linear_elastic_1D    | ✓         | ✓        | ✓       | ×      |
-| linear_uniform_mesh_1D                 | ✓         | ✓        | ✓       | ✓      |
-| solve_linear_elastic_1D_self_contained | ×         | ×        | ✓       | ✓      |
-| Total                                  | 2/3       | 2/3      | 3/3     | 2/3    |
+| Task                                   | claude-3-5   | deepseek-chat   | gemini-flash   | gemini-pro   | gpt-4o   |
+|:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
+| element_stiffness_linear_elastic_1D    | ✓            | ✓               | ✓              | ×            | ✓        |
+| linear_uniform_mesh_1D                 | ✓            | ✓               | ✓              | ✓            | ✓        |
+| solve_linear_elastic_1D_self_contained | ✓            | ✓               | ×              | ×            | ✓        |
+| Total                                  | 3/3          | 3/3             | 2/3            | 1/3          | 3/3      |
 
 ### Reference Tests Passed (%)
 
-| Task                                   | claude4   | gemini   | gpt41   | maiu   |
-|:---------------------------------------|:----------|:---------|:--------|:-------|
-| element_stiffness_linear_elastic_1D    | 0.0%      | 0.0%     | 0.0%    | 0.0%   |
-| linear_uniform_mesh_1D                 | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| solve_linear_elastic_1D_self_contained | 50.0%     | 50.0%    | 100.0%  | 100.0% |
-| Avg Ref Pass %                         | 50.0%     | 50.0%    | 66.7%   | 66.7%  |
+| Task                                   | claude-3-5   | deepseek-chat   | gemini-flash   | gemini-pro   | gpt-4o   |
+|:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
+| element_stiffness_linear_elastic_1D    | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
+| linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
+| solve_linear_elastic_1D_self_contained | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
+| Avg Ref Pass %                         | 33.3%        | 50.0%           | 50.0%          | 66.7%        | 50.0%    |
 
 ### Expected Failures Detected (%)
 
-| Task                                   | claude4   | gemini   | gpt41   | maiu   |
-|:---------------------------------------|:----------|:---------|:--------|:-------|
-| element_stiffness_linear_elastic_1D    | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| linear_uniform_mesh_1D                 | 100.0%    | 100.0%   | 100.0%  | 100.0% |
-| solve_linear_elastic_1D_self_contained | 100.0%    | 100.0%   | 100.0%  | 50.0%  |
-| Avg Fail Detect %                      | 100.0%    | 100.0%   | 100.0%  | 83.3%  |
-
-
+| Task                                   | claude-3-5   | deepseek-chat   | gemini-flash   | gemini-pro   | gpt-4o   |
+|:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
+| element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
+| linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
+| solve_linear_elastic_1D_self_contained | 100.0%       | –               | 100.0%         | 100.0%       | 100.0%   |
+| Avg Fail Detect %                      | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 
 ## Todo list
 - [ ] Create additional tasks to complete the initial benchmark set  
-- [ ] Set up automation scripts to call LLM APIs  
-- [ ] Support multiple LLM runs (e.g., report X out of 10 correct)  
 - [ ] Iterate on prompt strategy to improve output quality  
 - [ ] Validate tasks (e.g., ensure they are well-specified and testable)  
 - [ ] Improve pipeline robustness and add validation checks  

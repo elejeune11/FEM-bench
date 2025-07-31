@@ -87,9 +87,9 @@ def _values_match(
 
 
 def _values_match_impl(
-    a: Any, 
-    b: Any, 
-    *, 
+    a: Any,
+    b: Any,
+    *,
     atol: float,
     rtol: float,
     strict_types: bool,
@@ -97,126 +97,113 @@ def _values_match_impl(
     depth: int,
     max_depth: int
 ) -> bool:
-    """Internal implementation with recursion tracking."""
-    
-    # Check recursion depth
-    if depth > max_depth:
+    """Compare two potentially-nested structures, with cycle detection and
+    an inclusive recursion-depth limit (`depth >= max_depth` raises)."""
+
+    # Inclusive depth guard
+    if depth >= max_depth:
         raise RecursionError(f"Maximum recursion depth ({max_depth}) exceeded")
-    
-    # Quick identity check
+
+    # Short-circuit identity check
     if a is b:
         return True
-    
-    # Handle None values
+
+    # None handling
     if a is None or b is None:
         return a is b
-    
-    # Create identity tuple for cycle detection (only for mutable objects)
-    if hasattr(a, '__dict__') or hasattr(b, '__dict__'):
-        identity_key = (id(a), id(b))
-        if identity_key in visited:
-            return True  # Assume equal if we've seen this pair before
-        visited.add(identity_key)
-    
-    try:
-        # Type checking
-        if strict_types and type(a) != type(b):
+
+    # Cycle detection for every object pair
+    identity_key = (id(a), id(b))
+    if identity_key in visited:
+        return True
+    visited.add(identity_key)
+
+    # Strict-type check
+    if strict_types and type(a) is not type(b):
+        return False
+
+    # Helper for numeric scalars
+    def _numeric_eq(x, y) -> bool:
+        try:
+            return np.isclose(x, y, atol=atol, rtol=rtol, equal_nan=True)
+        except Exception:
             return False
-        
-        # Helper for numeric comparisons
-        def _numeric_eq(x, y) -> bool:
-            try:
-                return np.isclose(x, y, atol=atol, rtol=rtol, equal_nan=True)
-            except (TypeError, ValueError):
-                return False
-        
-        # --- NumPy arrays (check first due to isinstance behavior) -----------
-        if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
-            if a.shape != b.shape:
-                return False
-            try:
-                return np.allclose(a, b, atol=atol, rtol=rtol, equal_nan=True)
-            except (TypeError, ValueError):
-                # Fallback for non-numeric arrays
-                return np.array_equal(a, b)
-        
-        # --- Sequence types --------------------------------------------------
-        if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
-            if strict_types and type(a) != type(b):
-                return False
-            if len(a) != len(b):
-                return False
-            return all(
-                _values_match_impl(x, y, atol=atol, rtol=rtol, strict_types=strict_types,
-                                 visited=visited, depth=depth+1, max_depth=max_depth)
-                for x, y in zip(a, b)
-            )
-        
-        # --- Sets and frozensets ---------------------------------------------
-        if isinstance(a, (set, frozenset)) and isinstance(b, (set, frozenset)):
-            if strict_types and type(a) != type(b):
-                return False
-            if len(a) != len(b):
-                return False
-            # For sets with numeric values, we need special handling
-            return _compare_sets(a, b, atol=atol, rtol=rtol, strict_types=strict_types,
-                               visited=visited, depth=depth+1, max_depth=max_depth)
-        
-        # --- Mix of array and sequence (with safety checks) -----------------
-        if isinstance(a, np.ndarray) and isinstance(b, (list, tuple)):
-            try:
-                b_arr = np.asarray(b)
-                return _values_match_impl(a, b_arr, atol=atol, rtol=rtol, 
-                                        strict_types=strict_types, visited=visited,
-                                        depth=depth+1, max_depth=max_depth)
-            except (ValueError, TypeError):
-                return False
-        
-        if isinstance(b, np.ndarray) and isinstance(a, (list, tuple)):
-            try:
-                a_arr = np.asarray(a)
-                return _values_match_impl(a_arr, b, atol=atol, rtol=rtol,
-                                        strict_types=strict_types, visited=visited,
-                                        depth=depth+1, max_depth=max_depth)
-            except (ValueError, TypeError):
-                return False
-        
-        # --- Numeric scalars -------------------------------------------------
-        if isinstance(a, numbers.Number) and isinstance(b, numbers.Number):
-            return _numeric_eq(a, b)
-        
-        # --- Dictionaries ----------------------------------------------------
-        if isinstance(a, dict) and isinstance(b, dict):
-            if set(a.keys()) != set(b.keys()):
-                return False
-            return all(
-                _values_match_impl(a[k], b[k], atol=atol, rtol=rtol, strict_types=strict_types,
-                                 visited=visited, depth=depth+1, max_depth=max_depth)
-                for k in a.keys()
-            )
-        
-        # --- String types ----------------------------------------------------
-        if isinstance(a, str) and isinstance(b, str):
-            return a == b
-        
-        # --- Other iterables (but not strings) ------------------------------
-        if (hasattr(a, '__iter__') and hasattr(b, '__iter__') and 
+
+    # --- NumPy arrays ----------------------------------------------------
+    if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+        if a.shape != b.shape:
+            return False
+        try:
+            return np.allclose(a, b, atol=atol, rtol=rtol, equal_nan=True)
+        except Exception:
+            return np.array_equal(a, b)
+
+    # --- Lists / tuples --------------------------------------------------
+    if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        if len(a) != len(b):
+            return False
+        return all(
+            _values_match_impl(x, y, atol=atol, rtol=rtol, strict_types=strict_types,
+                               visited=visited, depth=depth + 1, max_depth=max_depth)
+            for x, y in zip(a, b)
+        )
+
+    # --- Sets / frozensets ----------------------------------------------
+    if isinstance(a, (set, frozenset)) and isinstance(b, (set, frozenset)):
+        if len(a) != len(b):
+            return False
+        return _compare_sets(a, b, atol=atol, rtol=rtol, strict_types=strict_types,
+                             visited=visited, depth=depth + 1, max_depth=max_depth)
+
+    # --- ndarray vs sequence --------------------------------------------
+    if isinstance(a, np.ndarray) and isinstance(b, (list, tuple)):
+        try:
+            return _values_match_impl(a, np.asarray(b), atol=atol, rtol=rtol,
+                                      strict_types=strict_types, visited=visited,
+                                      depth=depth + 1, max_depth=max_depth)
+        except Exception:
+            return False
+    if isinstance(b, np.ndarray) and isinstance(a, (list, tuple)):
+        try:
+            return _values_match_impl(np.asarray(a), b, atol=atol, rtol=rtol,
+                                      strict_types=strict_types, visited=visited,
+                                      depth=depth + 1, max_depth=max_depth)
+        except Exception:
+            return False
+
+    # --- Numbers ---------------------------------------------------------
+    if isinstance(a, numbers.Number) and isinstance(b, numbers.Number):
+        return _numeric_eq(a, b)
+
+    # --- Dicts -----------------------------------------------------------
+    if isinstance(a, dict) and isinstance(b, dict):
+        if set(a) != set(b):
+            return False
+        return all(
+            _values_match_impl(a[k], b[k], atol=atol, rtol=rtol, strict_types=strict_types,
+                               visited=visited, depth=depth + 1, max_depth=max_depth)
+            for k in a
+        )
+
+    # --- Strings ---------------------------------------------------------
+    if isinstance(a, str) and isinstance(b, str):
+        return a == b
+
+    # --- Other iterables (non-string) ------------------------------------
+    if (hasattr(a, '__iter__') and hasattr(b, '__iter__') and
             not isinstance(a, (str, bytes)) and not isinstance(b, (str, bytes))):
-            try:
-                a_list = list(a)
-                b_list = list(b)
-                return _values_match_impl(a_list, b_list, atol=atol, rtol=rtol,
-                                        strict_types=strict_types, visited=visited,
-                                        depth=depth+1, max_depth=max_depth)
-            except (TypeError, ValueError):
-                pass
-        
-        # --- Fallback to plain equality --------------------------------------
-        return a == b
-    
-    except Exception:
-        # If anything goes wrong, fall back to plain equality
-        return a == b
+        try:
+            return _values_match_impl(list(a), list(b), atol=atol, rtol=rtol,
+                                      strict_types=strict_types, visited=visited,
+                                      depth=depth + 1, max_depth=max_depth)
+        except Exception:
+            return False
+
+    # --- Fallback --------------------------------------------------------
+    # One last inclusive guard in case we reach here after nesting deeper
+    if depth + 1 >= max_depth:
+        raise RecursionError(f"Maximum recursion depth ({max_depth}) exceeded at fallback")
+    return a == b
 
 
 def _compare_sets(

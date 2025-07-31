@@ -139,3 +139,14 @@ def test_task_initialization_minimal():
     assert task.test_cases[0]["expected_failures"]
     assert isinstance(task.reference_verification_inputs, list)
     assert task.reference_verification_inputs[0] == [2, 3]
+
+
+def test_task_repr():
+    task = Task(
+        task_id="001",
+        task_short_description="Add two numbers",
+        created_date="2025-07-30",
+        created_by="Alice",
+        main_fcn_code="def add(a, b): return a + b"
+    )
+    assert repr(task) == "<Task 001: Add two numbers>"
