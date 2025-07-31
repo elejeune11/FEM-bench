@@ -698,3 +698,66 @@ def test_remaining_uncovered_lines(monkeypatch):
         assert "Avg Ref Pass %" in md
         totals_line = next(line for line in md.splitlines() if line.startswith("| Avg Ref Pass %"))
         assert "–" in totals_line
+
+
+def test_markdown_summary_triggers_ref_and_fail_detection():
+    # Setup pipeline with dummy task + result
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        pipe = FEMBenchPipeline(
+            tasks_dir=tmp_path / "tasks",
+            llm_outputs_dir=tmp_path / "llm",
+            prompts_dir=tmp_path / "prompts",
+            results_dir=tmp_path / "results",
+        )
+        pipe.results = {
+            "dummy_task": {
+                "llmA": {
+                    "matches_reference": True,
+                    "tests": {
+                        "test_results": {
+                            "reference_pass": [("test_x", True), ("test_y", False)],
+                            "failure_fail": [("fail_1", True)],
+                        }
+                    }
+                }
+            }
+        }
+
+        # Call summary (which uses the two helpers)
+        pipe.create_markdown_summary()
+
+        # Confirm markdown file was written
+        out_path = pipe.results_dir / "evaluation_summary.md"
+        assert out_path.exists()
+        text = out_path.read_text()
+        assert "Function Correctness" in text
+        assert "Avg Ref Pass %" in text
+
+
+def test_compute_aggregate_score_handles_missing_test_data():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        base = Path(tmpdir)
+        pipe = FEMBenchPipeline(
+            tasks_dir=base / "tasks",
+            llm_outputs_dir=base / "llm",
+            prompts_dir=base / "prompts",
+            results_dir=base / "results",
+        )
+
+        # LLM output for one task, but NO test data
+        pipe.results = {
+            "dummy_task": {
+                "llmA": {
+                    "matches_reference": False,
+                    # no "tests" key → should default to empty test set
+                }
+            }
+        }
+
+        scores = pipe.compute_aggregate_score()
+
+        # Assert 0.0 was recorded for both test metrics
+        assert "llmA" in scores
+        assert scores["llmA"]["avg_tests_passed_on_reference_pct"] == 0.0
+        assert scores["llmA"]["avg_expected_failures_detected_pct"] == 0.0
