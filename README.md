@@ -31,8 +31,8 @@ FEM-bench evaluates LLMs through a dual-task approach:
    pip install --upgrade pip
    pip install -e ".[dev]"
    
-   # Additional dependencies for prompting
-   pip install selenium
+   # Required packages for LLM API clients
+   pip install python-dotenv requests openai google-generativeai
    ```
 
 2. **Verify installation:**
@@ -99,6 +99,62 @@ For each LLM, the system computes:
 - `fcn_correct_pct`: Percentage of correct function implementations
 - `avg_tests_passed_on_reference_pct`: Average percentage of tests passed by reference implementation
 - `avg_expected_failures_detected_pct`: Average percentage of expected failures correctly identified
+
+
+## Overview: Interacting with the LLM API
+
+This repo is designed to **separately manage API access logic** from the core benchmarking logic. All model-specific API clients (e.g., OpenAI, Claude, Gemini, DeepSeek) live in `llm_api/`, allowing you to:
+- Swap in different providers without touching the pipeline logic.
+- Cleanly isolate API-specific formatting, error handling, and key management.
+- Maintain a consistent interface for generating **code** and **test functions** from prompts.
+
+To add a new model or update an existing one, simply modify or extend the appropriate client in `llm_api/`. This modular design ensures the benchmark remains stable even as model APIs evolve.
+
+### API Access: Setting up `.env`
+
+To use the LLM APIs, you must create a `.env` file at the root of your project with your own API keys:
+
+```
+OPENAI_API_KEY=your_openai_key_here
+GEMINI_API_KEY=your_google_gemini_key_here
+CLAUDE_API_KEY=your_anthropic_key_here
+DEEPSEEK_API_KEY=your_deepseek_key_here
+```
+
+These keys are **not included** in the repo for security.
+
+Supported model names: gpt-4o, gemini-flash, gemini-pro, claude-3-5, deepseek-chat
+
+Each client loads the appropriate key using `dotenv`. Missing keys will raise a clear error during runtime.
+
+> You only need to include keys for the models you plan to use.
+
+### What `run_pipeline.py` Does
+
+The `run_pipeline.py` script automates a **full LLM benchmarking cycle**:
+1. **Load tasks**: Parses a directory of YAML-based task definitions.
+2. **Generate prompts**: Creates code and test prompts per task.
+3. **Call LLMs**: Sends prompts to each model (OpenAI, Claude, Gemini, DeepSeek), saving completions locally.
+4. **Load outputs**: Reads model responses from disk.
+5. **Run evaluation**:
+   - Executes each generated function and test case.
+   - Compares outputs to reference solutions.
+6. **Score results**: Aggregates accuracy and test coverage metrics.
+7. **Generate summary**: Outputs a markdown report summarizing model performance.
+
+> The script is designed to **skip** tasks that already have saved outputs, allowing incremental runs and efficient restarts.
+
+You can run the full benchmark directly with:
+
+```bash
+python run_pipeline.py
+```
+
+Outputs will be saved to:
+- `llm_outputs/` for model completions
+- `results/` for evaluation scores and `evaluation_summary.md`
+
+
 
 ## Architecture
 
