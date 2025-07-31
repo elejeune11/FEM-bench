@@ -1,9 +1,11 @@
 from fem_bench.pipeline_utils import FEMBenchPipeline
+from fem_bench.pipeline_utils import evaluate_task_tests as real_eval_tests
 from fem_bench.task_base import Task
 import json
 from pathlib import Path
 import pytest
 import tempfile
+import textwrap
 
 
 def test_fembench_pipeline_init():
@@ -315,3 +317,384 @@ def test_create_markdown_summary_real_example(real_pipeline):
     assert "### Function Correctness" in text
     assert "### Reference Tests Passed" in text
     assert "### Expected Failures Detected" in text
+
+
+# -----------------------------------------------------------------------------
+# Utility tests for static helper methods
+# -----------------------------------------------------------------------------
+
+def test_extract_function_code_success_and_failure():
+    code_ok = textwrap.dedent(
+        """
+        import math
+
+        def first(x):
+            return x + 1
+
+        def second(y):
+            return y - 1
+        """
+    )
+    assert FEMBenchPipeline.extract_function_code(code_ok).startswith("def first")
+
+    # No function definition – should raise
+    with pytest.raises(ValueError):
+        FEMBenchPipeline.extract_function_code("x = 42\n")
+
+
+def _write_bad_task(py_path: Path):
+    """Create a Python module with NO task_info() to trigger the error branch."""
+    py_path.write_text("def foo():\n    return 0\n")
+
+
+def test_load_all_tasks_missing_task_info():
+    with tempfile.TemporaryDirectory() as tmp:
+        tasks_dir = Path(tmp) / "tasks"
+        tasks_dir.mkdir()
+        _write_bad_task(tasks_dir / "bad_task.py")
+
+        pipeline = FEMBenchPipeline(
+            tasks_dir=str(tasks_dir),
+            llm_outputs_dir=str(Path(tmp) / "llm"),
+            prompts_dir=str(Path(tmp) / "prompts"),
+            results_dir=str(Path(tmp) / "results"),
+        )
+
+        with pytest.raises(ValueError):
+            pipeline.load_all_tasks()
+
+
+def test_load_all_llm_outputs_allowed_llms_filter():
+    with tempfile.TemporaryDirectory() as tmp:
+        llm_outputs = Path(tmp) / "llm_outputs"
+        llm_outputs.mkdir()
+
+        # Two fake LLM output files for the same (dummy) task
+        (llm_outputs / "dummy_code_modelA.py").write_text("def foo():\n    return 1\n")
+        (llm_outputs / "dummy_code_modelB.py").write_text("def foo():\n    return 1\n")
+
+        pipeline = FEMBenchPipeline(
+            tasks_dir=str(Path(tmp) / "tasks"),  # empty dir – fine for this test
+            llm_outputs_dir=str(llm_outputs),
+            prompts_dir=str(Path(tmp) / "prompts"),
+            results_dir=str(Path(tmp) / "results"),
+        )
+
+        # Only include modelB
+        pipeline.load_all_llm_outputs(allowed_llms=["modelB"])
+        assert "dummy" in pipeline.llm_outputs
+        assert "modelB" in pipeline.llm_outputs["dummy"]
+        assert "modelA" not in pipeline.llm_outputs["dummy"]
+
+
+def test_compute_aggregate_score_empty_results():
+    with tempfile.TemporaryDirectory() as tmp:
+        pipeline = FEMBenchPipeline(
+            tasks_dir=str(Path(tmp) / "tasks"),
+            llm_outputs_dir=str(Path(tmp) / "llm"),
+            prompts_dir=str(Path(tmp) / "prompts"),
+            results_dir=str(Path(tmp) / "results"),
+        )
+        # No evaluation results added
+        metrics = pipeline.compute_aggregate_score()
+        assert metrics == {}, "Expected empty dict when no results are present"
+
+
+def test_create_markdown_summary_with_no_results():
+    with tempfile.TemporaryDirectory() as tmp:
+        results_dir = Path(tmp) / "results"
+        pipeline = FEMBenchPipeline(
+            tasks_dir=str(Path(tmp) / "tasks"),
+            llm_outputs_dir=str(Path(tmp) / "llm"),
+            prompts_dir=str(Path(tmp) / "prompts"),
+            results_dir=str(results_dir),
+        )
+
+        # This should not raise even if results are empty
+        pipeline.create_markdown_summary()
+        summary_file = results_dir / "evaluation_summary.md"
+        assert summary_file.exists()
+        text = summary_file.read_text()
+        # With no tasks/models, the Markdown file will have headers only
+        assert "### Function Correctness" in text
+
+
+def test_extract_test_functions():
+    code = textwrap.dedent(
+        '''
+        import pytest
+
+        def helper():
+            pass
+
+        def test_alpha():
+            'alpha'
+            assert True
+
+        def test_beta():
+            assert 1 == 1
+        '''
+    )
+    mapping = FEMBenchPipeline.extract_test_functions(code)
+    assert set(mapping.keys()) == {"test_alpha", "test_beta"}
+    for body in mapping.values():
+        assert body.strip().startswith("def test_")
+
+
+DUMMY_FCN_SRC = "def foo(x):\n    return x + 1\n"
+DUMMY_TEST_SRC = "def test_foo(fcn):\n    assert fcn(1) == 2\n"
+
+def _make_tmp_pipeline() -> FEMBenchPipeline:
+    tmp = tempfile.TemporaryDirectory()
+    base = Path(tmp.name)
+    return (
+        FEMBenchPipeline(
+            tasks_dir=str(base / "tasks"),
+            llm_outputs_dir=str(base / "llm"),
+            prompts_dir=str(base / "prompts"),
+            results_dir=str(base / "results"),
+        ),
+        tmp,
+    )
+
+
+def test_extract_test_functions_empty_block():
+    """Lines 137–138: branch where no test functions are present."""
+    from fem_bench.pipeline_utils import FEMBenchPipeline
+    code = "def helper():\n    pass\n"
+    assert FEMBenchPipeline.extract_test_functions(code) == {}
+
+
+def test_load_all_llm_outputs_parses_code_and_test_files():
+    """Lines 146–148 & 214–215: file name parsing and LLM output structure."""
+    pipeline, tmp = _make_tmp_pipeline()
+    llm_dir = Path(pipeline.llm_outputs_dir)
+    llm_dir.mkdir(parents=True, exist_ok=True)
+    (llm_dir / "dummy_code_modelX.py").write_text(DUMMY_FCN_SRC)
+    (llm_dir / "dummy_test_modelX.py").write_text(DUMMY_TEST_SRC)
+
+    pipeline.load_all_llm_outputs()
+    assert "dummy" in pipeline.llm_outputs
+    assert "modelX" in pipeline.llm_outputs["dummy"]
+    assert pipeline.llm_outputs["dummy"]["modelX"]["code"].startswith("def foo")
+    assert "test_foo" in next(iter(pipeline.llm_outputs["dummy"]["modelX"]["test"].values()))
+    tmp.cleanup()
+
+
+def test_evaluate_all_llm_outputs_skips_unknown_task():
+    """Lines 174–175: skipping unknown task_id."""
+    pipeline, tmp = _make_tmp_pipeline()
+    Path(pipeline.llm_outputs_dir).mkdir(parents=True, exist_ok=True)
+    (Path(pipeline.llm_outputs_dir) / "unknown_code_modelZ.py").write_text(DUMMY_FCN_SRC)
+
+    pipeline.load_all_llm_outputs()
+    pipeline.evaluate_all_llm_outputs()
+    assert pipeline.results == {}
+    tmp.cleanup()
+
+
+def test_evaluate_all_llm_tests_unknown_task_is_ignored():
+    """Lines 207–209: early return in evaluate_all_llm_tests."""
+    pipeline, tmp = _make_tmp_pipeline()
+    Path(pipeline.llm_outputs_dir).mkdir(parents=True, exist_ok=True)
+    (Path(pipeline.llm_outputs_dir) / "ghost_code_modelY.py").write_text(DUMMY_FCN_SRC)
+    (Path(pipeline.llm_outputs_dir) / "ghost_test_modelY.py").write_text(DUMMY_TEST_SRC)
+
+    pipeline.load_all_llm_outputs()
+    pipeline.evaluate_all_llm_tests()
+    assert pipeline.results == {}
+    tmp.cleanup()
+
+
+def test_evaluate_all_llm_tests_handles_exception_and_sets_flag(monkeypatch):
+    """Lines 255 and 276–278: internal error → tests_run = False."""
+    pipeline, tmp = _make_tmp_pipeline()
+    t = Task(
+        task_id="simple",
+        task_short_description="increment",
+        created_date="2025‑07‑31",
+        created_by="pytest",
+        main_fcn_code=DUMMY_FCN_SRC,
+        reference_verification_inputs=[[1]],
+        test_cases=[{"test_code": DUMMY_TEST_SRC, "expected_failures": []}],
+    )
+    pipeline.tasks["simple"] = t
+
+    Path(pipeline.llm_outputs_dir).mkdir(parents=True, exist_ok=True)
+    (Path(pipeline.llm_outputs_dir) / "simple_code_modelQ.py").write_text(DUMMY_FCN_SRC)
+    (Path(pipeline.llm_outputs_dir) / "simple_test_modelQ.py").write_text(DUMMY_TEST_SRC)
+    pipeline.load_all_llm_outputs()
+
+    def boom(*_a, **_kw):
+        raise RuntimeError("simulated failure")
+
+    monkeypatch.setattr("fem_bench.pipeline_utils.evaluate_task_tests", boom)
+
+    pipeline.evaluate_all_llm_tests()
+    res = pipeline.results["simple"]["modelQ"]["tests"]
+    assert res["tests_run"] is False
+    assert "simulated failure" in res["error"]
+    tmp.cleanup()
+
+
+def test_create_markdown_summary_totals_rows():
+    """Lines 391 & 397: totals and averages in Markdown tables."""
+    pipeline, tmp = _make_tmp_pipeline()
+    pipeline.results = {
+        "simple": {
+            "llmA": {
+                "matches_reference": False,
+                "tests": {
+                    "test_results": {
+                        "reference_pass": [("t", True), ("t2", False)],
+                        "failure_fail":  [("t", True)]
+                    }
+                }
+            }
+        }
+    }
+
+    pipeline.create_markdown_summary()
+    text = (Path(pipeline.results_dir) / "evaluation_summary.md").read_text()
+    assert "Total" in text
+    assert "Avg Ref Pass %" in text
+    assert "Avg Fail Detect %" in text
+    tmp.cleanup()
+
+
+VALID_REF = "def inc(x):\n    return x + 1\n"
+BROKEN_REF = "def broken("
+RUNTIME_ERR_GEN = "def gen(x, y):\n    raise RuntimeError('boom')\n"
+NEW_TEST = (
+    "def test_new(fcn):\n"
+    '    """Invented test (should trigger info print)."""\n'
+    "    assert fcn(1) == 2\n"
+)
+
+def _make_pipeline(tmp_dir: Path) -> FEMBenchPipeline:
+    return FEMBenchPipeline(
+        tasks_dir=tmp_dir / "tasks",
+        llm_outputs_dir=tmp_dir / "llm",
+        prompts_dir=tmp_dir / "prompts",
+        results_dir=tmp_dir / "results",
+    )
+
+def _register_task(pipeline, *, tid, code, tests):
+    pipeline.tasks[tid] = Task(
+        task_id=tid,
+        task_short_description=f"{tid} description",
+        created_date="2025‑07‑31",
+        created_by="pytest",
+        main_fcn_code=code,
+        reference_verification_inputs=[[1], [2]],
+        test_cases=tests,
+    )
+
+
+def test_pipeline_utils_all_remaining_branches():
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        pipeline = _make_pipeline(base)
+
+        _register_task(pipeline, tid="broken_task", code=BROKEN_REF, tests=[])
+        _register_task(pipeline, tid="gen_error", code=VALID_REF, tests=[])
+        _register_task(
+            pipeline,
+            tid="info_task",
+            code=VALID_REF,
+            tests=[{
+                "test_code": (
+                    "def test_existing(fcn):\n"
+                    '    """Existing reference test."""\n'
+                    "    assert fcn(2) == 3\n"
+                ),
+                "expected_failures": [],
+            }],
+        )
+        _register_task(pipeline, tid="parse_err_task", code=VALID_REF, tests=[])
+
+        llm_dir = base / "llm"
+        llm_dir.mkdir(parents=True)
+        (llm_dir / "broken_task_code_modelA.py").write_text("def foo():\n    return 0\n")
+        (llm_dir / "broken_task_test_modelA.py").write_text(NEW_TEST)
+        (llm_dir / "gen_error_code_modelA.py").write_text(RUNTIME_ERR_GEN)
+        (llm_dir / "gen_error_test_modelA.py").write_text(NEW_TEST)
+        (llm_dir / "info_task_code_modelA.py").write_text("def inc(x):\n    return x + 1\n")
+        (llm_dir / "info_task_test_modelA.py").write_text(NEW_TEST)
+        (llm_dir / "junk.py").write_text("pass\n")
+
+        pipeline.load_all_llm_outputs()
+        pipeline.llm_outputs.setdefault("parse_err_task", {}).setdefault("modelA", {
+            "code": VALID_REF,
+            "test": {"bad": "def broken("},
+        })
+
+        pipeline.evaluate_all_llm_outputs()
+        pipeline.evaluate_all_llm_tests()
+        pipeline.create_markdown_summary()
+
+        summary_md = (base / "results" / "evaluation_summary.md").read_text()
+        assert "Total" in summary_md
+        assert "–" in summary_md 
+        detail_errors = [
+            d.get("error")
+            for d in pipeline.results["gen_error"]["modelA"]["test_results"]
+        ]
+        assert any(err for err in detail_errors)
+        assert "test_new" in str(pipeline.results["info_task"]["modelA"]["tests"]["test_results"])
+
+
+VALID_REF_CODE = "def inc(x: int) -> int:\n    return x + 1\n"
+BAD_GEN_CODE = '''
+def bad(x):
+    """RAISE_FLAG – forces loader failure"""
+    return x + 1
+'''
+
+def _make_pipeline(tmp: Path) -> FEMBenchPipeline:
+    return FEMBenchPipeline(
+        tasks_dir=tmp / "tasks",
+        llm_outputs_dir=tmp / "llm",
+        prompts_dir=tmp / "prompts",
+        results_dir=tmp / "results",
+    )
+
+
+def test_remaining_uncovered_lines(monkeypatch):
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        pipe = _make_pipeline(base)
+        pipe.tasks["simple"] = __import__("types").SimpleNamespace(
+            task_id="simple",
+            main_fcn_code=VALID_REF_CODE,
+            required_imports=[],
+            fcn_dependency_code=[],
+            reference_verification_inputs=[[1]],
+            test_cases=[],
+        )
+
+        llm_dir = base / "llm"
+        llm_dir.mkdir(parents=True)
+        (llm_dir / "simple_code_syntaxErr.py").write_text(BAD_GEN_CODE)
+        (llm_dir / "simple_code_codeOnly.py").write_text(VALID_REF_CODE)
+
+        import fem_bench.pipeline_utils as pu
+        original_loader = pu.load_function_from_code
+
+        def patched(code, *a, **kw):
+            if "RAISE_FLAG" in code:
+                raise SyntaxError("simulated loader failure")
+            return original_loader(code, *a, **kw)
+
+        monkeypatch.setattr(pu, "load_function_from_code", patched)
+
+        pipe.load_all_llm_outputs()
+        pipe.evaluate_all_llm_outputs()
+        pipe.evaluate_all_llm_tests()
+        pipe.create_markdown_summary()
+
+        assert "error" in pipe.results["simple"]["syntaxErr"]
+        md = (base / "results" / "evaluation_summary.md").read_text()
+        assert "Avg Ref Pass %" in md
+        totals_line = next(line for line in md.splitlines() if line.startswith("| Avg Ref Pass %"))
+        assert "–" in totals_line
