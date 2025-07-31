@@ -114,7 +114,7 @@ def test_element_stiffness_comprehensive(fcn):
           Gauss quadrature rules when applied to linear elements, since exact integration is achieved.
     
     Note: Minor floating-point differences may arise due to roundoff when summing weighted values.
-    This test uses a strict but reasonable tolerance to allow for numerical consistency.
+    This test uses a strict but reasonable tolerance to allow for numerical consistency considering the limitations of floating point arithmetic.
     """
     # --- Setup: Define element and material properties ---
     x_elem = np.array([0.0, 2.0])  # Node positions; element length = 2.0
