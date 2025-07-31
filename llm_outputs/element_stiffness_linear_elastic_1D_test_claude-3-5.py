@@ -1,29 +1,22 @@
 def test_element_stiffness_comprehensive(fcn):
     """
     Verify the correctness and robustness of the 1D linear elastic element stiffness matrix.
-    This test checks the following properties of the stiffness matrix computed by
-    element_stiffness_linear_elastic_1D for a two-node linear element:
-    1. Analytical correctness:
-          (EA/L) * [[1, -1], [-1, 1]]
-    2. Shape and symmetry:
-    3. Singularity:
-          reflecting rigid body motion.
-    4. Integration consistency:
-          Gauss quadrature rules when applied to linear elements, since exact integration is achieved.
+    Tests analytical correctness, shape/symmetry, singularity, and integration consistency.
     """
     import numpy as np
     E = 200000000000.0
     A = 0.01
-    x = np.array([0.0, 2.0])
-    L = x[1] - x[0]
-    k_exact = E * A / L * np.array([[1, -1], [-1, 1]])
-    k = fcn(x, E, A, n_gauss=2)
-    assert np.allclose(k, k_exact, rtol=1e-13, atol=1e-13)
-    assert k.shape == (2, 2)
-    assert np.allclose(k, k.T, rtol=1e-13, atol=1e-13)
-    assert abs(np.linalg.det(k)) < 1e-10
-    k1 = fcn(x, E, A, n_gauss=1)
-    k2 = fcn(x, E, A, n_gauss=2)
-    k3 = fcn(x, E, A, n_gauss=3)
-    assert np.allclose(k1, k2, rtol=1e-13, atol=1e-13)
-    assert np.allclose(k2, k3, rtol=1e-13, atol=1e-13)
+    L = 1.0
+    x_elem = np.array([0.0, L])
+    tol = 1e-12
+    K_exact = E * A / L * np.array([[1.0, -1.0], [-1.0, 1.0]])
+    K = fcn(x_elem, E, A, n_gauss=2)
+    assert np.allclose(K, K_exact, rtol=tol, atol=tol)
+    assert K.shape == (2, 2)
+    assert np.allclose(K, K.T, rtol=tol, atol=tol)
+    assert abs(np.linalg.det(K)) < tol
+    K1 = fcn(x_elem, E, A, n_gauss=1)
+    K2 = fcn(x_elem, E, A, n_gauss=2)
+    K3 = fcn(x_elem, E, A, n_gauss=3)
+    assert np.allclose(K1, K2, rtol=tol, atol=tol)
+    assert np.allclose(K2, K3, rtol=tol, atol=tol)

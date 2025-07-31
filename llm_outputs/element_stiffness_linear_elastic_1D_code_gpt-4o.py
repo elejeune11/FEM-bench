@@ -18,5 +18,6 @@ def element_stiffness_linear_elastic_1D(x_elem: np.ndarray, E: float, A: float, 
         J = compute_jacobian_1D(dN_dxi, x_elem)
         dN_dx = dN_dxi / J
         B = np.array([dN_dx])
-        K += w * (B.T @ B) * E * A * J
+        K += w * (B.T @ B) * J
+    K *= E * A
     return K

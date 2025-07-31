@@ -6,7 +6,7 @@
     "reference_pass": [
       [
         "test_element_stiffness_comprehensive",
-        false
+        true
       ]
     ],
     "failure_fail": [
