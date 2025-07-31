@@ -259,7 +259,7 @@ rm -rf fem_bench_env  # To completely remove
 | element_stiffness_linear_elastic_1D    | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
 | linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | solve_linear_elastic_1D_self_contained | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
-| Avg Ref Pass %                         | 33.3%        | 50.0%           | 50.0%          | 66.7%        | 50.0%    |
+| Avg Ref Pass %                         | 33.3%        | 33.3%           | 50.0%          | 66.7%        | 50.0%    |
 
 ### Expected Failures Detected (%)
 
@@ -268,7 +268,8 @@ rm -rf fem_bench_env  # To completely remove
 | element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | solve_linear_elastic_1D_self_contained | 100.0%       | –               | 100.0%         | 100.0%       | 100.0%   |
-| Avg Fail Detect %                      | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
+| Avg Fail Detect %                      | 100.0%       | 66.7%           | 100.0%         | 100.0%       | 100.0%   |
+
 
 ## Todo list
 - [ ] Create additional tasks to complete the initial benchmark set  
