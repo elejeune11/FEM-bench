@@ -221,7 +221,8 @@ class FEMBenchPipeline:
             try:
                 reference_fcn = load_function_from_code(
                     task.main_fcn_code,
-                    required_imports=task.required_imports
+                    required_imports=task.required_imports,
+                    fcn_dependencies=task.fcn_dependency_code
                 )
             except Exception as e:
                 print(f"[Error] Failed to load reference function for {task_id}: {e}")
