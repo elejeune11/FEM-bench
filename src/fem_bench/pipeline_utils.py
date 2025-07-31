@@ -1,4 +1,5 @@
 import ast
+from collections import defaultdict
 from fem_bench.task_loader import load_task_from_info
 from fem_bench.task_to_prompt import task_to_code_prompt, task_to_test_prompt
 from fem_bench.evaluate_output import evaluate_function_output_match, evaluate_task_tests
@@ -291,50 +292,67 @@ class FEMBenchPipeline:
         """
         Compute aggregate scores from evaluation results.
 
-        For each LLM, returns a dictionary with:
-            - fcn_correct_pct: % of (task, llm) pairs with correct function implementations
-            - avg_tests_passed_on_reference_pct: average % of test functions passed by reference impl
-            - avg_expected_failures_detected_pct: average % of expected failures correctly failed
+        Each LLM gets:
+            - fcn_correct_pct                    : % of (task, llm) pairs with correct function implementations
+            - avg_tests_passed_on_reference_pct  : average % of reference tests passed
+            - avg_expected_failures_detected_pct : average % of expected failures correctly failed
 
-        Also saves each LLM's score dict to results_dir/llm_aggregate_{llm_name}.json
+        The score dict for each LLM is also written to
+            results_dir/llm_aggregate_{llm_name}.json
         """
-        llm_metrics: Dict[str, Dict[str, float]] = {}
+        from collections import defaultdict
+        import json
 
-        # Intermediate counters
-        counters: Dict[str, Dict[str, list]] = {}
+        # --- Collect universe of tasks and LLM names ---------------------------------
+        all_task_ids = list(self.results.keys())
+        all_llm_names = {llm for task in self.results.values() for llm in task.keys()}
 
-        for task_id, llm_dict in self.results.items():
-            for llm_name, eval_blocks in llm_dict.items():
-                c = counters.setdefault(llm_name, {
-                    "fcn_total": 0,
-                    "fcn_correct": 0,
-                    "test_pass_rates": [],
-                    "failure_detection_rates": [],
-                })
+        # --- Accumulators -------------------------------------------------------------
+        counters = defaultdict(lambda: {
+            "fcn_total": 0,
+            "fcn_correct": 0,
+            "test_pass_rates": [],          # list of floats (0–1) – one per task
+            "failure_detection_rates": [],  # list of floats (0–1) – one per task
+        })
 
-                # Count function correctness
+        # --- Score every (task, llm) pair --------------------------------------------
+        for task_id in all_task_ids:
+            task_result = self.results[task_id]
+            for llm_name in all_llm_names:
+                c = counters[llm_name]
                 c["fcn_total"] += 1
-                if eval_blocks.get("matches_reference", False):
-                    c["fcn_correct"] += 1
 
-                # Test-level results
-                test_results = eval_blocks.get("tests", {}).get("test_results", {})
-                ref_pass_pairs = test_results.get("reference_pass", [])
-                ef_fail_pairs = test_results.get("failure_fail", [])
+                eval_blocks = task_result.get(llm_name)  # None ⇒ no output at all
 
-                if ref_pass_pairs:
-                    n_passed = sum(1 for _, ok in ref_pass_pairs if ok)
-                    c["test_pass_rates"].append(n_passed / len(ref_pass_pairs))
+                # 1) Function correctness ------------------------------------------------
+                if eval_blocks and eval_blocks.get("matches_reference", False):
+                    c["fcn_correct"] += 1  # only increment for explicit True
 
-                if ef_fail_pairs:
-                    n_failed = sum(1 for _, ok in ef_fail_pairs if ok)
-                    c["failure_detection_rates"].append(n_failed / len(ef_fail_pairs))
+                # 2) Tests & failure detection ------------------------------------------
+                test_results = (eval_blocks or {}).get("tests", {}).get("test_results", {})
+                ref_pairs = test_results.get("reference_pass", [])
+                fail_pairs = test_results.get("failure_fail", [])
 
-        # Finalize scores per LLM
+                # Reference tests: treat "no data" as 0 %
+                if ref_pairs:
+                    n_passed = sum(ok for _, ok in ref_pairs)
+                    c["test_pass_rates"].append(n_passed / len(ref_pairs))
+                else:
+                    c["test_pass_rates"].append(0.0)
+
+                # Expected-failure detection: treat "no data" as 0 %
+                if fail_pairs:
+                    n_failed = sum(ok for _, ok in fail_pairs)
+                    c["failure_detection_rates"].append(n_failed / len(fail_pairs))
+                else:
+                    c["failure_detection_rates"].append(0.0)
+
+        # --- Finalise per-LLM metrics -------------------------------------------------
+        llm_metrics = {}
         for llm_name, c in counters.items():
-            fcn_pct = 100.0 * c["fcn_correct"] / c["fcn_total"] if c["fcn_total"] > 0 else 0.0
-            test_pct = 100.0 * sum(c["test_pass_rates"]) / len(c["test_pass_rates"]) if c["test_pass_rates"] else 0.0
-            ef_pct = 100.0 * sum(c["failure_detection_rates"]) / len(c["failure_detection_rates"]) if c["failure_detection_rates"] else 0.0
+            fcn_pct = 100.0 * c["fcn_correct"] / c["fcn_total"]
+            test_pct = 100.0 * sum(c["test_pass_rates"]) / len(c["test_pass_rates"])
+            ef_pct = 100.0 * sum(c["failure_detection_rates"]) / len(c["failure_detection_rates"])
 
             llm_metrics[llm_name] = {
                 "fcn_correct_pct": round(fcn_pct, 2),
@@ -342,106 +360,117 @@ class FEMBenchPipeline:
                 "avg_expected_failures_detected_pct": round(ef_pct, 2),
             }
 
-            # Write to disk
-            out_path = self.results_dir / f"llm_aggregate_{llm_name}.json"
-            out_path.write_text(json.dumps(llm_metrics[llm_name], indent=2))
+            out_file = self.results_dir / f"llm_aggregate_{llm_name}.json"
+            out_file.write_text(json.dumps(llm_metrics[llm_name], indent=2))
 
         return llm_metrics
 
-    def create_markdown_summary(self, filename="evaluation_summary.md"):
+    def create_markdown_summary(self, filename: str = "evaluation_summary.md") -> None:
         """
-        Save a Markdown summary of results across tasks and models.
+        Write a Markdown summary with three tables:
+        1. Function correctness (✓/×)
+        2. Reference-test pass rate %
+        3. Expected-failure detection %
 
-        Creates two tables:
-        1. Function correctness (✓ if matches_reference else ×)
-        2. Test evaluation (percent passed on reference, percent of expected failures caught)
-
-        The final row shows averages across all tasks for each model.
+        A cell shows “–” if the LLM supplied no usable tests.  For the
+        aggregate rows those “–” are counted as 0 % whenever the task
+        *does* have tests that others ran.
         """
         task_ids = sorted(self.results.keys())
         llm_names = sorted({llm for task in self.results.values() for llm in task})
 
-        # Initialize tables
-        code_table = []
-        test_table_ref = []
-        test_table_fail = []
+        # Helpers to know which tasks actually include tests
+        def task_has_ref_tests(tid):   # reference-pass tests
+            return any(
+                self.results[tid][m]
+                .get("tests", {}).get("test_results", {}).get("reference_pass")
+                for m in self.results[tid]
+            )
 
-        for task_id in task_ids:
-            row_code = [task_id]
-            row_ref = [task_id]
-            row_fail = [task_id]
+        def task_has_fail_tests(tid):  # expected-failure tests
+            return any(
+                self.results[tid][m]
+                .get("tests", {}).get("test_results", {}).get("failure_fail")
+                for m in self.results[tid]
+            )
+
+        # Build row data *and* numeric buckets for averages
+        code_rows, ref_rows, fail_rows = [], [], []
+        ref_numeric = defaultdict(list)   # llm -> list[float or None]
+        fail_numeric = defaultdict(list)
+
+        for tid in task_ids:
+            has_ref = task_has_ref_tests(tid)
+            has_fail = task_has_fail_tests(tid)
+
+            r_code, r_ref, r_fail = [tid], [tid], [tid]
 
             for llm in llm_names:
-                task_result = self.results.get(task_id, {}).get(llm, {})
-                # Function correctness
-                if task_result.get("matches_reference"):
-                    row_code.append("✓")
+                res = self.results.get(tid, {}).get(llm, {})
+                tests = res.get("tests", {}).get("test_results", {})
+
+                # Function correctness --------------------------------------------------
+                r_code.append("✓" if res.get("matches_reference") else "×")
+
+                # ------------ reference-pass percentage
+                ref_pairs = tests.get("reference_pass", [])
+                if ref_pairs:
+                    pct = 100 * sum(ok for _, ok in ref_pairs) / len(ref_pairs)
+                    r_ref.append(f"{pct:.1f}%")
+                    ref_numeric[llm].append(pct)
                 else:
-                    row_code.append("×")
+                    r_ref.append("–")
+                    # count as 0 only if task has reference tests
+                    ref_numeric[llm].append(0.0 if has_ref else None)
 
-                # Test pass rate
-                test_res = task_result.get("tests", {}).get("test_results", {})
-                ref_pass = test_res.get("reference_pass", [])
-                ef_fail = test_res.get("failure_fail", [])
-
-                if ref_pass:
-                    pct_pass = 100 * sum(ok for _, ok in ref_pass) / len(ref_pass)
-                    row_ref.append(f"{pct_pass:.1f}%")
+                # ------------ expected-failure percentage
+                fail_pairs = tests.get("failure_fail", [])
+                if fail_pairs:
+                    pct = 100 * sum(ok for _, ok in fail_pairs) / len(fail_pairs)
+                    r_fail.append(f"{pct:.1f}%")
+                    fail_numeric[llm].append(pct)
                 else:
-                    row_ref.append("–")
+                    r_fail.append("–")
+                    fail_numeric[llm].append(0.0 if has_fail else None)
 
-                if ef_fail:
-                    pct_fail = 100 * sum(ok for _, ok in ef_fail) / len(ef_fail)
-                    row_fail.append(f"{pct_fail:.1f}%")
-                else:
-                    row_fail.append("–")
+            code_rows.append(r_code)
+            ref_rows.append(r_ref)
+            fail_rows.append(r_fail)
 
-            code_table.append(row_code)
-            test_table_ref.append(row_ref)
-            test_table_fail.append(row_fail)
-
-        # Append total row
-        total_row_code = ["Total"]
-        total_row_ref = ["Avg Ref Pass %"]
-        total_row_fail = ["Avg Fail Detect %"]
+        # Aggregate rows ---------------------------------------------------------------
+        total_code = ["Total"]
+        total_ref = ["Avg Ref Pass %"]
+        total_fail = ["Avg Fail Detect %"]
 
         for llm in llm_names:
-            total = sum(1 for task in self.results if llm in self.results[task])
-            correct = sum(
-                1 for task in self.results
-                if llm in self.results[task] and self.results[task][llm].get("matches_reference")
+            total_tasks = len(task_ids)
+            correct_tasks = sum(
+                1
+                for tid in task_ids
+                if self.results.get(tid, {}).get(llm, {}).get("matches_reference")
             )
-            total_row_code.append(f"{correct}/{total}")
+            total_code.append(f"{correct_tasks}/{total_tasks}")
 
-            ref_vals = []
-            fail_vals = []
-            for task in self.results:
-                test_data = self.results[task].get(llm, {}).get("tests", {}).get("test_results", {})
-                ref = test_data.get("reference_pass", [])
-                fail = test_data.get("failure_fail", [])
-                if ref:
-                    ref_vals.append(100 * sum(ok for _, ok in ref) / len(ref))
-                if fail:
-                    fail_vals.append(100 * sum(ok for _, ok in fail) / len(fail))
+            # Filter out None (tasks without any tests for anyone)
+            ref_vals = [v for v in ref_numeric[llm] if v is not None]
+            fail_vals = [v for v in fail_numeric[llm] if v is not None]
 
-            total_row_ref.append(f"{sum(ref_vals)/len(ref_vals):.1f}%" if ref_vals else "–")
-            total_row_fail.append(f"{sum(fail_vals)/len(fail_vals):.1f}%" if fail_vals else "–")
+            total_ref.append(f"{sum(ref_vals)/len(ref_vals):.1f}%" if ref_vals else "–")
+            total_fail.append(f"{sum(fail_vals)/len(fail_vals):.1f}%" if fail_vals else "–")
 
-        code_table.append(total_row_code)
-        test_table_ref.append(total_row_ref)
-        test_table_fail.append(total_row_fail)
+        code_rows.append(total_code)
+        ref_rows.append(total_ref)
+        fail_rows.append(total_fail)
 
-        # Convert to Markdown
-        def write_table(data, headers, title):
-            df = pd.DataFrame(data, columns=headers)
-            return f"### {title}\n\n" + df.to_markdown(index=False) + "\n\n"
+        # Convert to Markdown ----------------------------------------------------------
+        def md_table(rows, hdr, title):
+            return f"### {title}\n\n" + pd.DataFrame(rows, columns=hdr).to_markdown(index=False) + "\n\n"
 
         headers = ["Task"] + llm_names
-        md = ""
-        md += write_table(code_table, headers, "Function Correctness (✓ = Match)")
-        md += write_table(test_table_ref, headers, "Reference Tests Passed (%)")
-        md += write_table(test_table_fail, headers, "Expected Failures Detected (%)")
+        md = (
+            md_table(code_rows, headers, "Function Correctness (✓ = Match)")
+            + md_table(ref_rows, headers, "Reference Tests Passed (%)")
+            + md_table(fail_rows, headers, "Expected Failures Detected (%)")
+        )
 
-        # Save
-        out_path = self.results_dir / filename
-        out_path.write_text(md)
+        (self.results_dir / filename).write_text(md)
