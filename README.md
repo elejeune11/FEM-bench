@@ -256,10 +256,10 @@ rm -rf fem_bench_env  # To completely remove
 
 | Task                                   | claude-3-5   | deepseek-chat   | gemini-flash   | gemini-pro   | gpt-4o   |
 |:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
-| element_stiffness_linear_elastic_1D    | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
+| element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | solve_linear_elastic_1D_self_contained | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
-| Avg Ref Pass %                         | 33.3%        | 33.3%           | 50.0%          | 66.7%        | 50.0%    |
+| Avg Ref Pass %                         | 66.7%        | 66.7%           | 83.3%          | 100.0%       | 83.3%    |
 
 ### Expected Failures Detected (%)
 
