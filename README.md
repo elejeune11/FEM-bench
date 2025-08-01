@@ -13,7 +13,7 @@ FEM-bench evaluates LLMs through a dual-task approach:
 ## Setup Instructions
 
 ### Prerequisites
-- Python 3.10+ (3.10 recommended)
+- Python 3.10+ (3.11 and 3.12 should work, 3.10 has been tested most extensively)
 
 ### Installation
 
@@ -31,14 +31,14 @@ FEM-bench evaluates LLMs through a dual-task approach:
    pip install --upgrade pip
    pip install -e ".[dev]"
    
-   # Required packages for LLM API clients
+   # Required packages for LLM API clients (for setup shown in the repo)
    pip install python-dotenv requests openai google-generativeai
    ```
 
 2. **Verify installation:**
    ```bash
    python -c "import fem_bench; print('FEM-Bench installed successfully')"
-   pytest tests/  # Run tests
+   pytest --cov=fem_bench --cov-report=term-missing -v tests/
    ```
 
 ## Quick Start
@@ -249,8 +249,9 @@ rm -rf fem_bench_env  # To completely remove
 |:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
 | element_stiffness_linear_elastic_1D    | ✓            | ✓               | ✓              | ×            | ✓        |
 | linear_uniform_mesh_1D                 | ✓            | ✓               | ✓              | ✓            | ✓        |
+| local_elastic_stiffness_matrix_3D_beam | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_1D_self_contained | ✓            | ✓               | ×              | ×            | ✓        |
-| Total                                  | 3/3          | 3/3             | 2/3            | 1/3          | 3/3      |
+| Total                                  | 4/4          | 4/4             | 2/4            | 1/4          | 4/4      |
 
 ### Reference Tests Passed (%)
 
@@ -258,8 +259,9 @@ rm -rf fem_bench_env  # To completely remove
 |:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
 | element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
+| local_elastic_stiffness_matrix_3D_beam | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 100.0%   |
 | solve_linear_elastic_1D_self_contained | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
-| Avg Ref Pass %                         | 66.7%        | 66.7%           | 83.3%          | 100.0%       | 83.3%    |
+| Avg Ref Pass %                         | 50.0%        | 50.0%           | 62.5%          | 75.0%        | 87.5%    |
 
 ### Expected Failures Detected (%)
 
@@ -267,8 +269,9 @@ rm -rf fem_bench_env  # To completely remove
 |:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
 | element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
+| local_elastic_stiffness_matrix_3D_beam | 100.0%       | 0.0%            | 100.0%         | 100.0%       | 100.0%   |
 | solve_linear_elastic_1D_self_contained | 100.0%       | –               | 100.0%         | 100.0%       | 100.0%   |
-| Avg Fail Detect %                      | 100.0%       | 66.7%           | 100.0%         | 100.0%       | 100.0%   |
+| Avg Fail Detect %                      | 100.0%       | 50.0%           | 100.0%         | 100.0%       | 100.0%   |
 
 
 ## Todo list
