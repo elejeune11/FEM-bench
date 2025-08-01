@@ -7,7 +7,7 @@
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/sandialabs/sibl#license)
 
 [![codecov](https://codecov.io/gh/elejeune11/FEM-bench/graph/badge.svg?token=p5DMvJ6byO)](https://codecov.io/gh/elejeune11/FEM-bench)
-[![tests](https://github.com/elejeune11/FEM-bench/actions/workflows/tests.yml/badge.svg)](https://github.com/elejeune11/FEM-bench/actions)
+[![tests](https://github.com/elejeune11/FEM-bench/actions/workflows/test.yml/badge.svg)](https://github.com/elejeune11/FEM-bench/actions)
 
 
 A comprehensive benchmarking system for evaluating Large Language Models (LLMs) on finite element method (FEM) tasks.
