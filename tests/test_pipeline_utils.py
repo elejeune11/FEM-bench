@@ -1,5 +1,6 @@
 from fem_bench.pipeline_utils import FEMBenchPipeline
 from fem_bench.pipeline_utils import evaluate_task_tests as real_eval_tests
+from fem_bench.pipeline_utils import validate_syntax
 from fem_bench.task_base import Task
 import json
 from pathlib import Path
@@ -761,3 +762,83 @@ def test_compute_aggregate_score_handles_missing_test_data():
         assert "llmA" in scores
         assert scores["llmA"]["avg_tests_passed_on_reference_pct"] == 0.0
         assert scores["llmA"]["avg_expected_failures_detected_pct"] == 0.0
+
+
+def test_valid_python_code():
+    code = """
+def add(a, b):
+    return a + b
+"""
+    is_valid, error = validate_syntax(code)
+    assert is_valid is True
+    assert error is None
+
+
+def test_invalid_assignment_expression():
+    code = """
+def broken():
+    a + b = 3
+"""
+    is_valid, error = validate_syntax(code)
+    assert is_valid is False
+    assert isinstance(error, str)
+    assert "cannot assign to expression" in error.lower()
+
+
+def test_unclosed_string():
+    code = """
+def oops():
+    return "missing end
+"""
+    is_valid, error = validate_syntax(code)
+    assert is_valid is False
+    assert "unterminated string" in error.lower() or "EOL while scanning" in error.lower()
+
+
+def test_missing_colon():
+    code = """
+def bad(a, b)
+    return a + b
+"""
+    is_valid, error = validate_syntax(code)
+    assert is_valid is False
+    assert "expected ':'" in error.lower()
+
+
+def test_empty_string():
+    is_valid, error = validate_syntax("")
+    assert is_valid is True
+    assert error is None
+
+
+def test_load_all_llm_outputs_handles_syntax_errors(tmp_path):
+    # Setup pipeline instance with temp dirs
+    pipeline = FEMBenchPipeline(
+        tasks_dir=tmp_path,
+        llm_outputs_dir=tmp_path,
+        prompts_dir=tmp_path,
+        results_dir=tmp_path,
+    )
+
+    # ---- Create a function (code) file with bad syntax ----
+    bad_code = "def broken():\n    a + b = 5"  # Invalid assignment
+    code_file = tmp_path / "example_code_gptcode.py"
+    code_file.write_text(bad_code)
+
+    # ---- Create a test file with bad syntax ----
+    bad_test = "def test_fail(\n    assert True"  # Invalid syntax
+    test_file = tmp_path / "example_test_gpttest.py"
+    test_file.write_text(bad_test)
+
+    # ---- Run method under test ----
+    pipeline.load_all_llm_outputs(allowed_llms=["gptcode", "gpttest"])
+
+    # ---- Validate results for the code file ----
+    code_result = pipeline.results.get("example", {}).get("gptcode", {})
+    assert code_result["matches_reference"] is False
+    assert "SyntaxError" in code_result["error"]
+
+    # ---- Validate results for the test file ----
+    test_result = pipeline.results.get("example", {}).get("gpttest", {}).get("tests", {})
+    assert test_result["tests_run"] is False
+    assert "SyntaxError" in test_result["error"]

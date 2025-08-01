@@ -11,6 +11,20 @@ from pathlib import Path
 from typing import Dict, Optional
 
 
+def validate_syntax(code: str) -> tuple[bool, str | None]:
+    """
+    Check whether a string of Python code is syntactically valid.
+
+    Returns:
+        (bool, error): True if valid, False otherwise. `error` contains the SyntaxError message if invalid.
+    """
+    try:
+        ast.parse(code)
+        return True, None
+    except SyntaxError as e:
+        return False, str(e)
+
+
 class FEMBenchPipeline:
     def __init__(
         self,
@@ -110,11 +124,39 @@ class FEMBenchPipeline:
             if "_code_" in stem:
                 task_id, llm_name = stem.split("_code_", 1)
                 key = "code"
+
+                valid, err = validate_syntax(content)
+                if not valid:
+                    print(f"[SyntaxError] Skipping code file {file.name}: {err}")
+                    self.results.setdefault(task_id, {})[llm_name] = {
+                        "task_id": task_id,
+                        "llm_name": llm_name,
+                        "matches_reference": False,
+                        "error": f"SyntaxError in function code: {err}",
+                        "test_results": []
+                    }
+                    continue
+
                 code_str = self.extract_function_code(content)
 
             elif "_test_" in stem:
                 task_id, llm_name = stem.split("_test_", 1)
                 key = "test"
+
+                valid, err = validate_syntax(content)
+                if not valid:
+                    print(f"[SyntaxError] Skipping test file {file.name}: {err}")
+                    self.results.setdefault(task_id, {})[llm_name] = {
+                        "task_id": task_id,
+                        "llm_name": llm_name,
+                        "tests": {
+                            "tests_run": False,
+                            "error": f"SyntaxError in test code: {err}",
+                            "test_results": {}
+                        }
+                    }
+                    continue
+
                 code_str = self.extract_test_functions(content)
 
             else:
