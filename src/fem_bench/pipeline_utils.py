@@ -82,7 +82,7 @@ class FEMBenchPipeline:
         for task_id, task in self.tasks.items():
             prompt = task_to_code_prompt(task)
             prompt_path = self.prompts_dir / f"{task_id}_code_prompt.txt"
-            prompt_path.write_text(prompt)
+            prompt_path.write_text(prompt, encoding="utf-8")
             self.prompts.setdefault(task_id, {})["code"] = prompt
 
     def generate_and_save_test_prompts(self):
@@ -93,7 +93,7 @@ class FEMBenchPipeline:
         for task_id, task in self.tasks.items():
             prompt = task_to_test_prompt(task)
             prompt_path = self.prompts_dir / f"{task_id}_test_prompt.txt"
-            prompt_path.write_text(prompt)
+            prompt_path.write_text(prompt, encoding="utf-8")
             self.prompts.setdefault(task_id, {})["tests"] = prompt
 
     @staticmethod
@@ -222,7 +222,7 @@ class FEMBenchPipeline:
 
                 # Write to file
                 out_path = self.results_dir / f"{task_id}_eval_{llm_name}.json"
-                out_path.write_text(json.dumps(result, indent=2))
+                out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
 
     def evaluate_all_llm_tests(self):
         """
@@ -329,7 +329,7 @@ class FEMBenchPipeline:
                 ] = result
 
                 out_path = self.results_dir / f"{task_id}_tests_{llm_name}.json"
-                out_path.write_text(json.dumps(result, indent=2))
+                out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
 
     def compute_aggregate_score(self) -> Dict[str, Dict[str, float]]:
         """
@@ -404,7 +404,7 @@ class FEMBenchPipeline:
             }
 
             out_file = self.results_dir / f"llm_aggregate_{llm_name}.json"
-            out_file.write_text(json.dumps(llm_metrics[llm_name], indent=2))
+            out_file.write_text(json.dumps(llm_metrics[llm_name], indent=2), encoding="utf-8")
 
         return llm_metrics
 
@@ -516,4 +516,4 @@ class FEMBenchPipeline:
             + md_table(fail_rows, headers, "Expected Failures Detected (%)")
         )
 
-        (self.results_dir / filename).write_text(md)
+        (self.results_dir / filename).write_text(md, encoding="utf-8")

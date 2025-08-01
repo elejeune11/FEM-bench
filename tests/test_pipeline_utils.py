@@ -100,7 +100,7 @@ def test_generate_and_save_task_prompts():
     for task_id in pipeline.tasks:
         prompt_file = prompts_dir / f"{task_id}_code_prompt.txt"
         assert prompt_file.exists(), f"Missing code prompt file for task '{task_id}'"
-        content = prompt_file.read_text()
+        content = prompt_file.read_text(encoding="utf-8")
         assert "def " in content, "Prompt does not include function signature"
         assert "docstring" in content.lower(), "Prompt appears incomplete"
         assert "## Function Signature:" in content
@@ -128,7 +128,7 @@ def test_generate_and_save_test_prompts():
     for task_id in pipeline.tasks:
         prompt_file = prompts_dir / f"{task_id}_test_prompt.txt"
         assert prompt_file.exists(), f"Missing test prompt file for task '{task_id}'"
-        content = prompt_file.read_text()
+        content = prompt_file.read_text(encoding="utf-8")
         assert "pytest" in content.lower(), "Prompt does not mention pytest"
         assert "## Test Functions to Implement:" in content
         assert "def " in content or "- " in content, "Prompt appears incomplete"
@@ -202,7 +202,7 @@ def test_evaluate_all_llm_outputs_real_example():
 
     # ── Check file written ────────────────────────────────────
     assert result_path.exists()
-    parsed = json.loads(result_path.read_text())
+    parsed = json.loads(result_path.read_text(encoding="utf-8"))
     assert parsed == result_dict
 
 
@@ -248,7 +248,7 @@ def test_evaluate_all_llm_tests_real_example():
 
     # ── Confirm file written and contents match ───────────────
     assert result_path.exists()
-    parsed = json.loads(result_path.read_text())
+    parsed = json.loads(result_path.read_text(encoding="utf-8"))
     
     # Normalize tuples to lists for comparison
     def normalize(result_dict):
@@ -299,7 +299,7 @@ def test_compute_aggregate_score_real_example():
         # Confirm JSON file written and content matches
         file_path = pipeline.results_dir / f"llm_aggregate_{llm_name}.json"
         assert file_path.exists(), f"Missing output: {file_path}"
-        file_metrics = json.loads(file_path.read_text())
+        file_metrics = json.loads(file_path.read_text(encoding="utf-8"))
         assert file_metrics == metrics
 
 
@@ -313,7 +313,7 @@ def test_create_markdown_summary_real_example(real_pipeline):
 
     summary_path = real_pipeline.results_dir / "evaluation_summary.md"
     assert summary_path.exists()
-    text = summary_path.read_text()
+    text = summary_path.read_text(encoding="utf-8")
 
     assert "### Function Correctness" in text
     assert "### Reference Tests Passed" in text
@@ -345,7 +345,7 @@ def test_extract_function_code_success_and_failure():
 
 def _write_bad_task(py_path: Path):
     """Create a Python module with NO task_info() to trigger the error branch."""
-    py_path.write_text("def foo():\n    return 0\n")
+    py_path.write_text("def foo():\n    return 0\n", encoding="utf-8")
 
 
 def test_load_all_tasks_missing_task_info():
@@ -371,8 +371,8 @@ def test_load_all_llm_outputs_allowed_llms_filter():
         llm_outputs.mkdir()
 
         # Two fake LLM output files for the same (dummy) task
-        (llm_outputs / "dummy_code_modelA.py").write_text("def foo():\n    return 1\n")
-        (llm_outputs / "dummy_code_modelB.py").write_text("def foo():\n    return 1\n")
+        (llm_outputs / "dummy_code_modelA.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
+        (llm_outputs / "dummy_code_modelB.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
 
         pipeline = FEMBenchPipeline(
             tasks_dir=str(Path(tmp) / "tasks"),  # empty dir – fine for this test
@@ -415,7 +415,7 @@ def test_create_markdown_summary_with_no_results():
         pipeline.create_markdown_summary()
         summary_file = results_dir / "evaluation_summary.md"
         assert summary_file.exists()
-        text = summary_file.read_text()
+        text = summary_file.read_text(encoding="utf-8")
         # With no tasks/models, the Markdown file will have headers only
         assert "### Function Correctness" in text
 
@@ -471,8 +471,8 @@ def test_load_all_llm_outputs_parses_code_and_test_files():
     pipeline, tmp = _make_tmp_pipeline()
     llm_dir = Path(pipeline.llm_outputs_dir)
     llm_dir.mkdir(parents=True, exist_ok=True)
-    (llm_dir / "dummy_code_modelX.py").write_text(DUMMY_FCN_SRC)
-    (llm_dir / "dummy_test_modelX.py").write_text(DUMMY_TEST_SRC)
+    (llm_dir / "dummy_code_modelX.py").write_text(DUMMY_FCN_SRC, encoding="utf-8")
+    (llm_dir / "dummy_test_modelX.py").write_text(DUMMY_TEST_SRC, encoding="utf-8")
 
     pipeline.load_all_llm_outputs()
     assert "dummy" in pipeline.llm_outputs
@@ -486,7 +486,7 @@ def test_evaluate_all_llm_outputs_skips_unknown_task():
     """Lines 174–175: skipping unknown task_id."""
     pipeline, tmp = _make_tmp_pipeline()
     Path(pipeline.llm_outputs_dir).mkdir(parents=True, exist_ok=True)
-    (Path(pipeline.llm_outputs_dir) / "unknown_code_modelZ.py").write_text(DUMMY_FCN_SRC)
+    (Path(pipeline.llm_outputs_dir) / "unknown_code_modelZ.py").write_text(DUMMY_FCN_SRC, encoding="utf-8")
 
     pipeline.load_all_llm_outputs()
     pipeline.evaluate_all_llm_outputs()
@@ -498,8 +498,8 @@ def test_evaluate_all_llm_tests_unknown_task_is_ignored():
     """Lines 207–209: early return in evaluate_all_llm_tests."""
     pipeline, tmp = _make_tmp_pipeline()
     Path(pipeline.llm_outputs_dir).mkdir(parents=True, exist_ok=True)
-    (Path(pipeline.llm_outputs_dir) / "ghost_code_modelY.py").write_text(DUMMY_FCN_SRC)
-    (Path(pipeline.llm_outputs_dir) / "ghost_test_modelY.py").write_text(DUMMY_TEST_SRC)
+    (Path(pipeline.llm_outputs_dir) / "ghost_code_modelY.py").write_text(DUMMY_FCN_SRC, encoding="utf-8")
+    (Path(pipeline.llm_outputs_dir) / "ghost_test_modelY.py").write_text(DUMMY_TEST_SRC, encoding="utf-8")
 
     pipeline.load_all_llm_outputs()
     pipeline.evaluate_all_llm_tests()
@@ -522,8 +522,8 @@ def test_evaluate_all_llm_tests_handles_exception_and_sets_flag(monkeypatch):
     pipeline.tasks["simple"] = t
 
     Path(pipeline.llm_outputs_dir).mkdir(parents=True, exist_ok=True)
-    (Path(pipeline.llm_outputs_dir) / "simple_code_modelQ.py").write_text(DUMMY_FCN_SRC)
-    (Path(pipeline.llm_outputs_dir) / "simple_test_modelQ.py").write_text(DUMMY_TEST_SRC)
+    (Path(pipeline.llm_outputs_dir) / "simple_code_modelQ.py").write_text(DUMMY_FCN_SRC, encoding="utf-8")
+    (Path(pipeline.llm_outputs_dir) / "simple_test_modelQ.py").write_text(DUMMY_TEST_SRC, encoding="utf-8")
     pipeline.load_all_llm_outputs()
 
     def boom(*_a, **_kw):
@@ -556,7 +556,7 @@ def test_create_markdown_summary_totals_rows():
     }
 
     pipeline.create_markdown_summary()
-    text = (Path(pipeline.results_dir) / "evaluation_summary.md").read_text()
+    text = (Path(pipeline.results_dir) / "evaluation_summary.md").read_text(encoding="utf-8")
     assert "Total" in text
     assert "Avg Ref Pass %" in text
     assert "Avg Fail Detect %" in text
@@ -616,13 +616,13 @@ def test_pipeline_utils_all_remaining_branches():
 
         llm_dir = base / "llm"
         llm_dir.mkdir(parents=True)
-        (llm_dir / "broken_task_code_modelA.py").write_text("def foo():\n    return 0\n")
-        (llm_dir / "broken_task_test_modelA.py").write_text(NEW_TEST)
-        (llm_dir / "gen_error_code_modelA.py").write_text(RUNTIME_ERR_GEN)
-        (llm_dir / "gen_error_test_modelA.py").write_text(NEW_TEST)
-        (llm_dir / "info_task_code_modelA.py").write_text("def inc(x):\n    return x + 1\n")
-        (llm_dir / "info_task_test_modelA.py").write_text(NEW_TEST)
-        (llm_dir / "junk.py").write_text("pass\n")
+        (llm_dir / "broken_task_code_modelA.py").write_text("def foo():\n    return 0\n", encoding="utf-8")
+        (llm_dir / "broken_task_test_modelA.py").write_text(NEW_TEST, encoding="utf-8")
+        (llm_dir / "gen_error_code_modelA.py").write_text(RUNTIME_ERR_GEN, encoding="utf-8")
+        (llm_dir / "gen_error_test_modelA.py").write_text(NEW_TEST, encoding="utf-8")
+        (llm_dir / "info_task_code_modelA.py").write_text("def inc(x):\n    return x + 1\n", encoding="utf-8")
+        (llm_dir / "info_task_test_modelA.py").write_text(NEW_TEST, encoding="utf-8")
+        (llm_dir / "junk.py").write_text("pass\n", encoding="utf-8")
 
         pipeline.load_all_llm_outputs()
         pipeline.llm_outputs.setdefault("parse_err_task", {}).setdefault("modelA", {
@@ -634,7 +634,7 @@ def test_pipeline_utils_all_remaining_branches():
         pipeline.evaluate_all_llm_tests()
         pipeline.create_markdown_summary()
 
-        summary_md = (base / "results" / "evaluation_summary.md").read_text()
+        summary_md = (base / "results" / "evaluation_summary.md").read_text(encoding="utf-8")
         assert "Total" in summary_md
         assert "–" in summary_md 
         detail_errors = [
@@ -676,8 +676,8 @@ def test_remaining_uncovered_lines(monkeypatch):
 
         llm_dir = base / "llm"
         llm_dir.mkdir(parents=True)
-        (llm_dir / "simple_code_syntaxErr.py").write_text(BAD_GEN_CODE)
-        (llm_dir / "simple_code_codeOnly.py").write_text(VALID_REF_CODE)
+        (llm_dir / "simple_code_syntaxErr.py").write_text(BAD_GEN_CODE, encoding="utf-8")
+        (llm_dir / "simple_code_codeOnly.py").write_text(VALID_REF_CODE, encoding="utf-8")
 
         import fem_bench.pipeline_utils as pu
         original_loader = pu.load_function_from_code
@@ -695,7 +695,7 @@ def test_remaining_uncovered_lines(monkeypatch):
         pipe.create_markdown_summary()
 
         assert "error" in pipe.results["simple"]["syntaxErr"]
-        md = (base / "results" / "evaluation_summary.md").read_text()
+        md = (base / "results" / "evaluation_summary.md").read_text(encoding="utf-8")
         assert "Avg Ref Pass %" in md
         totals_line = next(line for line in md.splitlines() if line.startswith("| Avg Ref Pass %"))
         assert "–" in totals_line
@@ -731,7 +731,7 @@ def test_markdown_summary_triggers_ref_and_fail_detection():
         # Confirm markdown file was written
         out_path = pipe.results_dir / "evaluation_summary.md"
         assert out_path.exists()
-        text = out_path.read_text()
+        text = out_path.read_text(encoding="utf-8")
         assert "Function Correctness" in text
         assert "Avg Ref Pass %" in text
 
@@ -823,12 +823,12 @@ def test_load_all_llm_outputs_handles_syntax_errors(tmp_path):
     # ---- Create a function (code) file with bad syntax ----
     bad_code = "def broken():\n    a + b = 5"  # Invalid assignment
     code_file = tmp_path / "example_code_gptcode.py"
-    code_file.write_text(bad_code)
+    code_file.write_text(bad_code, encoding="utf-8")
 
     # ---- Create a test file with bad syntax ----
     bad_test = "def test_fail(\n    assert True"  # Invalid syntax
     test_file = tmp_path / "example_test_gpttest.py"
-    test_file.write_text(bad_test)
+    test_file.write_text(bad_test, encoding="utf-8")
 
     # ---- Run method under test ----
     pipeline.load_all_llm_outputs(allowed_llms=["gptcode", "gpttest"])
