@@ -3,9 +3,18 @@ name: Run FEM-bench Tests
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+    paths-ignore:
+      - "README.md"
   pull_request:
     branches: [main]
-
+    paths:
+      - "src/**"
+      - "tests/**"
+    paths-ignore:
+      - "README.md"
 jobs:
   test:
     runs-on: ${{ matrix.os }}
