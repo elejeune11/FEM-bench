@@ -1,5 +1,15 @@
 # FEM-bench
 
+[![python](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+![os](https://img.shields.io/badge/os-ubuntu%20|%20macos%20|%20windows-blue.svg)
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/sandialabs/sibl#license)
+
+[![codecov](https://codecov.io/gh/elejeune11/FEM-bench/graph/badge.svg?token=p5DMvJ6byO)](https://codecov.io/gh/elejeune11/FEM-bench)
+[![tests](https://github.com/elejeune11/FEM-bench/actions/workflows/tests.yml/badge.svg)](https://github.com/elejeune11/FEM-bench/actions)
+
+
 A comprehensive benchmarking system for evaluating Large Language Models (LLMs) on finite element method (FEM) tasks.
 
 **NOTE: this is a work in progress, new tasks and comprehensive results will be posted soon**
