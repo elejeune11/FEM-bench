@@ -1,0 +1,19 @@
+{
+  "task_id": "local_elastic_stiffness_matrix_3D_beam",
+  "llm_name": "deepseek-chat",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_local_stiffness_3D_beam",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_local_stiffness_3D_beam",
+        false
+      ]
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "task_id": "local_elastic_stiffness_matrix_3D_beam",
+  "llm_name": "gemini-flash",
+  "matches_reference": false,
+  "test_results": [
+    {
+      "test_case": 1,
+      "inputs": [
+        100,
+        0.3,
+        10,
+        5,
+        30,
+        25,
+        10
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local variable 'G' referenced before assignment"
+    },
+    {
+      "test_case": 2,
+      "inputs": [
+        10000,
+        0.4,
+        77,
+        55,
+        300,
+        250,
+        9.9
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local variable 'G' referenced before assignment"
+    },
+    {
+      "test_case": 3,
+      "inputs": [
+        98000,
+        0.3,
+        5.5,
+        55,
+        300,
+        250,
+        9.4
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local variable 'G' referenced before assignment"
+    },
+    {
+      "test_case": 4,
+      "inputs": [
+        6790,
+        0.2,
+        10.6,
+        4.7,
+        44,
+        34,
+        20.1
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local variable 'G' referenced before assignment"
+    }
+  ]
+}
