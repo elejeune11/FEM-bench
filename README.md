@@ -13,13 +13,13 @@ FEM-bench evaluates LLMs through a dual-task approach:
 ## Setup Instructions
 
 ### Prerequisites
-- Python 3.10+ (3.12 recommended)
+- Python 3.10+ (3.10 recommended)
 
 ### Installation
 
 1. **Clone and setup:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/elejeune11/FEM-bench
    cd fem-bench
    
    # Create virtual environment

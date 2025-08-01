@@ -1,0 +1,57 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def local_elastic_stiffness_matrix_3D_beam(E: float, nu: float, A: float, L: float, Iy: float, Iz: float, J: float) -> np.ndarray:
+    """
+    Return the 12×12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.
+
+    The beam is assumed to be aligned with the local x-axis. The stiffness matrix
+    relates local nodal displacements and rotations to forces and moments using the equation:
+
+        [force_vector] = [stiffness_matrix] @ [displacement_vector]
+
+    Degrees of freedom are ordered as:
+        [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+
+    Where:
+        - u, v, w: displacements along local x, y, z
+        - θx, θy, θz: rotations about local x, y, z
+        - Subscripts 1 and 2 refer to node i and node j of the element
+
+    Parameters:
+        E (float): Young's modulus
+        nu (float): Poisson's ratio (used for torsion only)
+        A (float): Cross-sectional area
+        L (float): Length of the beam element
+        Iy (float): Second moment of area about the local y-axis
+        Iz (float): Second moment of area about the local z-axis
+        J (float): Torsional constant
+
+    Returns:
+        np.ndarray: A 12×12 symmetric stiffness matrix representing axial, torsional,
+                    and bending stiffness in local coordinates.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Function Signature:
+## Test Functions to Implement:
+- test_local_stiffness_3D_beam: "Comprehensive test for local_elastic_stiffness_matrix_3D_beam:
+- shape check
+- symmetry
+- expected singularity due to rigid body modes
+- block-level verification of axial, torsion, and bending terms"
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.
