@@ -1,0 +1,39 @@
+{
+  "task_id": "beam_transformation_matrix_3D",
+  "llm_name": "gemini-flash",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_cardinal_axis_alignment",
+        false
+      ],
+      [
+        "test_transformation_matrix_properties",
+        true
+      ],
+      [
+        "test_beam_transformation_matrix_error_messages",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_cardinal_axis_alignment",
+        true
+      ],
+      [
+        "test_transformation_matrix_properties",
+        false
+      ],
+      [
+        "test_transformation_matrix_properties",
+        false
+      ],
+      [
+        "test_beam_transformation_matrix_error_messages",
+        true
+      ]
+    ]
+  }
+}

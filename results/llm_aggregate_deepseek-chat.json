@@ -1,5 +1,5 @@
 {
-  "fcn_correct_pct": 100.0,
-  "avg_tests_passed_on_reference_pct": 50.0,
-  "avg_expected_failures_detected_pct": 50.0
+  "fcn_correct_pct": 80.0,
+  "avg_tests_passed_on_reference_pct": 53.33,
+  "avg_expected_failures_detected_pct": 60.0
 }
