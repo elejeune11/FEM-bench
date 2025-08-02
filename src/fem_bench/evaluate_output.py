@@ -2,6 +2,7 @@ import ast
 from fem_bench.task_base import Task
 import numpy as np
 import numbers
+import pytest
 from typing import Any, Callable, Optional, Set
 
 
@@ -347,9 +348,7 @@ def run_test_case(test_fcn: Callable, fcn_under_test: Callable) -> bool:
     try:
         test_fcn(fcn_under_test)
         return True
-    except AssertionError:
-        return False
-    except Exception:
+    except (AssertionError, pytest.fail.Exception, Exception):
         return False
 
 
