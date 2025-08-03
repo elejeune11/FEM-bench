@@ -26,6 +26,7 @@ A comprehensive benchmarking system for evaluating Large Language Models (LLMs) 
 * [Extending to Additional LLMs](#other_llms)
 * [Creating New Tasks](#new_tasks)
     - [From Task to LLM Prompt](#task_to_llm)
+* [Citation Into](#cite)
 * [TODO List](#todo)
 
 
@@ -266,6 +267,23 @@ Slightly more complicated Task:
 * [linear_uniform_mesh_1D_test_prompt.txt](prompts/linear_uniform_mesh_1D_test_prompt.txt)
 * [element_stiffness_linear_elastic_1D_test_prompt.txt](prompts/element_stiffness_linear_elastic_1D_test_prompt.txt)
 * [solve_linear_elastic_1D_self_contained_test_prompt.txt](prompts/solve_linear_elastic_1D_self_contained_test_prompt.txt)
+
+
+## Citation Into <a name="cite"></a>
+
+After we have more Tasks completed, we will prepare a manuscript on our results. For now, if you use our work please cite this GitHub page:
+
+```
+@software{lejeune2024fem_bench,
+  author = {Emma Lejeune},
+  title = {FEM-Bench: A Comprehensive Benchmarking System for Evaluating Large Language Models on Finite Element Method Tasks},
+  url = {https://github.com/elejeune11/FEM-bench},
+  version = {main},
+  year = {2024},
+  note = {GitHub repository},
+  keywords = {finite element method, large language models, benchmarking, machine learning}
+}
+```
 
 
 ## TODO list <a name="todo"></a>
