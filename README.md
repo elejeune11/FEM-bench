@@ -274,7 +274,7 @@ Slightly more complicated Task:
 After we have more Tasks completed, we will prepare a manuscript on our results. For now, if you use our work please cite this GitHub page:
 
 ```
-@software{lejeune2024fem_bench,
+@software{lejeune2025fem_bench,
   author = {Emma Lejeune},
   title = {FEM-Bench: A Comprehensive Benchmarking System for Evaluating Large Language Models on Finite Element Method Tasks},
   url = {https://github.com/elejeune11/FEM-bench},
