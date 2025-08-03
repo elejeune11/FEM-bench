@@ -26,7 +26,7 @@ A comprehensive benchmarking system for evaluating Large Language Models (LLMs) 
 * [Extending to Additional LLMs](#other_llms)
 * [Creating New Tasks](#new_tasks)
     - [From Task to LLM Prompt](#task_to_llm)
-* [Citation Into](#cite)
+* [Citation Info](#cite)
 * [TODO List](#todo)
 
 
@@ -269,7 +269,7 @@ Slightly more complicated Task:
 * [solve_linear_elastic_1D_self_contained_test_prompt.txt](prompts/solve_linear_elastic_1D_self_contained_test_prompt.txt)
 
 
-## Citation Into <a name="cite"></a>
+## Citation Info <a name="cite"></a>
 
 After we have more Tasks completed, we will prepare a manuscript on our results. For now, if you use our work please cite this GitHub page:
 
