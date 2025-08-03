@@ -259,7 +259,7 @@ Slightly more complicated Task:
 
 ## Citation Info <a name="cite"></a>
 
-After we have more Tasks completed, we will prepare a manuscript on our results. For now, if you use our work please cite this GitHub page:
+After we have more Tasks completed, we will prepare a manuscript on our results. For now, if you use our work please cite the Zenodo concept DOI:
 
 ```
 @software{lejeune2025fem_bench,
