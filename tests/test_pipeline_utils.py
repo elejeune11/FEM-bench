@@ -284,13 +284,19 @@ def test_compute_aggregate_score_real_example():
     assert isinstance(score_dict, dict)
     assert len(score_dict) > 0, "No LLM scores returned"
 
+    required_keys = {
+        "fcn_correct_pct",
+        "avg_tests_passed_on_reference_pct",
+        "avg_expected_failures_detected_pct",
+        "avg_joint_success_pct",  # new metric
+    }
+
     for llm_name, metrics in score_dict.items():
         assert isinstance(metrics, dict)
-        assert set(metrics.keys()) == {
-            "fcn_correct_pct",
-            "avg_tests_passed_on_reference_pct",
-            "avg_expected_failures_detected_pct"
-        }
+        assert required_keys.issubset(metrics.keys()), (
+            f"Missing expected keys in metrics for {llm_name}: "
+            f"{required_keys - set(metrics.keys())}"
+        )
 
         # Confirm all values are floats
         for val in metrics.values():
@@ -315,9 +321,13 @@ def test_create_markdown_summary_real_example(real_pipeline):
     assert summary_path.exists()
     text = summary_path.read_text(encoding="utf-8")
 
+    # Updated headers
     assert "### Function Correctness" in text
-    assert "### Reference Tests Passed" in text
-    assert "### Expected Failures Detected" in text
+    assert "### Joint Test Success Rate" in text
+
+    # These should no longer be present
+    assert "### Reference Tests Passed" not in text
+    assert "### Expected Failures Detected" not in text
 
 
 # -----------------------------------------------------------------------------
@@ -539,7 +549,7 @@ def test_evaluate_all_llm_tests_handles_exception_and_sets_flag(monkeypatch):
 
 
 def test_create_markdown_summary_totals_rows():
-    """Lines 391 & 397: totals and averages in Markdown tables."""
+    """Check that totals and averages appear in the Markdown summary."""
     pipeline, tmp = _make_tmp_pipeline()
     pipeline.results = {
         "simple": {
@@ -548,7 +558,7 @@ def test_create_markdown_summary_totals_rows():
                 "tests": {
                     "test_results": {
                         "reference_pass": [("t", True), ("t2", False)],
-                        "failure_fail":  [("t", True)]
+                        "failure_fail":  [("t", True), ("t2", True)]
                     }
                 }
             }
@@ -557,10 +567,17 @@ def test_create_markdown_summary_totals_rows():
 
     pipeline.create_markdown_summary()
     text = (Path(pipeline.results_dir) / "evaluation_summary.md").read_text(encoding="utf-8")
+
+    # Check presence of totals and new metric header
     assert "Total" in text
-    assert "Avg Ref Pass %" in text
-    assert "Avg Fail Detect %" in text
+    assert "Avg Joint Success %" in text
+
+    # Old metrics no longer reported
+    assert "Avg Ref Pass %" not in text
+    assert "Avg Fail Detect %" not in text
+
     tmp.cleanup()
+
 
 
 VALID_REF = "def inc(x):\n    return x + 1\n"
@@ -652,6 +669,7 @@ def bad(x):
     return x + 1
 '''
 
+
 def _make_pipeline(tmp: Path) -> FEMBenchPipeline:
     return FEMBenchPipeline(
         tasks_dir=tmp / "tasks",
@@ -694,11 +712,17 @@ def test_remaining_uncovered_lines(monkeypatch):
         pipe.evaluate_all_llm_tests()
         pipe.create_markdown_summary()
 
+        # Validate internal results object
         assert "error" in pipe.results["simple"]["syntaxErr"]
+
+        # Validate Markdown content
         md = (base / "results" / "evaluation_summary.md").read_text(encoding="utf-8")
-        assert "Avg Ref Pass %" in md
-        totals_line = next(line for line in md.splitlines() if line.startswith("| Avg Ref Pass %"))
-        assert "–" in totals_line
+        assert "### Function Correctness" in md
+        assert "### Joint Test Success Rate" in md
+
+        # Look for the totals line in joint metric table
+        totals_line = next(line for line in md.splitlines() if line.startswith("| Avg Joint Success %"))
+        assert "0.0%" in totals_line
 
 
 def test_markdown_summary_triggers_ref_and_fail_detection():
@@ -732,8 +756,13 @@ def test_markdown_summary_triggers_ref_and_fail_detection():
         out_path = pipe.results_dir / "evaluation_summary.md"
         assert out_path.exists()
         text = out_path.read_text(encoding="utf-8")
-        assert "Function Correctness" in text
-        assert "Avg Ref Pass %" in text
+
+        # Updated expectations
+        assert "### Function Correctness" in text
+        assert "### Joint Test Success Rate" in text
+        assert "Avg Joint Success %" in text
+        assert "0.0%" in text  # only one overlapping test ('test_x'), and test_y fails on ref
+
 
 
 def test_compute_aggregate_score_handles_missing_test_data():

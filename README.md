@@ -116,10 +116,9 @@ rm -rf fem_bench_env  # To completely remove
 
 ### Latest Results <a name="results"></a>
 
-Output Metrics:
+### Output Metrics:
 * **Function Correctness (✓ = Match)**: Indicates whether each model's generated function produced outputs that exactly matched the reference implementation on all verification inputs.
-* **Reference Tests Passed (%)**: Shows the percentage of model-generated test functions that successfully passed when run against the known-correct reference implementation.
-* **Expected Failures Detected (%)**: Reports how often each model's test functions correctly failed when run on known-broken implementations, assessing the tests’ ability to catch errors.
+* **Joint Test Success Rate (%)**: Shows the percentage of model-generated test functions that both (1) passed on the reference implementation and (2) failed on all known-broken implementations. This metric captures tests that successfully distinguish correct from incorrect solutions. *(Note: this does not guarantee comprehensive coverage — only a curated set of failure cases are tested.)*
 
 ### Function Correctness (✓ = Match)
 
@@ -132,28 +131,16 @@ Output Metrics:
 | solve_linear_elastic_1D_self_contained | ✓            | ✓               | ×              | ×            | ✓        |
 | Total                                  | 4/5          | 4/5             | 2/5            | 1/5          | 5/5      |
 
-### Reference Tests Passed (%)
+### Joint Test Success Rate (%)
 
 | Task                                   | claude-3-5   | deepseek-chat   | gemini-flash   | gemini-pro   | gpt-4o   |
 |:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
-| beam_transformation_matrix_3D          | 66.7%        | 66.7%           | 66.7%          | 66.7%        | 66.7%    |
+| beam_transformation_matrix_3D          | 33.3%        | 66.7%           | 33.3%          | 33.3%        | 33.3%    |
 | element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | local_elastic_stiffness_matrix_3D_beam | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 100.0%   |
 | solve_linear_elastic_1D_self_contained | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
-| Avg Ref Pass %                         | 53.3%        | 53.3%           | 63.3%          | 73.3%        | 83.3%    |
-
-### Expected Failures Detected (%)
-
-| Task                                   | claude-3-5   | deepseek-chat   | gemini-flash   | gemini-pro   | gpt-4o   |
-|:---------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
-| beam_transformation_matrix_3D          | 50.0%        | 100.0%          | 50.0%          | 75.0%        | 50.0%    |
-| element_stiffness_linear_elastic_1D    | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
-| linear_uniform_mesh_1D                 | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
-| local_elastic_stiffness_matrix_3D_beam | 100.0%       | 0.0%            | 100.0%         | 100.0%       | 100.0%   |
-| solve_linear_elastic_1D_self_contained | 100.0%       | –               | 100.0%         | 100.0%       | 100.0%   |
-| Avg Fail Detect %                      | 90.0%        | 60.0%           | 90.0%          | 95.0%        | 90.0%    |
-
+| Avg Joint Success %                    | 46.7%        | 53.3%           | 56.7%          | 66.7%        | 76.7%    |
 
 ### How To Run the Pipeline <a name="run_pipeline"></a>
 

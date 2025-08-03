@@ -339,13 +339,11 @@ class FEMBenchPipeline:
             - fcn_correct_pct                    : % of (task, llm) pairs with correct function implementations
             - avg_tests_passed_on_reference_pct  : average % of reference tests passed
             - avg_expected_failures_detected_pct : average % of expected failures correctly failed
+            - avg_joint_success_pct              : average % of tests that passed ref *and* failed all expected failures
 
         The score dict for each LLM is also written to
             results_dir/llm_aggregate_{llm_name}.json
         """
-        from collections import defaultdict
-        import json
-
         # --- Collect universe of tasks and LLM names ---------------------------------
         all_task_ids = list(self.results.keys())
         all_llm_names = {llm for task in self.results.values() for llm in task.keys()}
@@ -356,6 +354,7 @@ class FEMBenchPipeline:
             "fcn_correct": 0,
             "test_pass_rates": [],          # list of floats (0–1) – one per task
             "failure_detection_rates": [],  # list of floats (0–1) – one per task
+            "joint_success_rates": [],      # list of floats (0–1) – one per task
         })
 
         # --- Score every (task, llm) pair --------------------------------------------
@@ -365,30 +364,48 @@ class FEMBenchPipeline:
                 c = counters[llm_name]
                 c["fcn_total"] += 1
 
-                eval_blocks = task_result.get(llm_name)  # None ⇒ no output at all
+                eval_blocks = task_result.get(llm_name)
 
-                # 1) Function correctness ------------------------------------------------
+                # 1) Function correctness
                 if eval_blocks and eval_blocks.get("matches_reference", False):
-                    c["fcn_correct"] += 1  # only increment for explicit True
+                    c["fcn_correct"] += 1
 
-                # 2) Tests & failure detection ------------------------------------------
+                # 2) Tests & failure detection
                 test_results = (eval_blocks or {}).get("tests", {}).get("test_results", {})
                 ref_pairs = test_results.get("reference_pass", [])
                 fail_pairs = test_results.get("failure_fail", [])
 
-                # Reference tests: treat "no data" as 0 %
+                # Reference-pass rate
                 if ref_pairs:
                     n_passed = sum(ok for _, ok in ref_pairs)
                     c["test_pass_rates"].append(n_passed / len(ref_pairs))
                 else:
                     c["test_pass_rates"].append(0.0)
 
-                # Expected-failure detection: treat "no data" as 0 %
+                # Failure-detection rate
                 if fail_pairs:
                     n_failed = sum(ok for _, ok in fail_pairs)
                     c["failure_detection_rates"].append(n_failed / len(fail_pairs))
                 else:
                     c["failure_detection_rates"].append(0.0)
+
+                # 3) Joint success computation
+                ref_dict = dict(ref_pairs)
+                fail_dict = dict(fail_pairs)
+
+                joint_total = 0
+                joint_pass = 0
+
+                for test_name in ref_dict:
+                    if test_name in fail_dict:
+                        joint_total += 1
+                        if ref_dict[test_name] and fail_dict[test_name]:
+                            joint_pass += 1
+
+                if joint_total > 0:
+                    c["joint_success_rates"].append(joint_pass / joint_total)
+                else:
+                    c["joint_success_rates"].append(0.0)
 
         # --- Finalise per-LLM metrics -------------------------------------------------
         llm_metrics = {}
@@ -396,11 +413,13 @@ class FEMBenchPipeline:
             fcn_pct = 100.0 * c["fcn_correct"] / c["fcn_total"]
             test_pct = 100.0 * sum(c["test_pass_rates"]) / len(c["test_pass_rates"])
             ef_pct = 100.0 * sum(c["failure_detection_rates"]) / len(c["failure_detection_rates"])
+            joint_pct = 100.0 * sum(c["joint_success_rates"]) / len(c["joint_success_rates"])
 
             llm_metrics[llm_name] = {
                 "fcn_correct_pct": round(fcn_pct, 2),
                 "avg_tests_passed_on_reference_pct": round(test_pct, 2),
                 "avg_expected_failures_detected_pct": round(ef_pct, 2),
+                "avg_joint_success_pct": round(joint_pct, 2),
             }
 
             out_file = self.results_dir / f"llm_aggregate_{llm_name}.json"
@@ -410,80 +429,56 @@ class FEMBenchPipeline:
 
     def create_markdown_summary(self, filename: str = "evaluation_summary.md") -> None:
         """
-        Write a Markdown summary with three tables:
-        1. Function correctness (✓/×)
-        2. Reference-test pass rate %
-        3. Expected-failure detection %
+        Write a Markdown summary with two tables:
+        1. Function correctness (✓/x)
+        2. Joint Test Success Rate (%): test passes on reference AND fails all expected failures
 
-        A cell shows “–” if the LLM supplied no usable tests.  For the
-        aggregate rows those “–” are counted as 0 % whenever the task
-        *does* have tests that others ran.
+        A cell shows “–” if the LLM supplied no usable tests. These count as 0% in the aggregate average.
         """
         task_ids = sorted(self.results.keys())
         llm_names = sorted({llm for task in self.results.values() for llm in task})
 
-        # Helpers to know which tasks actually include tests
-        def task_has_ref_tests(tid):   # reference-pass tests
-            return any(
-                self.results[tid][m]
-                .get("tests", {}).get("test_results", {}).get("reference_pass")
-                for m in self.results[tid]
-            )
-
-        def task_has_fail_tests(tid):  # expected-failure tests
-            return any(
-                self.results[tid][m]
-                .get("tests", {}).get("test_results", {}).get("failure_fail")
-                for m in self.results[tid]
-            )
-
-        # Build row data *and* numeric buckets for averages
-        code_rows, ref_rows, fail_rows = [], [], []
-        ref_numeric = defaultdict(list)   # llm -> list[float or None]
-        fail_numeric = defaultdict(list)
+        # Build row data and numeric buckets
+        code_rows, joint_rows = [], []
+        joint_numeric = defaultdict(list)  # llm -> list[float]
 
         for tid in task_ids:
-            has_ref = task_has_ref_tests(tid)
-            has_fail = task_has_fail_tests(tid)
-
-            r_code, r_ref, r_fail = [tid], [tid], [tid]
+            r_code, r_joint = [tid], [tid]
 
             for llm in llm_names:
                 res = self.results.get(tid, {}).get(llm, {})
                 tests = res.get("tests", {}).get("test_results", {})
 
-                # Function correctness --------------------------------------------------
+                # Function correctness
                 r_code.append("✓" if res.get("matches_reference") else "×")
 
-                # ------------ reference-pass percentage
-                ref_pairs = tests.get("reference_pass", [])
-                if ref_pairs:
-                    pct = 100 * sum(ok for _, ok in ref_pairs) / len(ref_pairs)
-                    r_ref.append(f"{pct:.1f}%")
-                    ref_numeric[llm].append(pct)
-                else:
-                    r_ref.append("–")
-                    # count as 0 only if task has reference tests
-                    ref_numeric[llm].append(0.0 if has_ref else None)
+                # Joint success
+                ref_dict = dict(tests.get("reference_pass", []))
+                fail_dict = dict(tests.get("failure_fail", []))
 
-                # ------------ expected-failure percentage
-                fail_pairs = tests.get("failure_fail", [])
-                if fail_pairs:
-                    pct = 100 * sum(ok for _, ok in fail_pairs) / len(fail_pairs)
-                    r_fail.append(f"{pct:.1f}%")
-                    fail_numeric[llm].append(pct)
+                joint_total = 0
+                joint_pass = 0
+
+                for test_name in ref_dict:
+                    if test_name in fail_dict:
+                        joint_total += 1
+                        if ref_dict[test_name] and fail_dict[test_name]:
+                            joint_pass += 1
+
+                if joint_total > 0:
+                    pct = 100.0 * joint_pass / joint_total
+                    r_joint.append(f"{pct:.1f}%")
+                    joint_numeric[llm].append(pct)
                 else:
-                    r_fail.append("–")
-                    fail_numeric[llm].append(0.0 if has_fail else None)
+                    r_joint.append("–")
+                    joint_numeric[llm].append(0.0)  # Always count as 0% in the average
 
             code_rows.append(r_code)
-            ref_rows.append(r_ref)
-            fail_rows.append(r_fail)
+            joint_rows.append(r_joint)
 
-        # Aggregate rows ---------------------------------------------------------------
+        # Aggregate rows
         total_code = ["Total"]
-        total_ref = ["Avg Ref Pass %"]
-        total_fail = ["Avg Fail Detect %"]
+        total_joint = ["Avg Joint Success %"]
 
         for llm in llm_names:
             total_tasks = len(task_ids)
@@ -494,26 +489,20 @@ class FEMBenchPipeline:
             )
             total_code.append(f"{correct_tasks}/{total_tasks}")
 
-            # Filter out None (tasks without any tests for anyone)
-            ref_vals = [v for v in ref_numeric[llm] if v is not None]
-            fail_vals = [v for v in fail_numeric[llm] if v is not None]
-
-            total_ref.append(f"{sum(ref_vals)/len(ref_vals):.1f}%" if ref_vals else "–")
-            total_fail.append(f"{sum(fail_vals)/len(fail_vals):.1f}%" if fail_vals else "–")
+            joint_vals = joint_numeric[llm]
+            total_joint.append(f"{sum(joint_vals)/len(joint_vals):.1f}%")
 
         code_rows.append(total_code)
-        ref_rows.append(total_ref)
-        fail_rows.append(total_fail)
+        joint_rows.append(total_joint)
 
-        # Convert to Markdown ----------------------------------------------------------
+        # Convert to Markdown
         def md_table(rows, hdr, title):
             return f"### {title}\n\n" + pd.DataFrame(rows, columns=hdr).to_markdown(index=False) + "\n\n"
 
         headers = ["Task"] + llm_names
         md = (
             md_table(code_rows, headers, "Function Correctness (✓ = Match)")
-            + md_table(ref_rows, headers, "Reference Tests Passed (%)")
-            + md_table(fail_rows, headers, "Expected Failures Detected (%)")
+            + md_table(joint_rows, headers, "Joint Test Success Rate (%)")
         )
 
         (self.results_dir / filename).write_text(md, encoding="utf-8")
