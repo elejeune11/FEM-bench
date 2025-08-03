@@ -9,6 +9,7 @@
 [![codecov](https://codecov.io/gh/elejeune11/FEM-bench/graph/badge.svg?token=p5DMvJ6byO)](https://codecov.io/gh/elejeune11/FEM-bench)
 [![tests](https://github.com/elejeune11/FEM-bench/actions/workflows/test.yml/badge.svg)](https://github.com/elejeune11/FEM-bench/actions)
 
+[![DOI](https://zenodo.org/badge/992829788.svg)](https://doi.org/10.5281/zenodo.16732264)
 
 A comprehensive benchmarking system for evaluating Large Language Models (LLMs) on finite element method (FEM) tasks.
 
