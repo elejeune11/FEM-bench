@@ -279,7 +279,7 @@ After we have more Tasks completed, we will prepare a manuscript on our results.
   title = {FEM-Bench: A Comprehensive Benchmarking System for Evaluating Large Language Models on Finite Element Method Tasks},
   url = {https://github.com/elejeune11/FEM-bench},
   version = {main},
-  year = {2024},
+  year = {2025},
   note = {GitHub repository},
   keywords = {finite element method, large language models, benchmarking, machine learning}
 }
