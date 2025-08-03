@@ -265,10 +265,11 @@ After we have more Tasks completed, we will prepare a manuscript on our results.
 @software{lejeune2025fem_bench,
   author = {Emma Lejeune},
   title = {FEM-Bench: A Comprehensive Benchmarking System for Evaluating Large Language Models on Finite Element Method Tasks},
-  url = {https://github.com/elejeune11/FEM-bench},
-  version = {main},
+  url = {https://zenodo.org/records/16732264},
+  doi = {10.5281/zenodo.16732264},
   year = {2025},
-  note = {GitHub repository},
+  publisher = {Zenodo},
+  note = {Software release (all versions)},
   keywords = {finite element method, large language models, benchmarking, machine learning}
 }
 ```
