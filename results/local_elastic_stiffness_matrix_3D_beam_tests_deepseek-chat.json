@@ -3,17 +3,7 @@
   "llm_name": "deepseek-chat",
   "tests_run": true,
   "test_results": {
-    "reference_pass": [
-      [
-        "test_local_stiffness_3D_beam",
-        false
-      ]
-    ],
-    "failure_fail": [
-      [
-        "test_local_stiffness_3D_beam",
-        false
-      ]
-    ]
+    "reference_pass": [],
+    "failure_fail": []
   }
 }

@@ -154,6 +154,62 @@ def test_local_stiffness_3D_beam(fcn):
     assert np.isclose(k[4, 10], expected_by_410, rtol=1e-12)
 
 
+def test_cantilever_deflection_matches_euler_bernoulli(fcn):
+    """
+    Apply a perpendicular point load in the z direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+    Apply a perpendicular point load in the y direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+    Apply a parallel point load in the x direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+    """
+    E = 210e6         # Young's modulus (Pa)
+    nu = 0.3
+    A = 0.01          # Cross-sectional area (m²)
+    L = 2.0           # Beam length (m)
+    Iy = 4e-2         # Bending about y
+    Iz = 6e-2         # Bending about z
+    J = 1e-2          # Torsion
+
+    F_applied = -100.0       # Applied load (N)
+
+    # Build stiffness matrix
+    K = fcn(E, nu, A, L, Iy, Iz, J)
+
+    # z direction loading:
+    # Apply load at node 2 in local z-direction (DOF 8)
+    f_ext = np.zeros(12)
+    f_ext[8] = F_applied
+    free_dofs = np.arange(6, 12)
+    K_ff = K[np.ix_(free_dofs, free_dofs)]
+    f_f = f_ext[free_dofs]
+    u_f = np.linalg.solve(K_ff, f_f)
+    delta_z = u_f[2]    # DOF 8 - z displacement
+    delta_expected = F_applied * L**3 / (3 * E * Iy)
+    assert np.isclose(delta_z, delta_expected, rtol=1e-9)
+
+    # y direction loading:
+    # Apply load at node 2 in local y-direction (DOF 7)
+    f_ext = np.zeros(12)
+    f_ext[7] = F_applied
+    free_dofs = np.arange(6, 12)
+    K_ff = K[np.ix_(free_dofs, free_dofs)]
+    f_f = f_ext[free_dofs]
+    u_f = np.linalg.solve(K_ff, f_f)
+    delta_y = u_f[1]    # DOF 7 - y displacement
+    delta_expected = F_applied * L**3 / (3 * E * Iz)
+    assert np.isclose(delta_y, delta_expected, rtol=1e-9)
+
+    # x direction loading:
+    # Apply load at node 2 in local x-direction (DOF 6)
+    f_ext = np.zeros(12)
+    f_ext[6] = F_applied
+    free_dofs = np.arange(6, 12)
+    K_ff = K[np.ix_(free_dofs, free_dofs)]
+    f_f = f_ext[free_dofs]
+    u_f = np.linalg.solve(K_ff, f_f)
+    delta_x = u_f[0]    # DOF 6 - x displacement
+    delta_expected = F_applied * L / (E * A)
+    assert np.isclose(delta_x, delta_expected, rtol=1e-9)
+
+
 def local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy(
     E: float,
     nu: float,
@@ -213,6 +269,18 @@ def local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy(
     return k_e
 
 
+def all_random(
+    E: float,
+    nu: float,
+    A: float,
+    L: float,
+    Iy: float,
+    Iz: float,
+    J: float
+) -> np.ndarray:
+    return np.random.random((12, 12))
+
+
 def task_info():
     task_id = "local_elastic_stiffness_matrix_3D_beam"
     task_short_description = "creates an element stiffness matrix for a 3D beam"
@@ -225,5 +293,6 @@ def task_info():
                                      [10000, 0.4, 77, 55, 300, 250, 9.9],
                                      [98000, 0.3, 5.5, 55, 300, 250, 9.4],
                                      [6790, 0.2, 10.6, 4.7, 44, 34, 20.1],]
-    test_cases = [{"test_code": test_local_stiffness_3D_beam, "expected_failures": [local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy]}]
+    test_cases = [{"test_code": test_local_stiffness_3D_beam, "expected_failures": [local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy]},
+                  {"test_code": test_cantilever_deflection_matches_euler_bernoulli, "expected_failures": [all_random, local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy]}]
     return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases

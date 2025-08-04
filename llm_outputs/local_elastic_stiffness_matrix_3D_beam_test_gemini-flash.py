@@ -4,36 +4,39 @@ def test_local_stiffness_3D_beam(fcn):
     symmetry
     expected singularity due to rigid body modes
     block-level verification of axial, torsion, and bending terms"""
-    E = 200000000000.0
-    nu = 0.3
-    A = 0.01
-    L = 1.0
-    Iy = 1e-05
-    Iz = 1e-05
-    J = 1e-06
+    (E, nu, A, L, Iy, Iz, J) = (1000000000.0, 0.3, 0.1, 1.0, 0.01, 0.01, 0.001)
     K = fcn(E, nu, A, L, Iy, Iz, J)
     assert K.shape == (12, 12)
     assert np.allclose(K, K.T)
     assert np.linalg.matrix_rank(K) == 6
-    EA_over_L = E * A / L
-    assert np.isclose(K[0, 0], EA_over_L)
-    assert np.isclose(K[6, 6], EA_over_L)
-    assert np.isclose(K[0, 6], -EA_over_L)
-    assert np.isclose(K[6, 0], -EA_over_L)
-    GJ_over_L = E * J / (2 * (1 + nu) * L)
-    assert np.isclose(K[3, 3], GJ_over_L)
-    assert np.isclose(K[9, 9], GJ_over_L)
-    assert np.isclose(K[3, 9], -GJ_over_L)
-    assert np.isclose(K[9, 3], -GJ_over_L)
-    EIy_over_L3 = E * Iy / L ** 3
-    EIy_over_L = E * Iy / L
-    assert np.isclose(K[1, 1], 12 * EIy_over_L3)
-    assert np.isclose(K[7, 7], 12 * EIy_over_L3)
-    assert np.isclose(K[1, 7], 6 * EIy_over_L3 * L)
-    assert np.isclose(K[7, 1], 6 * EIy_over_L3 * L)
-    EIz_over_L3 = E * Iz / L ** 3
-    EIz_over_L = E * Iz / L
-    assert np.isclose(K[2, 2], 12 * EIz_over_L3)
-    assert np.isclose(K[8, 8], 12 * EIz_over_L3)
-    assert np.isclose(K[2, 8], 6 * EIz_over_L3 * L)
-    assert np.isclose(K[8, 2], 6 * EIz_over_L3 * L)
+    assert np.allclose(K[0, 0], E * A / L)
+    assert np.allclose(K[0, 6], -E * A / L)
+    assert np.allclose(K[3, 3], G * J / L)
+    assert np.allclose(K[3, 9], -G * J / L)
+    assert np.allclose(K[1, 1], 12 * E * Iy / L ** 3)
+    assert np.allclose(K[1, 7], -12 * E * Iy / L ** 3)
+    assert np.allclose(K[2, 2], 12 * E * Iz / L ** 3)
+    assert np.allclose(K[2, 8], -12 * E * Iz / L ** 3)
+    G = E / (2 * (1 + nu))
+
+def test_cantilever_deflection_matches_euler_bernoulli(fcn):
+    """Apply a perpendicular point load in the z direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+    Apply a perpendicular point load in the y direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+    Apply a parallel point load in the x direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory."""
+    (E, nu, A, L, Iy, Iz, J) = (1000000000.0, 0.3, 0.1, 1.0, 0.01, 0.01, 0.001)
+    K = fcn(E, nu, A, L, Iy, Iz, J)
+    P = np.zeros(12)
+    P[8] = 1000
+    disp = np.linalg.solve(K, P)
+    analytical_z = P[8] * L ** 3 / (3 * E * Iz)
+    assert np.allclose(disp[8], analytical_z, rtol=0.001)
+    P = np.zeros(12)
+    P[7] = 1000
+    disp = np.linalg.solve(K, P)
+    analytical_y = P[7] * L ** 3 / (3 * E * Iy)
+    assert np.allclose(disp[7], analytical_y, rtol=0.001)
+    P = np.zeros(12)
+    P[6] = 1000
+    disp = np.linalg.solve(K, P)
+    analytical_x = P[6] * L / (E * A)
+    assert np.allclose(disp[6], analytical_x, rtol=0.001)

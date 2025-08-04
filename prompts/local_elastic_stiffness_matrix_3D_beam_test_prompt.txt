@@ -52,6 +52,9 @@ Write pytest-style test functions that verify the correctness of the function ab
 - symmetry
 - expected singularity due to rigid body modes
 - block-level verification of axial, torsion, and bending terms"
+- test_cantilever_deflection_matches_euler_bernoulli: "Apply a perpendicular point load in the z direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+Apply a perpendicular point load in the y direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory.
+Apply a parallel point load in the x direction to the tip of a cantilever beam and verify that the computed displacement matches the analytical solution from Euler-Bernoulli beam theory."
 
 # Output:
 # Only return valid pytest test functions — no prose, markdown, or commentary.

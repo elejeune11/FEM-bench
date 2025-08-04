@@ -20,8 +20,7 @@ def local_elastic_stiffness_matrix_3D_beam(E: float, nu: float, A: float, L: flo
                     and bending stiffness in local coordinates.
     """
     k_axial = E * A / L
-    G = E / (2 * (1 + nu))
-    k_torsion = G * J / L
+    k_torsion = E * J / (2 * (1 + nu) * L)
     k_bending_y = E * Iy / L ** 3
     k_bending_z = E * Iz / L ** 3
     k = np.zeros((12, 12))
