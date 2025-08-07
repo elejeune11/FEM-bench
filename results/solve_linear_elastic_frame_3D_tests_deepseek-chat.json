@@ -1,0 +1,9 @@
+{
+  "task_id": "solve_linear_elastic_frame_3D",
+  "llm_name": "deepseek-chat",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [],
+    "failure_fail": []
+  }
+}

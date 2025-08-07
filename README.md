@@ -131,7 +131,8 @@ rm -rf fem_bench_env  # To completely remove
 | local_elastic_stiffness_matrix_3D_beam   | ✓            | ×               | ×              | ×            | ✓        |
 | local_geometric_stiffness_matrix_3D_beam | ×            | ×               | ×              | ×            | ×        |
 | solve_linear_elastic_1D_self_contained   | ✓            | ✓               | ×              | ×            | ✓        |
-| Total                                    | 4/6          | 3/6             | 2/6            | 1/6          | 5/6      |
+| solve_linear_elastic_frame_3D            | ✓            | ×               | ×              | ×            | ×        |
+| Total                                    | 5/7          | 3/7             | 2/7            | 1/7          | 5/7      |
 
 ### Joint Test Success Rate (%)
 
@@ -143,7 +144,8 @@ rm -rf fem_bench_env  # To completely remove
 | local_elastic_stiffness_matrix_3D_beam   | 0.0%         | –               | 0.0%           | 100.0%       | 50.0%    |
 | local_geometric_stiffness_matrix_3D_beam | 50.0%        | –               | 50.0%          | 0.0%         | 50.0%    |
 | solve_linear_elastic_1D_self_contained   | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
-| Avg Joint Success %                      | 47.2%        | 44.4%           | 55.6%          | 72.2%        | 63.9%    |
+| solve_linear_elastic_frame_3D            | 33.3%        | –               | 66.7%          | –            | 33.3%    |
+| Avg Joint Success %                      | 45.2%        | 38.1%           | 57.1%          | 61.9%        | 59.5%    |
 
 
 ### How To Run the Pipeline <a name="run_pipeline"></a>

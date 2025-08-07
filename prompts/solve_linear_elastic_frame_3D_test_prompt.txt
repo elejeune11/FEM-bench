@@ -1,0 +1,63 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def solve_linear_elastic_frame_3D(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int]], nodal_loads: dict[int, Sequence[float]]):
+    """
+    Small-displacement linear-elastic analysis of a 3D frame. Coordinate system follows the right hand rule.
+    The condition number of the global stiffness matrix should be checked before solving.
+    If the problem is ill-posed based on condition number, return a (6 N, ) zero array for both u and r.
+
+    Parameters
+    ----------
+    node_coords : (N, 3) float ndarray
+        Global coordinates of the N nodes (row i → [x, y, z] of node i, 0-based).
+    elements : iterable of dict
+        Each dict must contain
+            'node_i', 'node_j' : int # end node indices (0-based)
+            'E', 'nu', 'A', 'I_y', 'I_z', 'J' : float
+            'local_z' : (3,) array | None # optional unit vector for local z
+    boundary_conditions : dict[int, Sequence[int]]
+        node index → 6-element 0/1 iterable (0 = free, 1 = fixed).
+        Omitted nodes ⇒ all DOFs free.
+    nodal_loads : dict[int, Sequence[float]]
+        node index → 6-element [Fx, Fy, Fz, Mx, My, Mz] (forces (+) and moments).
+        Omitted nodes ⇒ zero loads.
+
+    Returns:
+    u : (6 N,) ndarray
+        Global displacement vector (UX, UY, UZ, RX, RY, RZ for each node in order).
+    r : (6 N,) ndarray
+        Global force/moment vector with support reactions filled in fixed DOFs.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Function Signature:
+## Test Functions to Implement:
+- test_simple_beam_discretized_axis_111: "Verification with resepct to a known analytical solution.
+Cantilever beam, axis along [1,1,1]. Ten equal 3-D frame elements, tip loaded by a transverse force perpendicular to the beam axis.
+Verify beam tip deflection with the appropriate analytical reference solution."
+- test_complex_geometry_and_basic_loading: "Test linear 3D frame analysis on a non-trivial geometry under various loading conditions.
+Suggested Test stages:
+1. Zero loads -> All displacements and reactions should be zero.
+2. Apply mixed forces and moments at free nodes -> Displacements and reactions should be nonzero.
+3. Double the loads -> Displacements and reactions should double (linearity check).
+4. Negate the original loads -> Displacements and reactions should flip sign.
+5. Assure that reactions (forces and moments) satisfy global static equilibrium"
+- test_condition_number: "Test the effect of boundary conditions on the stiffness matrix condition number.
+- Case 1: No boundary conditions → ill-posed system → zero solution expected.
+- Case 2: Fully fixed node → well-posed system → nonzero response expected."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.
