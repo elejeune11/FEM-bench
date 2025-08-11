@@ -1,0 +1,7 @@
+{
+  "task_id": "assemble_global_stiffness_matrix_linear_elastic_3D",
+  "llm_name": "gemini-pro",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}
