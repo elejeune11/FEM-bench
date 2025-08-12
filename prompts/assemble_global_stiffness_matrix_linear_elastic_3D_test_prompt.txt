@@ -3,7 +3,7 @@
 Below is the function you are testing. Use its signature and docstring to understand its behavior.
 
 ## Only complete the test functions below:
-def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
+def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
     """
     Assembles the global stiffness matrix for a 3D linear elastic frame structure composed of beam elements.
 
@@ -13,6 +13,9 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
 
     Parameters
     ----------
+    node_coords : ndarray of shape (n_nodes, 3)
+        Array containing the (x, y, z) coordinates of each node.
+
     elements : list of dict
         A list of element dictionaries. Each dictionary must contain:
             - 'node_i', 'node_j' : int
@@ -29,9 +32,6 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
                 Torsional constant.
             - 'local_z' (optional) : array-like
                 Optional vector defining the local z-direction to resolve transformation ambiguity.
-
-    node_coords : ndarray of shape (n_nodes, 3)
-        Array containing the (x, y, z) coordinates of each node.
 
     Returns
     -------

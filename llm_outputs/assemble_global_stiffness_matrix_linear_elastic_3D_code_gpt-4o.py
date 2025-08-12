@@ -1,4 +1,4 @@
-def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
+def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
     n_nodes = node_coords.shape[0]
     K_global = np.zeros((6 * n_nodes, 6 * n_nodes))
     for element in elements:
@@ -14,11 +14,11 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
         (xi, yi, zi) = node_coords[node_i]
         (xj, yj, zj) = node_coords[node_j]
         L = np.sqrt((xj - xi) ** 2 + (yj - yi) ** 2 + (zj - zi) ** 2)
-        K_local = local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J)
-        Gamma = beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, local_z)
-        K_global_element = Gamma.T @ K_local @ Gamma
-        index_map = np.array([6 * node_i, 6 * node_i + 1, 6 * node_i + 2, 6 * node_i + 3, 6 * node_i + 4, 6 * node_i + 5, 6 * node_j, 6 * node_j + 1, 6 * node_j + 2, 6 * node_j + 3, 6 * node_j + 4, 6 * node_j + 5])
+        k_local = local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J)
+        gamma = beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, local_z)
+        k_global = gamma.T @ k_local @ gamma
+        dof_map = np.array([6 * node_i, 6 * node_i + 1, 6 * node_i + 2, 6 * node_i + 3, 6 * node_i + 4, 6 * node_i + 5, 6 * node_j, 6 * node_j + 1, 6 * node_j + 2, 6 * node_j + 3, 6 * node_j + 4, 6 * node_j + 5])
         for a in range(12):
             for b in range(12):
-                K_global[index_map[a], index_map[b]] += K_global_element[a, b]
+                K_global[dof_map[a], dof_map[b]] += k_global[a, b]
     return K_global

@@ -132,7 +132,7 @@ def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.n
 
 ## Function Signature:
 ## Only complete the function below:
-def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
+def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
     """
     Assembles the global stiffness matrix for a 3D linear elastic frame structure composed of beam elements.
 
@@ -142,6 +142,9 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
 
     Parameters
     ----------
+    node_coords : ndarray of shape (n_nodes, 3)
+        Array containing the (x, y, z) coordinates of each node.
+
     elements : list of dict
         A list of element dictionaries. Each dictionary must contain:
             - 'node_i', 'node_j' : int
@@ -158,9 +161,6 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
                 Torsional constant.
             - 'local_z' (optional) : array-like
                 Optional vector defining the local z-direction to resolve transformation ambiguity.
-
-    node_coords : ndarray of shape (n_nodes, 3)
-        Array containing the (x, y, z) coordinates of each node.
 
     Returns
     -------

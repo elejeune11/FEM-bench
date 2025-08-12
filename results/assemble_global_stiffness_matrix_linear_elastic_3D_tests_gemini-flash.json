@@ -12,7 +12,7 @@
     "failure_fail": [
       [
         "test_assemble_global_stiffness_matrix_shape_and_symmetry",
-        false
+        true
       ]
     ]
   }

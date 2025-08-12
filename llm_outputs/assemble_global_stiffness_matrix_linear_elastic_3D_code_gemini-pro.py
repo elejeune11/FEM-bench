@@ -44,7 +44,7 @@ def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
     k[4, 4] = k[10, 10] = 4.0 * EIy_L / L
     k[4, 10] = k[10, 4] = 2.0 * EIy_L / L
     return k
-def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.ndarray]):
+def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.ndarray]=None):
     """
     Compute the 12x12 transformation matrix Gamma for a 3D beam element.
     This transformation relates the element's local coordinate system to the global system:
@@ -91,7 +91,7 @@ def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.n
     ez = np.cross(ex, ey)
     gamma = np.vstack((ex, ey, ez))  # 3×3
     return np.kron(np.eye(4), gamma)  # 12×12
-def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
+def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
     """
     Assembles the global stiffness matrix for a 3D linear elastic frame structure composed of beam elements.
     Each beam element connects two nodes and contributes a 12x12 stiffness matrix (6 DOFs per node) to the
@@ -99,7 +99,7 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
     and geometric properties, then transformed into the global coordinate system via a transformation matrix.
     Parameters
     ----------
+    node_coords : ndarray of shape (n_nodes, 3)
+        Array containing the (x, y, z) coordinates of each node.
     elements : list of dict
         A list of element dictionaries. Each dictionary must contain:
-                Indices of the start and end nodes.
-                Young's modulus of the element

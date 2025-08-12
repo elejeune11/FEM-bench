@@ -119,7 +119,7 @@ def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.n
     return np.kron(np.eye(4), gamma)  # 12×12
 
 
-def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
+def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
     """
     Assembles the global stiffness matrix for a 3D linear elastic frame structure composed of beam elements.
 
@@ -129,6 +129,9 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
 
     Parameters
     ----------
+    node_coords : ndarray of shape (n_nodes, 3)
+        Array containing the (x, y, z) coordinates of each node.
+
     elements : list of dict
         A list of element dictionaries. Each dictionary must contain:
             - 'node_i', 'node_j' : int
@@ -145,9 +148,6 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
                 Torsional constant.
             - 'local_z' (optional) : array-like
                 Optional vector defining the local z-direction to resolve transformation ambiguity.
-
-    node_coords : ndarray of shape (n_nodes, 3)
-        Array containing the (x, y, z) coordinates of each node.
 
     Returns
     -------
@@ -195,7 +195,7 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(elements, node_coords):
     return K
 
 
-def assemble_global_stiffness_matrix_linear_elastic_3D_broken(elements, node_coords):
+def assemble_global_stiffness_matrix_linear_elastic_3D_broken(node_coords, elements):
     n_nodes = node_coords.shape[0]
     n_dof = 6 * n_nodes
     K = np.zeros((n_dof, n_dof))
@@ -259,7 +259,7 @@ def test_assemble_global_stiffness_matrix_shape_and_symmetry(fcn):
 
     for node_coords, elements in test_cases:
         n_nodes = node_coords.shape[0]
-        K = fcn(elements, node_coords)
+        K = fcn(node_coords, elements)
 
         # Check shape
         expected_shape = (6 * n_nodes, 6 * n_nodes)
@@ -287,23 +287,16 @@ def task_info():
     required_imports = ["import numpy as np", "from typing import Optional", "import pytest"]
     fcn_dependencies = [local_elastic_stiffness_matrix_3D_beam, beam_transformation_matrix_3D]
     reference_verification_inputs = [
-        # 1 ─ Skew cantilever
         [
             np.array([[0.0, 0.0, 0.0]] + [0.15 * np.array([1, 1, 1]) * i for i in range(1, 10)]),
             [dict(node_i=i, node_j=i+1, E=210e9, nu=0.3, A=5e-4, I_y=1e-6, I_z=1e-6, J=2e-6, local_z=None)
-             for i in range(9)],
-            {0: [1, 1, 1, 1, 1, 1]},
-            {9: [0.0, 0.0, -200.0, 0.0, 0.0, 0.0]}
+            for i in range(9)]
         ],
-        # 2 ─ Graded modulus beam
         [
             np.array([[i, 0.0, 0.0] for i in range(8)]),
             [dict(node_i=i, node_j=i+1, E=E_i, nu=0.3, A=1e-4, I_y=1e-8, I_z=1e-8, J=2e-8, local_z=None)
-             for i, E_i in enumerate([70e9, 100e9, 140e9, 180e9, 220e9, 260e9, 300e9])],
-            {0: [1, 1, 1, 1, 1, 1]},
-            {7: [0.0, -400.0, 0.0, 0.0, 0.0, 0.0]}
+            for i, E_i in enumerate([70e9, 100e9, 140e9, 180e9, 220e9, 260e9, 300e9])]
         ],
-        # 3 ─ Portal frame
         [
             np.array([
                 [0, 0, 0],
@@ -315,20 +308,11 @@ def task_info():
             ]),
             [
                 *[dict(node_i=a, node_j=b, E=210e9, nu=0.3, A=6e-4, I_y=2e-6, I_z=2e-6, J=4e-6, local_z=None)
-                  for a, b in [(0, 1), (3, 2), (1, 2), (0, 4), (3, 4)]],
+                for a, b in [(0, 1), (3, 2), (1, 2), (0, 4), (3, 4)]],
                 *[dict(node_i=a, node_j=b, E=210e9, nu=0.3, A=3e-4, I_y=8e-7, I_z=8e-7, J=1.6e-6, local_z=None)
-                  for a, b in [(1, 5), (5, 3), (0, 5), (5, 2), (4, 5)]]
-            ],
-            {
-                0: [1, 1, 1, 1, 1, 1],
-                3: [1, 1, 1, 0, 0, 0]
-            },
-            {
-                2: [20e3, 0.0, -50e3, 0, 0, 0],
-                4: [0, 0, -10e3, 0, 0, 0]
-            }
+                for a, b in [(1, 5), (5, 3), (0, 5), (5, 2), (4, 5)]]
+            ]
         ],
-        # 4 ─ Cuboidal torsion loop
         [
             np.array([
                 [0, 0, 0], [2, 0, 0], [2, 2, 0], [0, 2, 0],
@@ -336,22 +320,15 @@ def task_info():
                 [1, 1, 0], [1, 1, 2]
             ]),
             [dict(node_i=i, node_j=j, E=200e9, nu=0.3, A=1e-4, I_y=3e-8, I_z=3e-8, J=6e-8, local_z=None)
-             for i, j in [(0, 1), (1, 2), (2, 3), (3, 0),
-                          (4, 5), (5, 6), (6, 7), (7, 4),
-                          (8, 9), (0, 4)]],
-            {0: [1, 1, 1, 1, 1, 1]},
-            {6: [0, 0, 0, 0, 0, 500.0]}
+            for i, j in [(0, 1), (1, 2), (2, 3), (3, 0),
+                        (4, 5), (5, 6), (6, 7), (7, 4),
+                        (8, 9), (0, 4)]]
         ],
-        # 5 ─ Free-floating beam (ill-conditioned)
         [
             np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0], [4, 0, 0]]),
             [dict(node_i=i, node_j=i+1, E=210e9, nu=0.3, A=5e-4, I_y=1e-6, I_z=1e-6, J=2e-6, local_z=None)
-             for i in range(4)],
-            {},
-            {4: [0, 0, -100.0, 0, 0, 0]}
+            for i in range(4)]
         ]
     ]
     test_cases = [{"test_code": test_assemble_global_stiffness_matrix_shape_and_symmetry, "expected_failures": [assemble_global_stiffness_matrix_linear_elastic_3D_broken]}]
     return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
-
-
