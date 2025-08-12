@@ -3,7 +3,33 @@
   "llm_name": "gemini-pro",
   "tests_run": true,
   "test_results": {
-    "reference_pass": [],
-    "failure_fail": []
+    "reference_pass": [
+      [
+        "test_simple_beam_discretized_axis_111",
+        false
+      ],
+      [
+        "test_complex_geometry_and_basic_loading",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_simple_beam_discretized_axis_111",
+        true
+      ],
+      [
+        "test_simple_beam_discretized_axis_111",
+        true
+      ],
+      [
+        "test_complex_geometry_and_basic_loading",
+        true
+      ],
+      [
+        "test_complex_geometry_and_basic_loading",
+        true
+      ]
+    ]
   }
 }

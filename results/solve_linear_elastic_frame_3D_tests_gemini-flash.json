@@ -11,10 +11,6 @@
       [
         "test_complex_geometry_and_basic_loading",
         true
-      ],
-      [
-        "test_condition_number",
-        true
       ]
     ],
     "failure_fail": [
@@ -32,14 +28,6 @@
       ],
       [
         "test_complex_geometry_and_basic_loading",
-        true
-      ],
-      [
-        "test_condition_number",
-        true
-      ],
-      [
-        "test_condition_number",
         true
       ]
     ]

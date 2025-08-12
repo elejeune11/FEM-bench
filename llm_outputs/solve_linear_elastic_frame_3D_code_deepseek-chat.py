@@ -1,51 +1,56 @@
 def solve_linear_elastic_frame_3D(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int]], nodal_loads: dict[int, Sequence[float]]):
     """
-    Small-displacement linear-elastic analysis of a 3D frame. Coordinate system follows the right hand rule.
-    The condition number of the global stiffness matrix should be checked before solving.
-    If the problem is ill-posed based on condition number, return a (6 N, ) zero array for both u and r.
+    Small-displacement linear-elastic analysis of a 3D frame using beam elements.
+    Assumes global Cartesian coordinates and right-hand rule for orientation.
+    the degrees of freedom (DOFs) into free and fixed sets, and solves the system
+    for nodal displacements and support reactions.
+    The system is solved using a partitioned approach. Displacements are computed
+    at free DOFs, and true reaction forces (including contributions from both
+    stiffness and applied loads) are computed at fixed DOFs. The system is only
+    solved if the free-free stiffness matrix is well-conditioned
+    (i.e., condition number < 1e16). If the matrix is ill-conditioned or singular,
+    a ValueError is raised.
     Parameters
     ----------
     node_coords : (N, 3) float ndarray
         Global coordinates of the N nodes (row i → [x, y, z] of node i, 0-based).
     elements : iterable of dict
-        Each dict must contain
-            'node_i', 'node_j' : int # end node indices (0-based)
+        Each dict must contain:
+            'node_i', 'node_j' : int
+                End node indices (0-based).
             'E', 'nu', 'A', 'I_y', 'I_z', 'J' : float
-            'local_z' : (3,) array | None # optional unit vector for local z
+                Material and geometric properties.
+            'local_z' : (3,) array or None
+                Optional unit vector to define the local z-direction for transformation matrix orientation.
     boundary_conditions : dict[int, Sequence[int]]
-        node index → 6-element 0/1 iterable (0 = free, 1 = fixed).
-        Omitted nodes ⇒ all DOFs free.
+        Maps node index to a 6-element iterable of 0 (free) or 1 (fixed) values.
+        Omitted nodes are assumed to have all DOFs free.
     nodal_loads : dict[int, Sequence[float]]
-        node index → 6-element [Fx, Fy, Fz, Mx, My, Mz] (forces (+) and moments).
-        Omitted nodes ⇒ zero loads.
-    Returns:
-    u : (6 N,) ndarray
-        Global displacement vector (UX, UY, UZ, RX, RY, RZ for each node in order).
-    r : (6 N,) ndarray
-        Global force/moment vector with support reactions filled in fixed DOFs.
+        Maps node index to a 6-element array of applied loads:
+        [Fx, Fy, Fz, Mx, My, Mz]. Omitted nodes are assumed to have zero loads.
+    Returns
+    -------
+    u : (6 * N,) ndarray
+        Global displacement vector. Entries are ordered as [UX, UY, UZ, RX, RY, RZ] for each node.
+        Displacements are computed only at free DOFs; fixed DOFs are set to zero.
+    r : (6 * N,) ndarray
+        Global reaction force and moment vector. Nonzero values are present only at fixed DOFs
+        and reflect the net support reactions, computed as internal elastic forces minus applied loads.
+    Raises
+    ------
+    ValueError
+        If the free-free stiffness matrix is ill-conditioned and the system cannot be reliably solved.
+    Helper Functions Used
+    ---------------------
+        Assembles the global 6N x 6N stiffness matrix using local beam element stiffness and transformations.
+        Assembles the global load vector from nodal force/moment data.
+        Identifies fixed and free degrees of freedom based on boundary condition flags.
+        Solves the reduced system for displacements and computes reaction forces.
+        Raises a ValueError if the system is ill-conditioned.
     """
-    N = node_coords.shape[0]
-    total_dofs = 6 * N
-    K_global = np.zeros((total_dofs, total_dofs))
-    F_global = np.zeros(total_dofs)
-    for (node, loads) in nodal_loads.items():
-        idx = 6 * node
-        F_global[idx:idx + 6] = loads
-    fixed_dofs = []
-    for (node, dofs) in boundary_conditions.items():
-        idx = 6 * node
-        for (i, dof) in enumerate(dofs):
-            if dof == 1:
-                fixed_dofs.append(idx + i)
-    if len(fixed_dofs) == 0:
-        return (np.zeros(total_dofs), np.zeros(total_dofs))
-    K_reduced = np.delete(np.delete(K_global, fixed_dofs, axis=0), fixed_dofs, axis=1)
-    try:
-        cond_num = np.linalg.cond(K_reduced)
-    except:
-        cond_num = np.inf
-    if cond_num > 1000000000000.0:
-        return (np.zeros(total_dofs), np.zeros(total_dofs))
-    u = np.zeros(total_dofs)
-    r = np.zeros(total_dofs)
+    n_nodes = node_coords.shape[0]
+    K_global = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
+    P_global = assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes)
+    (fixed, free) = partition_degrees_of_freedom(boundary_conditions, n_nodes)
+    (u, r) = linear_solve(P_global, K_global, fixed, free)
     return (u, r)

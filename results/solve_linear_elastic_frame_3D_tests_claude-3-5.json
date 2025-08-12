@@ -6,14 +6,10 @@
     "reference_pass": [
       [
         "test_simple_beam_discretized_axis_111",
-        false
+        true
       ],
       [
         "test_complex_geometry_and_basic_loading",
-        false
-      ],
-      [
-        "test_condition_number",
         true
       ]
     ],
@@ -32,14 +28,6 @@
       ],
       [
         "test_complex_geometry_and_basic_loading",
-        true
-      ],
-      [
-        "test_condition_number",
-        true
-      ],
-      [
-        "test_condition_number",
         true
       ]
     ]

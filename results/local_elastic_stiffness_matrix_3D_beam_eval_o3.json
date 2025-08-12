@@ -1,0 +1,7 @@
+{
+  "task_id": "local_elastic_stiffness_matrix_3D_beam",
+  "llm_name": "o3",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}
