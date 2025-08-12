@@ -15,14 +15,14 @@ def call_llm_for_code(
 ) -> str:
     """
     Unified interface to call any supported model for code generation.
-    
+
     Supported models:
-    - gpt-4o
+    - gpt-4o, o3
     - gemini-flash, gemini-pro
     - claude-3-5
     - deepseek-chat
     """
-    if model_name == "gpt-4o":
+    if model_name in ("gpt-4o", "o3"):
         return call_openai_for_code(
             prompt=prompt,
             model=model_name,
@@ -64,7 +64,9 @@ def call_llm_for_code(
             return_raw=return_raw,
         )
     else:
-        raise ValueError(f"Unsupported model: {model_name}. Supported models: gpt-4o, gemini-flash, gemini-pro, claude-3-5, deepseek-chat")
+        raise ValueError(
+            f"Unsupported model: {model_name}. Supported models: gpt-4o, o3, gemini-flash, gemini-pro, claude-3-5, deepseek-chat"
+        )
 
 
 def call_llm_for_tests(
@@ -77,14 +79,14 @@ def call_llm_for_tests(
 ) -> Dict[str, str]:
     """
     Unified interface to call any supported model for test generation.
-    
+
     Supported models:
-    - gpt-4o
+    - gpt-4o, o3
     - gemini-flash, gemini-pro
     - claude-3-5
     - deepseek-chat
     """
-    if model_name == "gpt-4o":
+    if model_name in ("gpt-4o", "o3"):
         return call_openai_for_tests(
             prompt=prompt,
             model=model_name,
@@ -126,40 +128,18 @@ def call_llm_for_tests(
             return_raw=return_raw,
         )
     else:
-        raise ValueError(f"Unsupported model: {model_name}. Supported models: gpt-4o, gemini-flash, gemini-pro, claude-3-5, deepseek-chat")
+        raise ValueError(
+            f"Unsupported model: {model_name}. Supported models: gpt-4o, o3, gemini-flash, gemini-pro, claude-3-5, deepseek-chat"
+        )
 
 
-# Convenience function to list available models
 def list_available_models() -> Dict[str, str]:
     """Return a dictionary of available models and their descriptions."""
     return {
-        "gpt-4o": "OpenAI GPT-4 Omni",
+        "gpt-4o": "OpenAI GPT-4 Omni (May 2024 release)",
+        "o3": "OpenAI O3 (reasoning-optimized model, August 2025)",
         "gemini-flash": "Google Gemini 1.5 Flash",
         "gemini-pro": "Google Gemini 1.5 Pro",
         "claude-3-5": "Anthropic Claude 3.5 Sonnet",
         "deepseek-chat": "DeepSeek-V3 - Latest general coding model"
     }
-
-
-# Example usage
-if __name__ == "__main__":
-    print("Available models:")
-    for model, description in list_available_models().items():
-        print(f"  {model}: {description}")
-    
-    # Test with different models
-    prompt = "Write a Python function to calculate factorial"
-    
-    print("\nTesting Claude 3.5:")
-    try:
-        result = call_llm_for_code("claude-3-5", prompt, max_tokens=200, return_raw=True)
-        print(f"Result: {result[:100]}...")
-    except Exception as e:
-        print(f"Error: {e}")
-    
-    print("\nTesting DeepSeek Chat (DeepSeek-V3):")
-    try:
-        result = call_llm_for_code("deepseek-chat", prompt, max_tokens=200, return_raw=True)
-        print(f"Result: {result[:100]}...")
-    except Exception as e:
-        print(f"Error: {e}")

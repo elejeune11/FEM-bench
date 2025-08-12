@@ -71,6 +71,8 @@ def fallback_extract_by_regex(text: str) -> str:
     return text.strip()
 
 def clean_and_extract_function(llm_output: str) -> str:
+    # print("=== RAW LLM OUTPUT ===")
+    # print(llm_output)  # Log before anything else
     text = strip_code_fences(llm_output)
     text = remove_junk_lines(text)
     if not is_valid_python(text):
