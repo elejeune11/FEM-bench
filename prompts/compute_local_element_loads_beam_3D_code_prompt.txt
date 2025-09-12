@@ -1,0 +1,206 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports: import numpy as np
+from typing import Optional
+import pytest
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
+    """
+    Return the 12x12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.
+
+    The beam is assumed to be aligned with the local x-axis. The stiffness matrix
+    relates local nodal displacements and rotations to forces and moments using the equation:
+
+        [force_vector] = [stiffness_matrix] @ [displacement_vector]
+
+    Degrees of freedom are ordered as:
+        [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+
+    Where:
+        - u, v, w: displacements along local x, y, z
+        - θx, θy, θz: rotations about local x, y, z
+        - Subscripts 1 and 2 refer to node i and node j of the element
+
+    Parameters:
+        E (float): Young's modulus
+        nu (float): Poisson's ratio (used for torsion only)
+        A (float): Cross-sectional area
+        L (float): Length of the beam element
+        Iy (float): Second moment of area about the local y-axis
+        Iz (float): Second moment of area about the local z-axis
+        J (float): Torsional constant
+
+    Returns:
+        np.ndarray: A 12x12 symmetric stiffness matrix representing axial, torsional,
+                    and bending stiffness in local coordinates.
+    """
+    k = np.zeros((12, 12))
+    EA_L = E * A / L
+    GJ_L = E * J / (2.0 * (1.0 + nu) * L)
+    EIz_L = E * Iz
+    EIy_L = E * Iy
+    # axial
+    k[0, 0] = k[6, 6] = EA_L
+    k[0, 6] = k[6, 0] = -EA_L
+    # torsion
+    k[3, 3] = k[9, 9] = GJ_L
+    k[3, 9] = k[9, 3] = -GJ_L
+    # bending about z (local y‑displacements & rotations about z)
+    k[1, 1] = k[7, 7] = 12.0 * EIz_L / L**3
+    k[1, 7] = k[7, 1] = -12.0 * EIz_L / L**3
+    k[1, 5] = k[5, 1] = k[1, 11] = k[11, 1] = 6.0 * EIz_L / L**2
+    k[5, 7] = k[7, 5] = k[7, 11] = k[11, 7] = -6.0 * EIz_L / L**2
+    k[5, 5] = k[11, 11] = 4.0 * EIz_L / L
+    k[5, 11] = k[11, 5] = 2.0 * EIz_L / L
+    # bending about y (local z‑displacements & rotations about y)
+    k[2, 2] = k[8, 8] = 12.0 * EIy_L / L**3
+    k[2, 8] = k[8, 2] = -12.0 * EIy_L / L**3
+    k[2, 4] = k[4, 2] = k[2, 10] = k[10, 2] = -6.0 * EIy_L / L**2
+    k[4, 8] = k[8, 4] = k[8, 10] = k[10, 8] = 6.0 * EIy_L / L**2
+    k[4, 4] = k[10, 10] = 4.0 * EIy_L / L
+    k[4, 10] = k[10, 4] = 2.0 * EIy_L / L
+    return k
+
+def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.ndarray]):
+    """
+    Compute the 12x12 transformation matrix Gamma for a 3D beam element.
+
+    This transformation relates the element's local coordinate system to the global system:
+        K_global = Gamma.T @ K_local @ Gamma
+    where K_global is the global stiffness matrix and K_local is the local stiffness matrix.
+
+    Parameters:
+        x1, y1, z1 (float): Coordinates of the beam's start node in global space.
+        x2, y2, z2 (float): Coordinates of the beam's end node in global space.
+        reference_vector (np.ndarray of shape (3,), optional): A unit vector in global coordinates used to define
+            the orientation of the local y-axis. The local y-axis is computed as the cross product
+            of the reference vector and the local x-axis (beam axis). The local z-axis is then
+            computed as the cross product of the local x-axis and the local y-axes.
+
+            If not provided:
+            - If the beam is aligned with the global z-axis, the global y-axis is used.
+            - Otherwise, the global z-axis is used.
+
+    Returns:
+        Gamma (np.ndarray): A 12x12 local-to-global transformation matrix used to transform
+            stiffness matrices, displacements, and forces. It is composed of four repeated
+            3x3 direction cosine submatrices along the diagonal.
+
+    Raises:
+        ValueError: If `reference_vector` is not a unit vector.
+        ValueError: If `reference_vector` is parallel to the beam axis.
+        ValueError: If the `reference_vector` doesn't have shape (3,).
+        ValueError: If the beam has zero length (start and end node
+        s coincide).
+
+    Notes:
+        All vectors must be specified in a right-handed global Cartesian coordinate system.
+    """
+    dx, dy, dz = x2 - x1, y2 - y1, z2 - z1
+    L = np.sqrt(dx*dx + dy*dy + dz*dz)
+    if np.isclose(L, 0.0):
+        raise ValueError("Beam length is zero.")
+    ex = np.array([dx, dy, dz]) / L
+    if ref_vec is None:
+        ref_vec = np.array([0.0, 0.0, 1.0]) if not (np.isclose(ex[0], 0) and np.isclose(ex[1], 0)) \
+                    else np.array([0.0, 1.0, 0.0])
+    else:
+        ref_vec = np.asarray(ref_vec, dtype=float)
+        if ref_vec.shape != (3,):
+            raise ValueError("local_z/reference_vector must be length‑3.")
+        if not np.isclose(np.linalg.norm(ref_vec), 1.0):
+            raise ValueError("reference_vector must be unit length.")
+        if np.isclose(np.linalg.norm(np.cross(ref_vec, ex)), 0.0):
+            raise ValueError("reference_vector parallel to beam axis.")
+
+    ey = np.cross(ref_vec, ex)
+    ey /= np.linalg.norm(ey)
+    ez = np.cross(ex, ey)
+
+    gamma = np.vstack((ex, ey, ez))  # 3×3
+    return np.kron(np.eye(4), gamma)  # 12×12
+
+
+## Function Signature:
+## Only complete the function below:
+def compute_local_element_loads_beam_3D(ele_info, xi, yi, zi, xj, yj, zj, u_dofs_global):
+    """
+    Compute the local internal nodal force/moment vector (end loading) for a 3D Euler-Bernoulli beam element.
+
+    This function transforms the element's global displacement vector into local coordinates,
+    applies the local stiffness matrix, and returns the corresponding internal end forces
+    in the local coordinate system.
+
+    Parameters
+    ----------
+    ele_info : dict
+        Dictionary containing the element's material and geometric properties:
+            'E' : float
+                Young's modulus (Pa).
+            'nu' : float
+                Poisson's ratio (unitless).
+            'A' : float
+                Cross-sectional area (m²).
+            'I_y', 'I_z' : float
+                Second moments of area about the local y- and z-axes (m⁴).
+            'J' : float
+                Torsional constant (m⁴).
+            'local_z' : array-like of shape (3,), optional
+                Unit vector in global coordinates defining the local z-axis orientation.
+                Must not be parallel to the beam axis. If None, a default is chosen.
+
+    xi, yi, zi : float
+        Global coordinates of the element's start node.
+
+    xj, yj, zj : float
+        Global coordinates of the element's end node.
+
+    u_dofs_global : array-like of shape (12,)
+        Element displacement vector in global coordinates:
+        [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2],
+        where:
+            - u, v, w are translations along x, y, z
+            - θx, θy, θz are rotations about x, y, z
+            - Subscripts 1 and 2 refer to the start (i) and end (j) nodes.
+
+    Returns
+    -------
+    load_dofs_local : ndarray of shape (12,)
+        Internal element end forces in local coordinates, ordered consistently with `u_dofs_global`.
+        Positive forces/moments follow the local right-handed coordinate system conventions.
+
+    Raises
+    ------
+    ValueError
+        If the beam length is zero or if `local_z` is invalid.
+
+    Notes
+    -----
+    - This computation assumes an Euler-Bernoulli beam (no shear deformation).
+    - The returned forces and moments are internal: they represent the element's elastic response
+      to the provided displacement state, not externally applied loads.
+    - Use `Gamma.T @ load_dofs_local` to obtain the same forces in global coordinates.
+
+    Support Functions Used
+    ----------------------
+    - `beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, local_z)`
+        Computes the 12x12 transformation matrix (Gamma) relating local and global coordinate systems
+        for a 3D beam element. Ensures orthonormal local axes and validates the reference vector.
+
+    - `local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J)`
+        Returns the 12x12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam aligned with the
+        local x-axis, capturing axial, bending, and torsional stiffness.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

@@ -127,6 +127,7 @@ rm -rf fem_bench_env  # To completely remove
 |:---------------------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
 | assemble_global_stiffness_matrix_linear_elastic_3D | ✓            | ✓               | ✓              | ×            | ✓        |
 | beam_transformation_matrix_3D                      | ×            | ×               | ×              | ×            | ✓        |
+| compute_local_element_loads_beam_3D                | ✓            | ✓               | ✓              | ×            | ✓        |
 | element_stiffness_linear_elastic_1D                | ✓            | ✓               | ✓              | ×            | ✓        |
 | linear_solve                                       | ✓            | ×               | ×              | ✓            | ✓        |
 | linear_uniform_mesh_1D                             | ✓            | ✓               | ✓              | ✓            | ✓        |
@@ -135,7 +136,7 @@ rm -rf fem_bench_env  # To completely remove
 | solve_linear_elastic_1D_self_contained             | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                      | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained       | ✓            | ×               | ×              | ×            | ×        |
-| Total                                              | 8/10         | 5/10            | 4/10           | 2/10         | 8/10     |
+| Total                                              | 9/11         | 6/11            | 5/11           | 2/11         | 9/11     |
 
 ### Joint Test Success Rate (%)
 
@@ -143,6 +144,7 @@ rm -rf fem_bench_env  # To completely remove
 |:---------------------------------------------------|:-------------|:----------------|:---------------|:-------------|:---------|
 | assemble_global_stiffness_matrix_linear_elastic_3D | 100.0%       | 0.0%            | 100.0%         | 0.0%         | 0.0%     |
 | beam_transformation_matrix_3D                      | 33.3%        | 66.7%           | 33.3%          | 33.3%        | 33.3%    |
+| compute_local_element_loads_beam_3D                | 0.0%         | 75.0%           | –              | 0.0%         | 75.0%    |
 | element_stiffness_linear_elastic_1D                | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_solve                                       | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
 | linear_uniform_mesh_1D                             | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
@@ -151,7 +153,7 @@ rm -rf fem_bench_env  # To completely remove
 | solve_linear_elastic_1D_self_contained             | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                      | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained       | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
-| Avg Joint Success %                                | 55.0%        | 36.7%           | 51.7%          | 46.7%        | 41.7%    |
+| Avg Joint Success %                                | 50.0%        | 40.2%           | 47.0%          | 42.4%        | 44.7%    |
 
 ### How To Run the Pipeline <a name="run_pipeline"></a>
 
