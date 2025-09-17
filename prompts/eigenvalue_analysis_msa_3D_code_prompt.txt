@@ -1,0 +1,93 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports: import numpy as np
+import scipy
+import pytest
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+def partition_degrees_of_freedom(boundary_conditions, n_nodes):
+    """
+    Partitions the degrees of freedom (DOFs) into fixed and free sets for a 3D frame structure.
+
+    Parameters
+    ----------
+    boundary_conditions : dict[int, array-like of bool]
+        Dictionary mapping node indices to 6-element boolean arrays, where `True` indicates the DOF is fixed.
+
+    n_nodes : int
+        Total number of nodes in the structure.
+
+    Returns
+    -------
+    fixed : ndarray of int
+        Sorted array of fixed DOF indices.
+
+    free : ndarray of int
+        Sorted array of free DOF indices.
+    """
+    n_dof = n_nodes * 6
+    fixed = []
+    for n in range(n_nodes):
+        flags = boundary_conditions.get(n)
+        if flags is not None:
+            fixed.extend([6*n + i for i, f in enumerate(flags) if f])
+    fixed = np.asarray(fixed, dtype=int)
+    free = np.setdiff1d(np.arange(n_dof), fixed, assume_unique=True)
+    return fixed, free
+
+
+## Function Signature:
+## Only complete the function below:
+def eigenvalue_analysis_msa_3D(K_e_global, K_g_global, boundary_conditions, n_nodes):
+    """
+    Compute the smallest positive elastic critical load factor and corresponding
+    global buckling mode shape for a 3D frame/beam model.
+
+    The generalized eigenproblem is solved on the free DOFs:
+        K_e_ff * phi = -lambda * K_g_ff * phi
+    where K_e_ff and K_g_ff are the partitions of the elastic and geometric
+    stiffness matrices after applying boundary conditions.
+
+    Parameters
+    ----------
+    K_e_global : ndarray, shape (6*n_nodes, 6*n_nodes)
+        Global elastic stiffness matrix.
+    K_g_global : ndarray, shape (6*n_nodes, 6*n_nodes)
+        Global geometric stiffness matrix at the reference load state.
+    boundary_conditions : object
+        Container consumed by `partition_degrees_of_freedom(boundary_conditions, n_nodes)`.
+        Must define constrained DOFs such that the free set removes all rigid-body modes.
+    n_nodes : int
+        Number of nodes in the model (assumes 6 DOFs per node, ordered
+        [u_x, u_y, u_z, theta_x, theta_y, theta_z] per node).
+
+    Returns
+    -------
+    elastic_critical_load_factor : float
+        The smallest positive eigenvalue lambda (> 0), interpreted as the elastic
+        critical load factor (i.e., P_cr = lambda * P_ref, if K_g_global was
+        formed at reference load P_ref).
+    deformed_shape_vector : ndarray, shape (6*n_nodes,)
+        Global buckling mode vector with entries on constrained DOFs set to zero.
+        No normalization is applied (matches original behavior).
+
+    Raises
+    ------
+    ValueError
+        - If the reduced matrices are ill-conditioned/singular beyond tolerance.
+            Use a tolerence of 1e16
+        - If no positive eigenvalue is found.
+        - If eigenpairs contain non-negligible complex parts.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

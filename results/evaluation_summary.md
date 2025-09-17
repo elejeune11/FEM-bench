@@ -6,6 +6,7 @@
 | assemble_global_stiffness_matrix_linear_elastic_3D | ✓            | ✓               | ✓              | ×            | ✓        |
 | beam_transformation_matrix_3D                      | ×            | ×               | ×              | ×            | ✓        |
 | compute_local_element_loads_beam_3D                | ✓            | ✓               | ✓              | ×            | ✓        |
+| eigenvalue_analysis_msa_3D                         | ×            | ×               | ×              | ×            | ×        |
 | element_stiffness_linear_elastic_1D                | ✓            | ✓               | ✓              | ×            | ✓        |
 | linear_solve                                       | ✓            | ×               | ×              | ✓            | ✓        |
 | linear_uniform_mesh_1D                             | ✓            | ✓               | ✓              | ✓            | ✓        |
@@ -14,7 +15,7 @@
 | solve_linear_elastic_1D_self_contained             | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                      | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained       | ✓            | ×               | ×              | ×            | ×        |
-| Total                                              | 10/12        | 6/12            | 6/12           | 3/12         | 10/12    |
+| Total                                              | 10/13        | 6/13            | 6/13           | 3/13         | 10/13    |
 
 ### Joint Test Success Rate (%)
 
@@ -24,6 +25,7 @@
 | assemble_global_stiffness_matrix_linear_elastic_3D | 100.0%       | 0.0%            | 100.0%         | 0.0%         | 0.0%     |
 | beam_transformation_matrix_3D                      | 33.3%        | 66.7%           | 33.3%          | 33.3%        | 33.3%    |
 | compute_local_element_loads_beam_3D                | 0.0%         | 75.0%           | –              | 0.0%         | 75.0%    |
+| eigenvalue_analysis_msa_3D                         | 20.0%        | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
 | element_stiffness_linear_elastic_1D                | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | linear_solve                                       | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
 | linear_uniform_mesh_1D                             | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
@@ -32,5 +34,5 @@
 | solve_linear_elastic_1D_self_contained             | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                      | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained       | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
-| Avg Joint Success %                                | 45.8%        | 36.8%           | 43.1%          | 38.9%        | 41.0%    |
+| Avg Joint Success %                                | 43.8%        | 34.0%           | 39.7%          | 35.9%        | 37.8%    |
 

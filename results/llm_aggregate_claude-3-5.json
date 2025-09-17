@@ -1,6 +1,6 @@
 {
-  "fcn_correct_pct": 83.33,
-  "avg_tests_passed_on_reference_pct": 52.78,
-  "avg_expected_failures_detected_pct": 93.06,
-  "avg_joint_success_pct": 45.83
+  "fcn_correct_pct": 76.92,
+  "avg_tests_passed_on_reference_pct": 50.26,
+  "avg_expected_failures_detected_pct": 93.59,
+  "avg_joint_success_pct": 43.85
 }
