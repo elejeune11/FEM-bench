@@ -1,0 +1,7 @@
+{
+  "task_id": "assemble_global_geometric_stiffness_3D_beam",
+  "llm_name": "deepseek-chat",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}
