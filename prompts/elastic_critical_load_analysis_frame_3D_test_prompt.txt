@@ -162,11 +162,11 @@ Use 10 elements, set tolerances to be appropriate for the anticipated discretiza
 
 The cantilever model is solved in its original orientation and again after applying
 a rigid-body rotation R to the geometry, element axes, and applied load. The critical
-load factor λ should be identical in both cases.  
+load factor λ should be identical in both cases.
 
 The buckling mode from the rotated model should equal the base mode transformed by R:
 - Build T as a block-diagonal matrix with R applied to both the translational
-[ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
+  [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
 - Then mode_rot ≈ T @ mode_base, allowing for arbitrary scale and sign."
 - test_cantilever_euler_buckling_mesh_convergence: "Verify mesh convergence for Euler buckling of a fixed–free circular cantilever.
 The test refines the beam discretization and checks that the numerical critical load

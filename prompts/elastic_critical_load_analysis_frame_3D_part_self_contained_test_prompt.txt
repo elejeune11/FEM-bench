@@ -3,7 +3,7 @@
 Below is the function you are testing. Use its signature and docstring to understand its behavior.
 
 ## Only complete the test functions below:
-def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int | bool]], nodal_loads: dict[int, Sequence[float]]):
+def elastic_critical_load_analysis_frame_3D_part_self_contained(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int | bool]], nodal_loads: dict[int, Sequence[float]]):
     """
     Perform linear (eigenvalue) buckling analysis for a 3D frame and return the
     elastic critical load factor and associated global buckling mode shape.
@@ -41,7 +41,7 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
           - 'E' : float
                 Young's modulus (used in axial, bending, and torsion terms).
           - 'nu' : float
-                Poisson's ratio (used in torsion only, per your stiffness routine).
+                Poisson's ratio (used in torsion only).
           Section (local axes y,z about the beam's local x)
           -----------------------------------------------
           - 'A'  : float
@@ -54,16 +54,17 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
                 Torsional constant (for elastic/torsional stiffness).
           - 'I_rho' : float
                 Polar moment about the local x-axis used by the geometric stiffness
-                with torsion-bending coupling (see your geometric K routine).
+                with torsion–bending coupling.
           Orientation
           -----------
           - 'local_z' : Sequence[float] of length 3 **or** None
                 Provide a 3-vector giving the direction of the element's local z-axis to 
-                disambiguate the local triad used in the 12x12 transformation; if set to `None`, 
-                a default convention will be applied to construct the local axes.
+                disambiguate the local triad used in the 12×12 transformation; if `None`, 
+                a default convention is applied.
+
     boundary_conditions : dict
         Dictionary mapping node index -> boundary condition specification. Each
-        node’s specification can be provided in either of two forms:
+        node's specification can be provided in either of two forms:
         - Sequence of 6 booleans: [ux, uy, uz, rx, ry, rz], where True means
           the DOF is constrained (fixed).
         - Sequence of integer indices: e.g. [0, 1, 2] means the DOFs ux, uy, uz
@@ -71,10 +72,11 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
         All constrained DOFs are removed from the free set. It is the caller’s
         responsibility to supply constraints sufficient to eliminate rigid-body
         modes.
+
     nodal_loads : dict[int, Sequence[float]]
         Mapping from node index → length-6 vector of load components applied at
         that node in the **global** DOF order `[F_x, F_y, F_z, M_x, M_y, M_z]`.
-        Consumed by `assemble_global_load_vector_linear_elastic_3D` to form `P`.
+        Used to form `P`.
 
     Returns
     -------
@@ -95,6 +97,14 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
       nonlinear equilibrium/path-following analysis.
     - Boundary conditions must remove rigid-body modes from the free set.
     - Units are consistent across coordinates, properties, and loads.
+
+    External Helper Functions (required)
+    ------------------------------------
+    - `local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J) -> (12,12) ndarray`
+        Local elastic stiffness matrix for a 3D Euler-Bernoulli beam aligned with
+        the local x-axis.
+    - `local_geometric_stiffness_matrix_3D_beam(L, A, I_rho, Fx2, Mx2, My1, Mz1, My2, Mz2) -> (12,12) ndarray`
+        Local geometric stiffness matrix with torsion-bending coupling.
 
     Raises
     ------

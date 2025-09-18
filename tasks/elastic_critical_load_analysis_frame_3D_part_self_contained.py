@@ -3,7 +3,117 @@ import scipy
 from typing import Optional, Sequence
 
 
-def elastic_critical_load_analysis_frame_3D_self_contained(
+def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
+    """
+    Return the 12x12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.
+    DOF order (local): [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+    """
+    k = np.zeros((12, 12))
+    EA_L = E * A / L
+    GJ_L = E * J / (2.0 * (1.0 + nu) * L)
+    EIz_L = E * Iz
+    EIy_L = E * Iy
+    # axial
+    k[0, 0] = k[6, 6] = EA_L
+    k[0, 6] = k[6, 0] = -EA_L
+    # torsion
+    k[3, 3] = k[9, 9] = GJ_L
+    k[3, 9] = k[9, 3] = -GJ_L
+    # bending about z (local y)
+    k[1, 1] = k[7, 7] = 12.0 * EIz_L / L**3
+    k[1, 7] = k[7, 1] = -12.0 * EIz_L / L**3
+    k[1, 5] = k[5, 1] = k[1, 11] = k[11, 1] = 6.0 * EIz_L / L**2
+    k[5, 7] = k[7, 5] = k[7, 11] = k[11, 7] = -6.0 * EIz_L / L**2
+    k[5, 5] = k[11, 11] = 4.0 * EIz_L / L
+    k[5, 11] = k[11, 5] = 2.0 * EIz_L / L
+    # bending about y (local z)
+    k[2, 2] = k[8, 8] = 12.0 * EIy_L / L**3
+    k[2, 8] = k[8, 2] = -12.0 * EIy_L / L**3
+    k[2, 4] = k[4, 2] = k[2, 10] = k[10, 2] = -6.0 * EIy_L / L**2
+    k[4, 8] = k[8, 4] = k[8, 10] = k[10, 8] = 6.0 * EIy_L / L**2
+    k[4, 4] = k[10, 10] = 4.0 * EIy_L / L
+    k[4, 10] = k[10, 4] = 2.0 * EIy_L / L
+    return k
+
+
+def local_geometric_stiffness_matrix_3D_beam(
+    L: float,
+    A: float,
+    I_rho: float,
+    Fx2: float,
+    Mx2: float,
+    My1: float,
+    Mz1: float,
+    My2: float,
+    Mz2: float
+) -> np.ndarray:
+    """
+    Return the 12x12 local geometric stiffness matrix with torsion-bending coupling
+    for a 3D Euler-Bernoulli beam element.
+    DOF order (local): [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+    Positive axial force (tension) stiffens; compression softens.
+    """
+    k_g = np.zeros((12, 12))
+    # upper triangle off diagonal terms
+    k_g[0, 6] = -Fx2 / L
+    k_g[1, 3] = My1 / L
+    k_g[1, 4] = Mx2 / L
+    k_g[1, 5] = Fx2 / 10.0
+    k_g[1, 7] = -6.0 * Fx2 / (5.0 * L)
+    k_g[1, 9] = My2 / L
+    k_g[1, 10] = -Mx2 / L
+    k_g[1, 11] = Fx2 / 10.0
+    k_g[2, 3] = Mz1 / L
+    k_g[2, 4] = -Fx2 / 10.0
+    k_g[2, 5] = Mx2 / L
+    k_g[2, 8] = -6.0 * Fx2 / (5.0 * L)
+    k_g[2, 9] = Mz2 / L
+    k_g[2, 10] = -Fx2 / 10.0
+    k_g[2, 11] = -Mx2 / L
+    k_g[3, 4] = -1.0 * (2.0 * Mz1 - Mz2) / 6.0
+    k_g[3, 5] = (2.0 * My1 - My2) / 6.0
+    k_g[3, 7] = -My1 / L
+    k_g[3, 8] = -Mz1 / L
+    k_g[3, 9] = -Fx2 * I_rho / (A * L)
+    k_g[3, 10] = -1.0 * (Mz1 + Mz2) / 6.0
+    k_g[3, 11] = (My1 + My2) / 6.0
+    k_g[4, 7] = -Mx2 / L
+    k_g[4, 8] = Fx2 / 10.0
+    k_g[4, 9] = -1.0 * (Mz1 + Mz2) / 6.0
+    k_g[4, 10] = -Fx2 * L / 30.0
+    k_g[4, 11] = Mx2 / 2.0
+    k_g[5, 7] = -Fx2 / 10.0
+    k_g[5, 8] = -Mx2 / L
+    k_g[5, 9] = (My1 + My2) / 6.0
+    k_g[5, 10] = -Mx2 / 2.0
+    k_g[5, 11] = -Fx2 * L / 30.0
+    k_g[7, 9] = -My2 / L
+    k_g[7, 10] = Mx2 / L
+    k_g[7, 11] = -Fx2 / 10.0
+    k_g[8, 9] = -Mz2 / L
+    k_g[8, 10] = Fx2 / 10.0
+    k_g[8, 11] = Mx2 / L
+    k_g[9, 10] = (Mz1 - 2.0 * Mz2) / 6.0
+    k_g[9, 11] = -1.0 * (My1 - 2.0 * My2) / 6.0
+    # symmetric lower triangle
+    k_g = k_g + k_g.transpose()
+    # diagonal terms
+    k_g[0, 0] = Fx2 / L
+    k_g[1, 1] = 6.0 * Fx2 / (5.0 * L)
+    k_g[2, 2] = 6.0 * Fx2 / (5.0 * L)
+    k_g[3, 3] = Fx2 * I_rho / (A * L)
+    k_g[4, 4] = 2.0 * Fx2 * L / 15.0
+    k_g[5, 5] = 2.0 * Fx2 * L / 15.0
+    k_g[6, 6] = Fx2 / L
+    k_g[7, 7] = 6.0 * Fx2 / (5.0 * L)
+    k_g[8, 8] = 6.0 * Fx2 / (5.0 * L)
+    k_g[9, 9] = Fx2 * I_rho / (A * L)
+    k_g[10, 10] = 2.0 * Fx2 * L / 15.0
+    k_g[11, 11] = 2.0 * Fx2 * L / 15.0
+    return k_g
+
+
+def elastic_critical_load_analysis_frame_3D_part_self_contained(
     node_coords: np.ndarray,
     elements: Sequence[dict],
     boundary_conditions: dict[int, Sequence[int | bool]],
@@ -46,7 +156,7 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
           - 'E' : float
                 Young's modulus (used in axial, bending, and torsion terms).
           - 'nu' : float
-                Poisson's ratio (used in torsion only, per your stiffness routine).
+                Poisson's ratio (used in torsion only).
           Section (local axes y,z about the beam's local x)
           -----------------------------------------------
           - 'A'  : float
@@ -59,16 +169,17 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
                 Torsional constant (for elastic/torsional stiffness).
           - 'I_rho' : float
                 Polar moment about the local x-axis used by the geometric stiffness
-                with torsion-bending coupling (see your geometric K routine).
+                with torsion–bending coupling.
           Orientation
           -----------
           - 'local_z' : Sequence[float] of length 3 **or** None
                 Provide a 3-vector giving the direction of the element's local z-axis to 
-                disambiguate the local triad used in the 12x12 transformation; if set to `None`, 
-                a default convention will be applied to construct the local axes.
+                disambiguate the local triad used in the 12×12 transformation; if `None`, 
+                a default convention is applied.
+
     boundary_conditions : dict
         Dictionary mapping node index -> boundary condition specification. Each
-        node’s specification can be provided in either of two forms:
+        node's specification can be provided in either of two forms:
         - Sequence of 6 booleans: [ux, uy, uz, rx, ry, rz], where True means
           the DOF is constrained (fixed).
         - Sequence of integer indices: e.g. [0, 1, 2] means the DOFs ux, uy, uz
@@ -76,10 +187,11 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
         All constrained DOFs are removed from the free set. It is the caller’s
         responsibility to supply constraints sufficient to eliminate rigid-body
         modes.
+
     nodal_loads : dict[int, Sequence[float]]
         Mapping from node index → length-6 vector of load components applied at
         that node in the **global** DOF order `[F_x, F_y, F_z, M_x, M_y, M_z]`.
-        Consumed by `assemble_global_load_vector_linear_elastic_3D` to form `P`.
+        Used to form `P`.
 
     Returns
     -------
@@ -101,6 +213,14 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
     - Boundary conditions must remove rigid-body modes from the free set.
     - Units are consistent across coordinates, properties, and loads.
 
+    External Helper Functions (required)
+    ------------------------------------
+    - `local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J) -> (12,12) ndarray`
+        Local elastic stiffness matrix for a 3D Euler-Bernoulli beam aligned with
+        the local x-axis.
+    - `local_geometric_stiffness_matrix_3D_beam(L, A, I_rho, Fx2, Mx2, My1, Mz1, My2, Mz2) -> (12,12) ndarray`
+        Local geometric stiffness matrix with torsion-bending coupling.
+
     Raises
     ------
     ValueError
@@ -116,9 +236,10 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
     - If multiple nearly-equal smallest eigenvalues exist (mode multiplicity),
       the returned mode can depend on numerical details.
     """
-    # ----------------------------- Inlined helpers -----------------------------
-
     def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.ndarray]):
+        """
+        12x12 local-to-global transformation matrix Γ assembled from a 3×3 direction cosine matrix.
+        """
         dx, dy, dz = x2 - x1, y2 - y1, z2 - z1
         L = np.sqrt(dx*dx + dy*dy + dz*dz)
         if np.isclose(L, 0.0):
@@ -135,41 +256,11 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
                 raise ValueError("reference_vector must be unit length.")
             if np.isclose(np.linalg.norm(np.cross(ref_vec, ex)), 0.0):
                 raise ValueError("reference_vector parallel to beam axis.")
-
         ey = np.cross(ref_vec, ex)
         ey /= np.linalg.norm(ey)
         ez = np.cross(ex, ey)
-
         gamma = np.vstack((ex, ey, ez))  # 3×3
         return np.kron(np.eye(4), gamma)  # 12×12
-
-    def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
-        k = np.zeros((12, 12))
-        EA_L = E * A / L
-        GJ_L = E * J / (2.0 * (1.0 + nu) * L)
-        EIz_L = E * Iz
-        EIy_L = E * Iy
-        # axial
-        k[0, 0] = k[6, 6] = EA_L
-        k[0, 6] = k[6, 0] = -EA_L
-        # torsion
-        k[3, 3] = k[9, 9] = GJ_L
-        k[3, 9] = k[9, 3] = -GJ_L
-        # bending about z (local y) 
-        k[1, 1] = k[7, 7] = 12.0 * EIz_L / L**3
-        k[1, 7] = k[7, 1] = -12.0 * EIz_L / L**3
-        k[1, 5] = k[5, 1] = k[1, 11] = k[11, 1] = 6.0 * EIz_L / L**2
-        k[5, 7] = k[7, 5] = k[7, 11] = k[11, 7] = -6.0 * EIz_L / L**2
-        k[5, 5] = k[11, 11] = 4.0 * EIz_L / L
-        k[5, 11] = k[11, 5] = 2.0 * EIz_L / L
-        # bending about y (local z)
-        k[2, 2] = k[8, 8] = 12.0 * EIy_L / L**3
-        k[2, 8] = k[8, 2] = -12.0 * EIy_L / L**3
-        k[2, 4] = k[4, 2] = k[2, 10] = k[10, 2] = -6.0 * EIy_L / L**2
-        k[4, 8] = k[8, 4] = k[8, 10] = k[10, 8] = 6.0 * EIy_L / L**2
-        k[4, 4] = k[10, 10] = 4.0 * EIy_L / L
-        k[4, 10] = k[10, 4] = 2.0 * EIy_L / L
-        return k
 
     def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
         n_nodes = node_coords.shape[0]
@@ -236,6 +327,9 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
         return u, nodal_reaction_vector
 
     def compute_local_element_loads_beam_3D(ele_info, xi, yi, zi, xj, yj, zj, u_dofs_global):
+        """
+        Uses the external KE to map local displacements to local end forces.
+        """
         v = np.array([xj - xi, yj - yi, zj - zi], dtype=float)
         L = np.linalg.norm(v)
         Gamma = beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, ele_info.get('local_z'))
@@ -246,69 +340,6 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
         u_dofs_local = Gamma @ u_dofs_global
         load_dofs_local = k_e_local @ u_dofs_local
         return load_dofs_local
-
-    def local_geometric_stiffness_matrix_3D_beam(
-        L: float, A: float, I_rho: float,
-        Fx2: float, Mx2: float, My1: float, Mz1: float, My2: float, Mz2: float
-    ) -> np.ndarray:
-        k_g = np.zeros((12, 12))
-        # upper triangle off diagonal terms
-        k_g[0, 6] = -Fx2 / L
-        k_g[1, 3] = My1 / L
-        k_g[1, 4] = Mx2 / L
-        k_g[1, 5] = Fx2 / 10.0
-        k_g[1, 7] = -6.0 * Fx2 / (5.0 * L)
-        k_g[1, 9] = My2 / L
-        k_g[1, 10] = -Mx2 / L
-        k_g[1, 11] = Fx2 / 10.0
-        k_g[2, 3] = Mz1 / L
-        k_g[2, 4] = -Fx2 / 10.0
-        k_g[2, 5] = Mx2 / L
-        k_g[2, 8] = -6.0 * Fx2 / (5.0 * L)
-        k_g[2, 9] = Mz2 / L
-        k_g[2, 10] = -Fx2 / 10.0
-        k_g[2, 11] = -Mx2 / L
-        k_g[3, 4] = -1.0 * (2.0 * Mz1 - Mz2) / 6.0
-        k_g[3, 5] = (2.0 * My1 - My2) / 6.0
-        k_g[3, 7] = -My1 / L
-        k_g[3, 8] = -Mz1 / L
-        k_g[3, 9] = -Fx2 * I_rho / (A * L)
-        k_g[3, 10] = -1.0 * (Mz1 + Mz2) / 6.0
-        k_g[3, 11] = (My1 + My2) / 6.0
-        k_g[4, 7] = -Mx2 / L
-        k_g[4, 8] = Fx2 / 10.0
-        k_g[4, 9] = -1.0 * (Mz1 + Mz2) / 6.0
-        k_g[4, 10] = -Fx2 * L / 30.0
-        k_g[4, 11] = Mx2 / 2.0
-        k_g[5, 7] = -Fx2 / 10.0
-        k_g[5, 8] = -Mx2 / L
-        k_g[5, 9] = (My1 + My2) / 6.0
-        k_g[5, 10] = -Mx2 / 2.0
-        k_g[5, 11] = -Fx2 * L / 30.0
-        k_g[7, 9] = -My2 / L
-        k_g[7, 10] = Mx2 / L
-        k_g[7, 11] = -Fx2 / 10.0
-        k_g[8, 9] = -Mz2 / L
-        k_g[8, 10] = Fx2 / 10.0
-        k_g[8, 11] = Mx2 / L
-        k_g[9, 10] = (Mz1 - 2.0 * Mz2) / 6.0
-        k_g[9, 11] = -1.0 * (My1 - 2.0 * My2) / 6.0
-        # add in the symmetric lower triangle
-        k_g = k_g + k_g.transpose()
-        # add diagonal terms
-        k_g[0, 0] = Fx2 / L
-        k_g[1, 1] = 6.0 * Fx2 / (5.0 * L)
-        k_g[2, 2] = 6.0 * Fx2 / (5.0 * L)
-        k_g[3, 3] = Fx2 * I_rho / (A * L)
-        k_g[4, 4] = 2.0 * Fx2 * L / 15.0
-        k_g[5, 5] = 2.0 * Fx2 * L / 15.0
-        k_g[6, 6] = Fx2 / L
-        k_g[7, 7] = 6.0 * Fx2 / (5.0 * L)
-        k_g[8, 8] = 6.0 * Fx2 / (5.0 * L)
-        k_g[9, 9] = Fx2 * I_rho / (A * L)
-        k_g[10, 10] = 2.0 * Fx2 * L / 15.0
-        k_g[11, 11] = 2.0 * Fx2 * L / 15.0
-        return k_g
 
     def assemble_global_geometric_stiffness_3D_beam(
         node_coords: np.ndarray, elements: Sequence[dict], u_global: np.ndarray
@@ -409,22 +440,12 @@ def elastic_critical_load_analysis_frame_3D_self_contained(
         deformed_shape_vector[free] = eig_vector_free
         return eig_value, deformed_shape_vector
 
-    # -------------------------- Main routine body -----------------------------
-
     n_nodes = node_coords.shape[0]
-
-    # Elastic stiffness and reference load vector
     K = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
     P = assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes)
-
-    # DOF partition + reference solve
     fixed, free = partition_degrees_of_freedom(boundary_conditions, n_nodes)
     u_global, _ = linear_solve(P, K, fixed, free)
-
-    # Geometric stiffness at reference state
     K_g = assemble_global_geometric_stiffness_3D_beam(node_coords, elements, u_global)
-
-    # Eigenvalue buckling
     elastic_critical_load_factor, deformed_shape_vector = eigenvalue_analysis(
         K, K_g, boundary_conditions, n_nodes
     )
@@ -745,13 +766,13 @@ def test_cantilever_euler_buckling_mesh_convergence(fcn):
 
 
 def task_info():
-    task_id = "elastic_critical_load_analysis_frame_3D_self_contained"
-    task_short_description = "performs elastic critical load analysis given problem setup"
-    created_date = "2025-09-17"
+    task_id = "elastic_critical_load_analysis_frame_3D_part_self_contained"
+    task_short_description = "performs elastic critical load analysis given problem setup and the elastic and geometric stiffnes matricies pre-defined as helper functions"
+    created_date = "2025-09-18"
     created_by = "elejeune11"
-    main_fcn = elastic_critical_load_analysis_frame_3D_self_contained
+    main_fcn = elastic_critical_load_analysis_frame_3D_part_self_contained
     required_imports = ["import numpy as np", "import scipy", "from typing import Optional, Sequence", "import pytest"]
-    fcn_dependencies = []
+    fcn_dependencies = [local_elastic_stiffness_matrix_3D_beam, local_geometric_stiffness_matrix_3D_beam]
     reference_verification_inputs = [
         # 1) Short cantilever (2 nodes), circular, axial tip load (axis-aligned +z)
         [

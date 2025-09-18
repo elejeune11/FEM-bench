@@ -1,0 +1,7 @@
+{
+  "task_id": "elastic_critical_load_analysis_frame_3D_part_self_contained",
+  "llm_name": "gpt-4o",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}

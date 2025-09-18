@@ -1,0 +1,9 @@
+{
+  "task_id": "elastic_critical_load_analysis_frame_3D_part_self_contained",
+  "llm_name": "gemini-flash",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [],
+    "failure_fail": []
+  }
+}

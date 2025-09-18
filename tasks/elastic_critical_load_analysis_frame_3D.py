@@ -990,11 +990,11 @@ def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
 
     The cantilever model is solved in its original orientation and again after applying
     a rigid-body rotation R to the geometry, element axes, and applied load. The critical
-    load factor λ should be identical in both cases.  
+    load factor λ should be identical in both cases.
 
     The buckling mode from the rotated model should equal the base mode transformed by R:
     - Build T as a block-diagonal matrix with R applied to both the translational
-    [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
+      [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
     - Then mode_rot ≈ T @ mode_base, allowing for arbitrary scale and sign.
     """
     # --- Base cantilever model ---
@@ -1008,19 +1008,16 @@ def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
     node_coords = np.c_[np.zeros_like(z), np.zeros_like(z), z]
 
     # Rectangular cross-section: width b along local y, thickness h along local z
-    # => Iy = b * h^3 / 12 (bending about local y), Iz = h * b^3 / 12 (bending about local z)
-    b = 0.08  # along local y
-    h = 0.05  # along local z  (Iy != Iz to avoid mode degeneracy)
+    b = 0.08
+    h = 0.05
     A  = b * h
     Iy = b * h**3 / 12.0
     Iz = h * b**3 / 12.0
-    # Saint-Venant torsion constant (engineering approximation). Ensure b >= h:
     if b < h:
-        b, h = h, b  # swap for the formula; Iy/Iz are already computed above
+        b, h = h, b
     J = b * h**3 * (1/3 - 0.21 * (h/b) * (1 - (h**4) / (12 * b**4)))
     I_rho = Iy + Iz
 
-    # Elements with local_z orthogonal to axis and consistent
     elements = [
         dict(
             node_i=i, node_j=i + 1,
@@ -1046,8 +1043,8 @@ def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
         nodal_loads=nodal_loads,
     )
 
-    # --- Build a rigid rotation R (35° about axis a = [1,1,1]) ---
-    a = np.array([1.0, 1.0, 1.0], dtype=float)
+    # --- Build a rigid rotation R (35° about a non-collinear axis) ---
+    a = np.array([2.0, -1.0, 0.5], dtype=float)
     a /= np.linalg.norm(a)
     x, y, zax = a
     theta = np.deg2rad(35.0)
@@ -1094,7 +1091,7 @@ def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
         f"λ not invariant under rigid rotation: base={lam_base:.6e}, rot={lam_rot:.6e}"
     )
 
-    # --- Check mode transforms: mode_rot ≈ T @ mode_base (up to sign/scale) ---
+    # --- Check mode transforms: mode_rot ≈ T @ mode_base (up to sign/scale)
     ndof = 6 * num_nodes
     T = np.zeros((ndof, ndof), dtype=float)
     for n in range(num_nodes):
