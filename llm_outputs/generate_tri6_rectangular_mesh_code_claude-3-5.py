@@ -15,12 +15,11 @@ def generate_tri6_rectangular_mesh(xl: float, yl: float, xh: float, yh: float, n
     elem = 0
     for cy in range(ny):
         for cx in range(nx):
-            sw = 2 * cy * npx + 2 * cx
+            sw = cy * npx + 2 * cx
             se = sw + 2
-            nw = sw + 2 * npx
+            nw = sw + npx
             ne = nw + 2
-            connect[elem] = [se, nw, sw, se + npx, sw + npx, se - 1]
-            elem += 1
-            connect[elem] = [ne, nw, se, ne - 1, se + npx, ne - npx]
-            elem += 1
+            connect[elem] = [se, nw, sw, se + npx - 1, sw + npx, sw + 1]
+            connect[elem + 1] = [ne, nw, se, ne - 1, se + npx - 1, se + 1]
+            elem += 2
     return (coords, connect)

@@ -20,11 +20,9 @@ def generate_tri6_rectangular_mesh(xl: float, yl: float, xh: float, yh: float, n
             tl = bl + 2 * npx
             tr = tl + 2
             mbl_tr = bl + 1
-            mtl_br = tl + 1
-            mbl_br = bl + npx
-            mtl_tr = tl + npx
-            connect[element_index] = [br, tl, bl, mtl_br, mbl_tr, mbl_br]
+            mtl_br = bl + npx + 1
+            connect[element_index] = [br, tl, bl, mtl_br, mbl_tr, br + npx]
             element_index += 1
-            connect[element_index] = [tr, tl, br, mtl_tr, mtl_br, mtl_br]
+            connect[element_index] = [tr, tl, br, tr - 1, mtl_br, tr - npx]
             element_index += 1
     return (coords, connect)

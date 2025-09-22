@@ -11,6 +11,7 @@
 | elastic_critical_load_analysis_frame_3D_part_self_contained | ×            | ×               | ×              | ×            | ×        |
 | elastic_critical_load_analysis_frame_3D_self_contained      | ×            | ×               | ×              | ×            | ×        |
 | element_stiffness_linear_elastic_1D                         | ✓            | ✓               | ✓              | ×            | ✓        |
+| generate_quad8_rectangular_mesh                             | ✓            | ✓               | ×              | ×            | ✓        |
 | generate_tri6_rectangular_mesh                              | ×            | ✓               | ×              | ×            | ×        |
 | linear_solve                                                | ✓            | ×               | ×              | ✓            | ✓        |
 | linear_uniform_mesh_1D                                      | ✓            | ✓               | ✓              | ✓            | ✓        |
@@ -19,7 +20,7 @@
 | solve_linear_elastic_1D_self_contained                      | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                               | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained                | ✓            | ×               | ×              | ×            | ×        |
-| Total                                                       | 11/17        | 8/17            | 6/17           | 3/17         | 11/17    |
+| Total                                                       | 12/18        | 9/18            | 6/18           | 3/18         | 12/18    |
 
 ### Joint Test Success Rate (%)
 
@@ -34,7 +35,8 @@
 | elastic_critical_load_analysis_frame_3D_part_self_contained | –            | –               | –              | –            | 0.0%     |
 | elastic_critical_load_analysis_frame_3D_self_contained      | 0.0%         | –               | –              | –            | 0.0%     |
 | element_stiffness_linear_elastic_1D                         | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
-| generate_tri6_rectangular_mesh                              | 50.0%        | –               | –              | 50.0%        | 100.0%   |
+| generate_quad8_rectangular_mesh                             | 100.0%       | 100.0%          | –              | 33.3%        | 66.7%    |
+| generate_tri6_rectangular_mesh                              | 66.7%        | 33.3%           | –              | 100.0%       | 66.7%    |
 | linear_solve                                                | 0.0%         | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
 | linear_uniform_mesh_1D                                      | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | local_elastic_stiffness_matrix_3D_beam                      | 0.0%         | –               | 0.0%           | 100.0%       | 50.0%    |
@@ -42,5 +44,5 @@
 | solve_linear_elastic_1D_self_contained                      | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                               | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained                | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
-| Avg Joint Success %                                         | 36.5%        | 26.0%           | 30.4%          | 30.4%        | 34.8%    |
+| Avg Joint Success %                                         | 40.9%        | 31.9%           | 28.7%          | 33.3%        | 34.7%    |
 

@@ -10,6 +10,10 @@
       ],
       [
         "test_tri6_mesh_geometry_and_conformity",
+        false
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
         true
       ]
     ],
@@ -24,6 +28,14 @@
       ],
       [
         "test_tri6_mesh_geometry_and_conformity",
+        true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
+        true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
         true
       ]
     ]

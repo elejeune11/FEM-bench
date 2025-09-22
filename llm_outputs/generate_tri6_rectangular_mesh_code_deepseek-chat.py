@@ -65,9 +65,9 @@ def generate_tri6_rectangular_mesh(xl: float, yl: float, xh: float, yh: float, n
     y_coords = np.linspace(yl, yh, npy, dtype=np.float64)
     (X, Y) = np.meshgrid(x_coords, y_coords, indexing='xy')
     coords = np.column_stack((X.flatten(), Y.flatten()))
-    nelem = 2 * nx * ny
-    connect = np.zeros((nelem, 6), dtype=np.int64)
-    elem_idx = 0
+    n_elements = 2 * nx * ny
+    connect = np.zeros((n_elements, 6), dtype=np.int64)
+    element_index = 0
     for cy in range(ny):
         for cx in range(nx):
             bl_x = 2 * cx
@@ -83,18 +83,18 @@ def generate_tri6_rectangular_mesh(xl: float, yl: float, xh: float, yh: float, n
             top_mid = tr_y * npx + (bl_x + 1)
             left_mid = (bl_y + 1) * npx + bl_x
             center = (bl_y + 1) * npx + (bl_x + 1)
-            connect[elem_idx, 0] = bottom_right
-            connect[elem_idx, 1] = top_left
-            connect[elem_idx, 2] = bottom_left
-            connect[elem_idx, 3] = center
-            connect[elem_idx, 4] = left_mid
-            connect[elem_idx, 5] = bottom_mid
-            elem_idx += 1
-            connect[elem_idx, 0] = top_right
-            connect[elem_idx, 1] = top_left
-            connect[elem_idx, 2] = bottom_right
-            connect[elem_idx, 3] = top_mid
-            connect[elem_idx, 4] = center
-            connect[elem_idx, 5] = right_mid
-            elem_idx += 1
+            connect[element_index, 0] = bottom_right
+            connect[element_index, 1] = top_left
+            connect[element_index, 2] = bottom_left
+            connect[element_index, 3] = center
+            connect[element_index, 4] = left_mid
+            connect[element_index, 5] = bottom_mid
+            element_index += 1
+            connect[element_index, 0] = top_right
+            connect[element_index, 1] = top_left
+            connect[element_index, 2] = bottom_right
+            connect[element_index, 3] = top_mid
+            connect[element_index, 4] = center
+            connect[element_index, 5] = right_mid
+            element_index += 1
     return (coords, connect)

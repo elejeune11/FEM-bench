@@ -11,6 +11,10 @@
       [
         "test_tri6_mesh_geometry_and_conformity",
         true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
+        true
       ]
     ],
     "failure_fail": [
@@ -24,6 +28,14 @@
       ],
       [
         "test_tri6_mesh_geometry_and_conformity",
+        true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
+        true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
         true
       ]
     ]

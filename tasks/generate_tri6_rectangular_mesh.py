@@ -498,6 +498,6 @@ def task_info():
     ]
     test_cases = [{"test_code": test_tri6_mesh_basic_structure_and_determinism, "expected_failures": [generate_tri6_rectangular_mesh_indexing_bug]},
                   {"test_code": test_tri6_mesh_geometry_and_conformity, "expected_failures": [generate_tri6_rectangular_mesh_ccw_bug, generate_tri6_rectangular_mesh_duplicate_node_bug]},
-                  {"test_code": generate_tri6_rectangular_mesh, "expected_failures": [generate_tri6_rectangular_mesh_no_error_nx_ny, generate_tri6_rectangular_mesh_no_error_domain]}
+                  {"test_code": test_tri6_mesh_invalid_inputs, "expected_failures": [generate_tri6_rectangular_mesh_no_error_nx_ny, generate_tri6_rectangular_mesh_no_error_domain]}
                   ]
     return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases

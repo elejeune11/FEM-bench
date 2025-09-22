@@ -60,24 +60,23 @@ def generate_tri6_rectangular_mesh(xl: float, yl: float, xh: float, yh: float, n
     dx = (xh - xl) / nx
     dy = (yh - yl) / ny
     coords = np.zeros((npx * npy, 2), dtype=np.float64)
+    connect = np.zeros((2 * nx * ny, 6), dtype=np.int64)
     for iy in range(npy):
         for ix in range(npx):
             coords[iy * npx + ix] = [xl + 0.5 * dx * ix, yl + 0.5 * dy * iy]
-    connect = np.zeros((2 * nx * ny, 6), dtype=np.int64)
     for cy in range(ny):
         for cx in range(nx):
-            n1 = cy * 2 * npx + cx * 2 + 2
-            n2 = (cy + 1) * 2 * npx + cx * 2 + 1
-            n3 = cy * 2 * npx + cx * 2
-            n4 = cy * 2 * npx + cx * 2 + 3
-            n5 = (cy + 1) * 2 * npx + cx * 2
-            n6 = cy * 2 * npx + cx * 2 + 1
+            n1 = 2 * cy * npx + (2 * cx + 2)
+            n2 = (2 * cy + 2) * npx + 2 * cx
+            n3 = 2 * cy * npx + 2 * cx
+            n4 = (2 * cy + 1) * npx + (2 * cx + 1)
+            n5 = (2 * cy + 2) * npx + (2 * cx + 1)
+            n6 = (2 * cy + 1) * npx + (2 * cx + 2)
             connect[2 * (cy * nx + cx)] = [n1, n2, n3, n4, n5, n6]
-            n1 = (cy + 1) * 2 * npx + cx * 2 + 2
-            n2 = (cy + 1) * 2 * npx + cx * 2 + 1
-            n3 = cy * 2 * npx + cx * 2 + 2
-            n4 = (cy + 1) * 2 * npx + cx * 2 + 3
-            n5 = cy * 2 * npx + cx * 2 + 3
-            n6 = (cy + 1) * 2 * npx + cx * 2 + 1
+            n1 = (2 * cy + 2) * npx + (2 * cx + 2)
+            n3 = 2 * cy * npx + (2 * cx + 2)
+            n4 = (2 * cy + 2) * npx + (2 * cx + 1)
+            n5 = (2 * cy + 1) * npx + (2 * cx + 1)
+            n6 = (2 * cy + 1) * npx + (2 * cx + 2)
             connect[2 * (cy * nx + cx) + 1] = [n1, n2, n3, n4, n5, n6]
     return (coords, connect)

@@ -25,31 +25,32 @@ def test_tri6_mesh_geometry_and_conformity(fcn):
     """Validate geometric properties and conformity on a non-square domain.
     Checks:
     """
-    (coords, connect) = fcn(-1.0, -2.0, 2.0, 1.0, 2, 2)
+    (coords, connect) = fcn(-1.0, 2.0, 2.0, 4.0, 2, 1)
     assert np.all(connect >= 0)
     assert np.all(connect < len(coords))
     for elem in connect:
         assert len(np.unique(elem)) == 6
+    for elem in connect:
+        (n1, n2, n3, n4, n5, n6) = elem
+        assert np.allclose(coords[n4], (coords[n1] + coords[n2]) / 2)
+        assert np.allclose(coords[n5], (coords[n2] + coords[n3]) / 2)
+        assert np.allclose(coords[n6], (coords[n3] + coords[n1]) / 2)
+    for elem in connect:
+        (n1, n2, n3) = elem[:3]
+        v1 = coords[n2] - coords[n1]
+        v2 = coords[n3] - coords[n1]
+        cross = np.cross(v1, v2)
+        assert cross > 0
 
-    def tri_area(p1, p2, p3):
-        return 0.5 * (p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]))
-    for elem in connect:
-        p1 = coords[elem[0]]
-        p2 = coords[elem[1]]
-        p3 = coords[elem[2]]
-        area = tri_area(p1, p2, p3)
-        assert area > 0
-    for elem in connect:
-        assert np.allclose(coords[elem[3]], 0.5 * (coords[elem[0]] + coords[elem[1]]))
-        assert np.allclose(coords[elem[4]], 0.5 * (coords[elem[1]] + coords[elem[2]]))
-        assert np.allclose(coords[elem[5]], 0.5 * (coords[elem[2]] + coords[elem[0]]))
-    edge_nodes = {}
-    for (i, elem) in enumerate(connect):
-        edges = [(elem[0], elem[1]), (elem[1], elem[2]), (elem[2], elem[0])]
-        mids = [elem[3], elem[4], elem[5]]
-        for (edge, mid) in zip(edges, mids):
-            edge = tuple(sorted(edge))
-            if edge in edge_nodes:
-                assert edge_nodes[edge] == mid
-            else:
-                edge_nodes[edge] = mid
+def test_tri6_mesh_invalid_inputs(fcn):
+    """Validate error handling for invalid inputs.
+    Checks:
+    """
+    with pytest.raises(ValueError):
+        fcn(0.0, 0.0, 1.0, 1.0, 0, 1)
+    with pytest.raises(ValueError):
+        fcn(0.0, 0.0, 1.0, 1.0, 1, 0)
+    with pytest.raises(ValueError):
+        fcn(1.0, 0.0, 0.0, 1.0, 1, 1)
+    with pytest.raises(ValueError):
+        fcn(0.0, 1.0, 1.0, 0.0, 1, 1)
