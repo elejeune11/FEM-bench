@@ -1,0 +1,342 @@
+{
+  "task_id": "compute_integral_of_derivative_quad8",
+  "llm_name": "gemini-pro",
+  "matches_reference": false,
+  "test_results": [
+    {
+      "test_case": 1,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            8
+          ],
+          "data": [
+            0.9,
+            -0.3,
+            1.1,
+            -0.2,
+            0.4,
+            -0.5,
+            0.7,
+            -0.1
+          ]
+        },
+        1
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "quad_quadrature_2D() takes 1 positional argument but 3 were given"
+    },
+    {
+      "test_case": 2,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -2.0,
+              -1.0
+            ],
+            [
+              2.0,
+              -1.0
+            ],
+            [
+              2.0,
+              1.5
+            ],
+            [
+              -2.0,
+              1.5
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              2.0,
+              0.25
+            ],
+            [
+              0.0,
+              1.5
+            ],
+            [
+              -2.0,
+              0.25
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            8
+          ],
+          "data": [
+            2.0,
+            1.2,
+            0.3,
+            -0.7,
+            1.5,
+            0.8,
+            -0.2,
+            1.1
+          ]
+        },
+        4
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "quad_quadrature_2D() takes 1 positional argument but 3 were given"
+    },
+    {
+      "test_case": 3,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.08
+            ],
+            [
+              1.07,
+              0.0
+            ],
+            [
+              0.0,
+              1.1
+            ],
+            [
+              -1.05,
+              0.05
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            8
+          ],
+          "data": [
+            0.2,
+            -1.0,
+            1.8,
+            0.9,
+            -0.4,
+            1.3,
+            -0.6,
+            0.5
+          ]
+        },
+        9
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "quad_quadrature_2D() takes 1 positional argument but 3 were given"
+    },
+    {
+      "test_case": 4,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              2.1,
+              0.6
+            ],
+            [
+              2.7,
+              2.1
+            ],
+            [
+              0.5,
+              1.7
+            ],
+            [
+              1.05,
+              0.3
+            ],
+            [
+              2.4,
+              1.35
+            ],
+            [
+              1.6,
+              1.9
+            ],
+            [
+              0.25,
+              0.85
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            8
+          ],
+          "data": [
+            0.0,
+            0.6,
+            1.1,
+            -0.3,
+            0.2,
+            0.9,
+            0.1,
+            -0.1
+          ]
+        },
+        4
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "quad_quadrature_2D() takes 1 positional argument but 3 were given"
+    },
+    {
+      "test_case": 5,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.12
+            ],
+            [
+              1.1,
+              0.08
+            ],
+            [
+              0.02,
+              1.15
+            ],
+            [
+              -1.06,
+              -0.03
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            8
+          ],
+          "data": [
+            -0.8,
+            0.5,
+            0.7,
+            -0.4,
+            1.0,
+            -0.2,
+            0.3,
+            -0.6
+          ]
+        },
+        9
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "quad_quadrature_2D() takes 1 positional argument but 3 were given"
+    }
+  ]
+}
