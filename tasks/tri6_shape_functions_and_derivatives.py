@@ -340,7 +340,7 @@ def test_gradient_completeness_tri6(fcn):
 
 def task_info():
     task_id = "tri6_shape_functions_and_derivatives"
-    task_short_description = "returns the values of shape functions and derivatives given natural coordinate points"
+    task_short_description = "returns the values of shape functions and derivatives given natural coordinate points for a 6 node triangle"
     created_date = "2025-09-23"
     created_by = "elejeune11"
     main_fcn = tri6_shape_functions_and_derivatives

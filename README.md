@@ -140,13 +140,14 @@ rm -rf fem_bench_env  # To completely remove
 | linear_uniform_mesh_1D                                      | ✓            | ✓               | ✓              | ✓            | ✓        |
 | local_elastic_stiffness_matrix_3D_beam                      | ✓            | ×               | ×              | ×            | ✓        |
 | local_geometric_stiffness_matrix_3D_beam                    | ×            | ×               | ×              | ×            | ×        |
+| quad8_shape_functions_and_derivatives                       | ×            | ✓               | ✓              | ×            | ×        |
 | quad_quadrature_2D                                          | ✓            | ✓               | ×              | ✓            | ✓        |
 | solve_linear_elastic_1D_self_contained                      | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                               | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained                | ✓            | ×               | ×              | ×            | ×        |
 | tri6_shape_functions_and_derivatives                        | ×            | ✓               | ✓              | ×            | ×        |
 | triangle_quadrature_2D                                      | ✓            | ×               | ×              | ✓            | ✓        |
-| Total                                                       | 14/21        | 11/21           | 7/21           | 5/21         | 14/21    |
+| Total                                                       | 14/22        | 12/22           | 8/22           | 5/22         | 14/22    |
 
 ### Joint Test Success Rate (%)
 
@@ -167,13 +168,14 @@ rm -rf fem_bench_env  # To completely remove
 | linear_uniform_mesh_1D                                      | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | local_elastic_stiffness_matrix_3D_beam                      | 0.0%         | –               | 0.0%           | 100.0%       | 50.0%    |
 | local_geometric_stiffness_matrix_3D_beam                    | 50.0%        | –               | 50.0%          | 0.0%         | 50.0%    |
+| quad8_shape_functions_and_derivatives                       | 66.7%        | 66.7%           | –              | –            | 83.3%    |
 | quad_quadrature_2D                                          | 60.0%        | –               | –              | 60.0%        | 40.0%    |
 | solve_linear_elastic_1D_self_contained                      | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                               | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained                | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
 | tri6_shape_functions_and_derivatives                        | 50.0%        | 66.7%           | 50.0%          | 33.3%        | 83.3%    |
 | triangle_quadrature_2D                                      | 40.0%        | –               | 20.0%          | 40.0%        | 60.0%    |
-| Avg Joint Success %                                         | 42.2%        | 30.6%           | 27.9%          | 34.9%        | 38.5%    |
+| Avg Joint Success %                                         | 43.3%        | 32.2%           | 26.7%          | 33.3%        | 40.5%    |
 
 
 ### How To Run the Pipeline <a name="run_pipeline"></a>
