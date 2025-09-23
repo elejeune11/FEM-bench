@@ -21,8 +21,9 @@
 | solve_linear_elastic_1D_self_contained                      | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                               | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained                | ✓            | ×               | ×              | ×            | ×        |
+| tri6_shape_functions_and_derivatives                        | ×            | ✓               | ✓              | ×            | ×        |
 | triangle_quadrature_2D                                      | ✓            | ×               | ×              | ✓            | ✓        |
-| Total                                                       | 14/20        | 10/20           | 6/20           | 5/20         | 14/20    |
+| Total                                                       | 14/21        | 11/21           | 7/21           | 5/21         | 14/21    |
 
 ### Joint Test Success Rate (%)
 
@@ -47,6 +48,7 @@
 | solve_linear_elastic_1D_self_contained                      | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                               | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained                | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
+| tri6_shape_functions_and_derivatives                        | 50.0%        | 66.7%           | 50.0%          | 33.3%        | 83.3%    |
 | triangle_quadrature_2D                                      | 40.0%        | –               | 20.0%          | 40.0%        | 60.0%    |
-| Avg Joint Success %                                         | 41.8%        | 28.8%           | 26.8%          | 35.0%        | 36.3%    |
+| Avg Joint Success %                                         | 42.2%        | 30.6%           | 27.9%          | 34.9%        | 38.5%    |
 
