@@ -17,11 +17,12 @@
 | linear_uniform_mesh_1D                                      | ✓            | ✓               | ✓              | ✓            | ✓        |
 | local_elastic_stiffness_matrix_3D_beam                      | ✓            | ×               | ×              | ×            | ✓        |
 | local_geometric_stiffness_matrix_3D_beam                    | ×            | ×               | ×              | ×            | ×        |
+| quad_quadrature_2D                                          | ✓            | ✓               | ×              | ✓            | ✓        |
 | solve_linear_elastic_1D_self_contained                      | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                               | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained                | ✓            | ×               | ×              | ×            | ×        |
 | triangle_quadrature_2D                                      | ✓            | ×               | ×              | ✓            | ✓        |
-| Total                                                       | 13/19        | 9/19            | 6/19           | 4/19         | 13/19    |
+| Total                                                       | 14/20        | 10/20           | 6/20           | 5/20         | 14/20    |
 
 ### Joint Test Success Rate (%)
 
@@ -42,9 +43,10 @@
 | linear_uniform_mesh_1D                                      | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | local_elastic_stiffness_matrix_3D_beam                      | 0.0%         | –               | 0.0%           | 100.0%       | 50.0%    |
 | local_geometric_stiffness_matrix_3D_beam                    | 50.0%        | –               | 50.0%          | 0.0%         | 50.0%    |
+| quad_quadrature_2D                                          | 60.0%        | –               | –              | 60.0%        | 40.0%    |
 | solve_linear_elastic_1D_self_contained                      | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                               | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained                | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
 | triangle_quadrature_2D                                      | 40.0%        | –               | 20.0%          | 40.0%        | 60.0%    |
-| Avg Joint Success %                                         | 40.9%        | 30.3%           | 28.2%          | 33.7%        | 36.1%    |
+| Avg Joint Success %                                         | 41.8%        | 28.8%           | 26.8%          | 35.0%        | 36.3%    |
 
