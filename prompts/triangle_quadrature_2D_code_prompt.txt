@@ -1,0 +1,52 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports: import math
+import numpy as np
+import pytest
+from typing import Tuple
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+(None)
+
+
+## Function Signature:
+## Only complete the function below:
+def triangle_quadrature_2D(num_pts: int) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Return quadrature points and weights for numerical integration
+    over the reference triangle T = {(x,y): x>=0, y>=0, x+y<=1}.
+
+    Supported rules:
+    - 1-point (degree-1 exact): centroid.
+    - 3-point (degree-2 exact): permutations of (1/6, 1/6).
+    - 4-point (degree-3 exact): centroid + permutations of (0.6, 0.2).
+
+    Parameters
+    ----------
+    num_pts : int
+        Number of quadrature points (1, 3, or 4).
+
+    Returns
+    -------
+    points : (num_pts, 2) ndarray of float64
+        Quadrature points (xi, eta). The third barycentric coordinate is 1 - xi - eta.
+    weights : (num_pts,) ndarray of float64
+        Quadrature weights. The sum of weights equals the area of the reference triangle (1/2).
+
+    Raises
+    ------
+    ValueError
+        If `num_pts` is not 1, 3, or 4.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

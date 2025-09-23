@@ -20,7 +20,8 @@
 | solve_linear_elastic_1D_self_contained                      | ✓            | ✓               | ×              | ×            | ✓        |
 | solve_linear_elastic_frame_3D                               | ✓            | ✓               | ✓              | ×            | ✓        |
 | solve_linear_elastic_frame_3D_self_contained                | ✓            | ×               | ×              | ×            | ×        |
-| Total                                                       | 12/18        | 9/18            | 6/18           | 3/18         | 12/18    |
+| triangle_quadrature_2D                                      | ✓            | ×               | ×              | ✓            | ✓        |
+| Total                                                       | 13/19        | 9/19            | 6/19           | 4/19         | 13/19    |
 
 ### Joint Test Success Rate (%)
 
@@ -44,5 +45,6 @@
 | solve_linear_elastic_1D_self_contained                      | 0.0%         | –               | 50.0%          | 100.0%       | 50.0%    |
 | solve_linear_elastic_frame_3D                               | 100.0%       | 100.0%          | 50.0%          | 0.0%         | 0.0%     |
 | solve_linear_elastic_frame_3D_self_contained                | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
-| Avg Joint Success %                                         | 40.9%        | 31.9%           | 28.7%          | 33.3%        | 34.7%    |
+| triangle_quadrature_2D                                      | 40.0%        | –               | 20.0%          | 40.0%        | 60.0%    |
+| Avg Joint Success %                                         | 40.9%        | 30.3%           | 28.2%          | 33.7%        | 36.1%    |
 
