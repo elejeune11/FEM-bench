@@ -1,0 +1,27 @@
+{
+  "task_id": "compute_physical_gradient_quad8",
+  "llm_name": "gemini-pro",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_q8_gradient_identity_mapping_matches_quadratic_analytic",
+        true
+      ],
+      [
+        "test_q8_gradient_linear_physical_field_under_curved_mapping_is_constant",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_q8_gradient_identity_mapping_matches_quadratic_analytic",
+        true
+      ],
+      [
+        "test_q8_gradient_linear_physical_field_under_curved_mapping_is_constant",
+        true
+      ]
+    ]
+  }
+}

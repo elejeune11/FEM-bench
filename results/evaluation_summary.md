@@ -6,6 +6,7 @@
 | assemble_global_stiffness_matrix_linear_elastic_3D          | ✓            | ✓               | ✓              | ×            | ✓        |
 | beam_transformation_matrix_3D                               | ×            | ×               | ×              | ×            | ✓        |
 | compute_local_element_loads_beam_3D                         | ✓            | ✓               | ✓              | ×            | ✓        |
+| compute_physical_gradient_quad8                             | ×            | ×               | ×              | ×            | ×        |
 | eigenvalue_analysis_msa_3D                                  | ×            | ×               | ×              | ×            | ×        |
 | elastic_critical_load_analysis_frame_3D                     | ✓            | ✓               | ×              | ×            | ✓        |
 | elastic_critical_load_analysis_frame_3D_part_self_contained | ×            | ×               | ×              | ×            | ×        |
@@ -24,7 +25,7 @@
 | solve_linear_elastic_frame_3D_self_contained                | ✓            | ×               | ×              | ×            | ×        |
 | tri6_shape_functions_and_derivatives                        | ×            | ✓               | ✓              | ×            | ×        |
 | triangle_quadrature_2D                                      | ✓            | ×               | ×              | ✓            | ✓        |
-| Total                                                       | 14/22        | 12/22           | 8/22           | 5/22         | 14/22    |
+| Total                                                       | 14/23        | 12/23           | 8/23           | 5/23         | 14/23    |
 
 ### Joint Test Success Rate (%)
 
@@ -34,6 +35,7 @@
 | assemble_global_stiffness_matrix_linear_elastic_3D          | 100.0%       | 0.0%            | 100.0%         | 0.0%         | 0.0%     |
 | beam_transformation_matrix_3D                               | 33.3%        | 66.7%           | 33.3%          | 33.3%        | 33.3%    |
 | compute_local_element_loads_beam_3D                         | 0.0%         | 75.0%           | –              | 0.0%         | 75.0%    |
+| compute_physical_gradient_quad8                             | 100.0%       | 100.0%          | 100.0%         | 100.0%       | 100.0%   |
 | eigenvalue_analysis_msa_3D                                  | 20.0%        | 0.0%            | 0.0%           | 0.0%         | 0.0%     |
 | elastic_critical_load_analysis_frame_3D                     | –            | 0.0%            | –              | –            | 0.0%     |
 | elastic_critical_load_analysis_frame_3D_part_self_contained | –            | –               | –              | –            | 0.0%     |
@@ -52,5 +54,5 @@
 | solve_linear_elastic_frame_3D_self_contained                | 66.7%        | –               | 33.3%          | 33.3%        | 33.3%    |
 | tri6_shape_functions_and_derivatives                        | 50.0%        | 66.7%           | 50.0%          | 33.3%        | 83.3%    |
 | triangle_quadrature_2D                                      | 40.0%        | –               | 20.0%          | 40.0%        | 60.0%    |
-| Avg Joint Success %                                         | 43.3%        | 32.2%           | 26.7%          | 33.3%        | 40.5%    |
+| Avg Joint Success %                                         | 45.8%        | 35.1%           | 29.9%          | 36.2%        | 43.1%    |
 
