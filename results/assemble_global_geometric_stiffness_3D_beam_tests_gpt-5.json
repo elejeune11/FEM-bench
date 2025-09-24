@@ -1,6 +1,6 @@
 {
   "task_id": "assemble_global_geometric_stiffness_3D_beam",
-  "llm_name": "deepseek-chat",
+  "llm_name": "gpt-5",
   "tests_run": true,
   "test_results": {
     "reference_pass": [

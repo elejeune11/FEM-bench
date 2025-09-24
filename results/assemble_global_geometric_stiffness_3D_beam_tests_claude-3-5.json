@@ -6,7 +6,7 @@
     "reference_pass": [
       [
         "test_multi_element_core_correctness_assembly",
-        false
+        true
       ],
       [
         "test_frame_objectivity_under_global_rotation",

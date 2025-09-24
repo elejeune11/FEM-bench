@@ -1,0 +1,111 @@
+def generate_tri6_rectangular_mesh(xl: float, yl: float, xh: float, yh: float, nx: int, ny: int) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Generate a quadratic triangular (Tri6 / 6-node triangle) mesh on a rectangular domain.
+    The domain [xl, xh] × [yl, yh] is subdivided into `nx × ny` rectangular cells.
+    Each rectangle is split into two 6-node triangular elements, with corner nodes
+    ordered counter-clockwise and midside nodes placed at edge midpoints.
+    Reproducibility contract (for identical outputs across implementations)
+    ----------------------------------------------------------------------
+    Preconditions
+    • xl < xh and yl < yh; else raise ValueError.
+    • nx ≥ 1 and ny ≥ 1; else raise ValueError.
+    Grid, node IDs, and coordinates
+    • npx = 2*nx + 1,  npy = 2*ny + 1.
+    • Global node IDs are zero-based and assigned in row-major order with x varying fastest:
+        node_id(ix, iy) = iy * npx + ix,   where 0 ≤ ix < npx and 0 ≤ iy < npy.
+      Equivalently: build with meshgrid(indexing="xy") and flatten in C-order (row-major).
+    • Let dx = (xh - xl)/nx and dy = (yh - yl)/ny. Then coordinates are
+        coords[node_id(ix, iy)] = [ xl + 0.5*dx*ix ,  yl + 0.5*dy*iy ]
+      computed in float64 (no averaging from other nodes).
+    Cell traversal and element emission
+    • Traverse cells row-major: cy = 0..ny-1 (bottom→top), for each cy, cx = 0..nx-1 (left→right).
+    • Each cell is split along the diagonal from the bottom-right corner to the top-left corner.
+    • Emit exactly two Tri6 elements per cell in this order:
+        1) First triangle (corners CCW): N1 = bottom-right, N2 = top-left, N3 = bottom-left.
+           Midsides: N4 on (N1,N2), N5 on (N2,N3), N6 on (N3,N1).
+        2) Second triangle (corners CCW): N1 = top-right,   N2 = top-left, N3 = bottom-right.
+           Midsides: N4 on (N1,N2), N5 on (N2,N3), N6 on (N3,N1).
+      Do not reorder elements after emission. Midside nodes must reference the shared grid nodes.
+    Types and shapes
+    • coords is a ( (2*nx+1)*(2*ny+1), 2 ) ndarray with dtype float64.
+    • connect is a ( 2*nx*ny, 6 ) ndarray with dtype int64.
+      Each row is [N1, N2, N3, N4, N5, N6] as specified above.
+    Parameters
+    ----------
+    xl, yl, xh, yh : float
+        Domain bounds with xl < xh and yl < yh.
+    nx, ny : int
+        Number of rectangular subdivisions in x and y (each ≥ 1).
+    Returns
+    -------
+    coords : (Nnodes, 2) float64 ndarray
+        Node coordinates as specified in the contract above.
+    connect : (Ne, 6) int64 ndarray
+        Tri6 connectivity using the exact ordering defined above.
+    Raises
+    ------
+    ValueError
+        If nx < 1 or ny < 1, or if xl >= xh or yl >= yh.
+    Notes
+    -----
+    • Corner nodes are consistently oriented CCW for each triangle.
+    • Midside nodes lie exactly at the arithmetic mean of their adjacent corners and
+      coincide with half-step grid points; they are shared (no duplication).
+    • The mesh is conforming: shared edges reference identical global node IDs.
+    """
+    import numpy as np
+    from typing import Tuple
+    if nx < 1 or ny < 1:
+        raise ValueError('nx and ny must be >= 1')
+    if not xl < xh or not yl < yh:
+        raise ValueError('Domain bounds must satisfy xl < xh and yl < yh')
+    dx = (xh - xl) / nx
+    dy = (yh - yl) / ny
+    npx = 2 * nx + 1
+    npy = 2 * ny + 1
+    ix = np.arange(npx, dtype=np.float64)
+    iy = np.arange(npy, dtype=np.float64)
+    x_coords = xl + 0.5 * dx * ix
+    y_coords = yl + 0.5 * dy * iy
+    (X, Y) = np.meshgrid(x_coords, y_coords, indexing='xy')
+    coords = np.empty((npx * npy, 2), dtype=np.float64)
+    coords[:, 0] = X.ravel(order='C')
+    coords[:, 1] = Y.ravel(order='C')
+    Ne = 2 * nx * ny
+    connect = np.empty((Ne, 6), dtype=np.int64)
+    e = 0
+    for cy in range(ny):
+        iy0 = 2 * cy
+        iy1 = iy0 + 1
+        iy2 = iy0 + 2
+        base0 = iy0 * npx
+        base1 = iy1 * npx
+        base2 = iy2 * npx
+        for cx in range(nx):
+            ix0 = 2 * cx
+            ix1 = ix0 + 1
+            ix2 = ix0 + 2
+            BL = base0 + ix0
+            BM = base0 + ix1
+            BR = base0 + ix2
+            LM = base1 + ix0
+            C = base1 + ix1
+            RM = base1 + ix2
+            TL = base2 + ix0
+            TM = base2 + ix1
+            TR = base2 + ix2
+            connect[e, 0] = BR
+            connect[e, 1] = TL
+            connect[e, 2] = BL
+            connect[e, 3] = C
+            connect[e, 4] = LM
+            connect[e, 5] = BM
+            e += 1
+            connect[e, 0] = TR
+            connect[e, 1] = TL
+            connect[e, 2] = BR
+            connect[e, 3] = TM
+            connect[e, 4] = C
+            connect[e, 5] = RM
+            e += 1
+    return (coords, connect)

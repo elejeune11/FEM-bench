@@ -1,0 +1,47 @@
+{
+  "task_id": "elastic_critical_load_analysis_frame_3D",
+  "llm_name": "gpt-5",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        false
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        false
+      ],
+      [
+        "test_cantilever_euler_buckling_mesh_convergence",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        false
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        false
+      ],
+      [
+        "test_cantilever_euler_buckling_mesh_convergence",
+        true
+      ],
+      [
+        "test_cantilever_euler_buckling_mesh_convergence",
+        true
+      ]
+    ]
+  }
+}
