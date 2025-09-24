@@ -1,0 +1,503 @@
+{
+  "task_id": "element_distributed_load_quad8",
+  "llm_name": "gemini-pro",
+  "matches_reference": false,
+  "test_results": [
+    {
+      "test_case": 1,
+      "inputs": [
+        0,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            2.0,
+            1.0
+          ]
+        },
+        1
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 2,
+      "inputs": [
+        1,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0.3,
+            -0.5
+          ]
+        },
+        2
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 3,
+      "inputs": [
+        2,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            1.0,
+            -1.0
+          ]
+        },
+        3
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 4,
+      "inputs": [
+        3,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -2.0,
+              -2.0
+            ],
+            [
+              2.0,
+              -2.0
+            ],
+            [
+              2.0,
+              2.0
+            ],
+            [
+              -2.0,
+              2.0
+            ],
+            [
+              0.0,
+              -2.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              0.0,
+              2.0
+            ],
+            [
+              -2.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0.0,
+            3.0
+          ]
+        },
+        2
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 5,
+      "inputs": [
+        0,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -0.5
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            2.0,
+            1.0
+          ]
+        },
+        3
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 6,
+      "inputs": [
+        1,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              0.85,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            1.2,
+            0.4
+          ]
+        },
+        3
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 7,
+      "inputs": [
+        2,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.1,
+              1.15
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            -0.7,
+            0.9
+          ]
+        },
+        3
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    },
+    {
+      "test_case": 8,
+      "inputs": [
+        3,
+        {
+          "type": "ndarray",
+          "shape": [
+            8,
+            2
+          ],
+          "data": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              0.0,
+              -1.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              -0.9,
+              -0.1
+            ]
+          ]
+        },
+        {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0.5,
+            -1.4
+          ]
+        },
+        3
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "matmul: Input operand 1 does not have enough dimensions (has 0, gufunc core with signature (n?,k),(k,m?)->(n?,m?) requires 1)"
+    }
+  ]
+}
