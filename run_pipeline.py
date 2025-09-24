@@ -7,7 +7,15 @@ TASKS_DIR = "tasks"
 PROMPTS_DIR = "prompts"
 LLM_OUTPUTS_DIR = "llm_outputs"
 RESULTS_DIR = "results"
-MODEL_NAMES = ["gpt-4o", "gpt-5", "gemini-2.5-pro", "claude-3-5", "deepseek-chat"]
+MODEL_NAMES = [
+    "gpt-4o",
+    "gpt-5",
+    "gemini-2.5-pro",
+    "claude-3-5",
+    "claude-sonnet-4",
+    "claude-opus-4.1",
+    "deepseek-chat",
+]
 SEED = 11
 
 # === Setup pipeline ===

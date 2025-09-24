@@ -1,0 +1,27 @@
+{
+  "task_id": "linear_solve",
+  "llm_name": "claude-opus-4.1",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_linear_solve_arbitrary_solvable_cases",
+        false
+      ],
+      [
+        "test_linear_solve_raises_on_ill_conditioned_matrix",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_linear_solve_arbitrary_solvable_cases",
+        true
+      ],
+      [
+        "test_linear_solve_raises_on_ill_conditioned_matrix",
+        false
+      ]
+    ]
+  }
+}

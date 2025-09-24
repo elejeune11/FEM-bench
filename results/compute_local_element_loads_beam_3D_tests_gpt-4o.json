@@ -18,7 +18,7 @@
       ],
       [
         "test_coordinate_invariance_global_rotation",
-        true
+        false
       ]
     ],
     "failure_fail": [
