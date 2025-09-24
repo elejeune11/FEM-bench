@@ -30,7 +30,7 @@ def call_gemini_for_code(
     prompt: str,
     temperature: float = 0.0,
     max_tokens: int = 2048,
-    model_name: str = "models/gemini-1.5-flash",
+    model_name: str = "gemini-2.5-flash",
     return_raw: bool = False,
 ) -> str:
     """
@@ -53,7 +53,7 @@ def call_gemini_for_tests(
     prompt: str,
     temperature: float = 0.0,
     max_tokens: int = 2048,
-    model_name: str = "models/gemini-1.5-flash",
+    model_name: str = "gemini-2.5-flash",
     return_raw: bool = False,
 ) -> Dict[str, str]:
     """

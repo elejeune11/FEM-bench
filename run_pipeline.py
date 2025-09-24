@@ -7,7 +7,7 @@ TASKS_DIR = "tasks"
 PROMPTS_DIR = "prompts"
 LLM_OUTPUTS_DIR = "llm_outputs"
 RESULTS_DIR = "results"
-MODEL_NAMES = ["gpt-4o", "gemini-flash", "gemini-pro", "claude-3-5", "deepseek-chat"]
+MODEL_NAMES = ["gpt-4o", "gemini-2.5-pro", "claude-3-5", "deepseek-chat"]
 SEED = 11
 
 # === Setup pipeline ===
@@ -80,7 +80,7 @@ pipeline.evaluate_all_llm_tests()
 # === 7. Score + summary ===
 print("[7] Aggregating results...")
 pipeline.compute_aggregate_score()
-pipeline.create_markdown_summary()
+pipeline.create_markdown_summary(model_names=MODEL_NAMES)
 
 print("Pipeline complete.")
 print(f"Models evaluated: {', '.join(MODEL_NAMES)}")

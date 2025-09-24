@@ -427,16 +427,31 @@ class FEMBenchPipeline:
 
         return llm_metrics
 
-    def create_markdown_summary(self, filename: str = "evaluation_summary.md") -> None:
+    def create_markdown_summary(
+        self,
+        filename: str = "evaluation_summary.md",
+        model_names: Optional[list[str]] = None,
+    ) -> None:
         """
         Write a Markdown summary with two tables:
-        1. Function correctness (✓/x)
+        1. Function correctness (✓/×)
         2. Joint Test Success Rate (%): test passes on reference AND fails all expected failures
 
-        A cell shows “–” if the LLM supplied no usable tests. These count as 0% in the aggregate average.
+        If model_names is provided (e.g., ["gpt-4o","gemini-2.5-pro","claude-3-5","deepseek-chat"]),
+        only those models (in that order) are included in the tables. Models with no results for a task
+        show × for correctness and – for joint (counted as 0% in the average).
         """
+        from collections import defaultdict
+        import pandas as pd
+
         task_ids = sorted(self.results.keys())
-        llm_names = sorted({llm for task in self.results.values() for llm in task})
+
+        if model_names is not None:
+            # Use exactly the given list (keep order, allow missing data)
+            llm_names = list(model_names)
+        else:
+            # Fallback: infer from results (sorted)
+            llm_names = sorted({llm for task in self.results.values() for llm in task})
 
         # Build row data and numeric buckets
         code_rows, joint_rows = [], []
@@ -458,7 +473,6 @@ class FEMBenchPipeline:
 
                 joint_total = 0
                 joint_pass = 0
-
                 for test_name in ref_dict:
                     if test_name in fail_dict:
                         joint_total += 1
@@ -489,7 +503,7 @@ class FEMBenchPipeline:
             )
             total_code.append(f"{correct_tasks}/{total_tasks}")
 
-            joint_vals = joint_numeric[llm]
+            joint_vals = joint_numeric[llm] or [0.0] * total_tasks
             total_joint.append(f"{sum(joint_vals)/len(joint_vals):.1f}%")
 
         code_rows.append(total_code)
