@@ -10,6 +10,7 @@ RESULTS_DIR = "results"
 MODEL_NAMES = [
     "gpt-4o",
     "gpt-5",
+    "gemini-2.5-flash",
     "gemini-2.5-pro",
     "claude-3-5",
     "claude-sonnet-4",
@@ -18,6 +19,20 @@ MODEL_NAMES = [
     "deepseek-reasoner",
 ]
 SEED = 11
+
+# --- Helper: write a simple marker file so you can see why it failed/was blocked ---
+def _write_block_marker(py_path: Path, *, provider: str, task_id: str, phase: str, error: Exception) -> None:
+    reason = str(error).replace("\n", " ")[:2000]  # keep it readable
+    lines = [
+        "# BLOCKED_OR_ERROR",
+        f"# Provider: {provider}",
+        f"# Phase: {phase}",                 # CODE or TESTS
+        f"# Task: {task_id}",
+        f"# Reason: {reason}",
+        "# Note: No code generated due to provider block or error.",
+        "",
+    ]
+    py_path.write_text("\n".join(lines), encoding="utf-8")
 
 # === Setup pipeline ===
 pipeline = FEMBenchPipeline(
@@ -54,10 +69,11 @@ for model_name in MODEL_NAMES:
                 print(f"    [→] Generating CODE for task: {task_id}")
                 try:
                     code_out = call_llm_for_code(model_name, code_prompt, seed=SEED)
-                    code_path.write_text(code_out)
+                    code_path.write_text(code_out, encoding="utf-8")
                     print(f"      [✓] Code saved to: {code_path}")
                 except Exception as e:
-                    print(f"      [Error] Failed code gen for {task_id}: {e}")
+                    print(f"      [i] Writing marker (blocked/error) for CODE: {e}")
+                    _write_block_marker(code_path, provider=model_name, task_id=task_id, phase="CODE", error=e)
 
         # --- Test Prompt ---
         test_prompt = prompt_pair.get("tests")
@@ -70,10 +86,11 @@ for model_name in MODEL_NAMES:
                 try:
                     test_out_dict = call_llm_for_tests(model_name, test_prompt, seed=SEED)
                     test_out = "\n\n".join(test_out_dict.values())
-                    test_path.write_text(test_out)
+                    test_path.write_text(test_out, encoding="utf-8")
                     print(f"      [✓] Tests saved to: {test_path}")
                 except Exception as e:
-                    print(f"      [Error] Failed test gen for {task_id}: {e}")
+                    print(f"      [i] Writing marker (blocked/error) for TESTS: {e}")
+                    _write_block_marker(test_path, provider=model_name, task_id=task_id, phase="TESTS", error=e)
 
 # === 4. Load completions ===
 print("[4] Loading LLM outputs...")

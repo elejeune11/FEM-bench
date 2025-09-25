@@ -1,0 +1,7 @@
+{
+  "task_id": "compute_physical_gradient_quad8",
+  "llm_name": "gemini-2.5-flash",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}

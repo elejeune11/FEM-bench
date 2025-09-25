@@ -103,7 +103,7 @@ class FEMBenchPipeline:
         for node in tree.body:
             if isinstance(node, ast.FunctionDef):
                 return ast.unparse(node)
-        raise ValueError("No function definition found in the code.")
+        return None
 
     @staticmethod
     def extract_test_functions(source: str) -> Dict[str, str]:
@@ -138,6 +138,20 @@ class FEMBenchPipeline:
                     continue
 
                 code_str = self.extract_function_code(content)
+                if code_str is None:
+                    reason = "No function definition found in the code."
+                    first_line = content.strip().splitlines()[0] if content.strip() else ""
+                    if first_line.startswith("#"):
+                        reason = f"{reason} Marker: {first_line[1:].strip()}"
+                    print(f"[Info] Skipping code file {file.name}: {reason}")
+                    self.results.setdefault(task_id, {})[llm_name] = {
+                        "task_id": task_id,
+                        "llm_name": llm_name,
+                        "matches_reference": False,
+                        "error": reason,
+                        "test_results": []
+                    }
+                    continue
 
             elif "_test_" in stem:
                 task_id, llm_name = stem.split("_test_", 1)
@@ -158,6 +172,22 @@ class FEMBenchPipeline:
                     continue
 
                 code_str = self.extract_test_functions(content)
+                if not code_str:  # empty dict
+                    reason = "No test functions found in the file."
+                    first_line = content.strip().splitlines()[0] if content.strip() else ""
+                    if first_line.startswith("#"):
+                        reason = f"{reason} Marker: {first_line[1:].strip()}"
+                    print(f"[Info] Skipping test file {file.name}: {reason}")
+                    self.results.setdefault(task_id, {})[llm_name] = {
+                        "task_id": task_id,
+                        "llm_name": llm_name,
+                        "tests": {
+                            "tests_run": False,
+                            "error": reason,
+                            "test_results": {}
+                        }
+                    }
+                    continue
 
             else:
                 continue

@@ -348,9 +348,119 @@ def test_extract_function_code_success_and_failure():
     )
     assert FEMBenchPipeline.extract_function_code(code_ok).startswith("def first")
 
-    # No function definition – should raise
-    with pytest.raises(ValueError):
-        FEMBenchPipeline.extract_function_code("x = 42\n")
+    # No function definition – should return None
+    assert FEMBenchPipeline.extract_function_code("x = 42\n") is None
+
+
+def test_load_all_llm_outputs_full_coverage(tmp_path: Path):
+    # Create directory structure expected by FEMBenchPipeline
+    tasks_dir = tmp_path / "tasks"
+    prompts_dir = tmp_path / "prompts"
+    llm_outputs_dir = tmp_path / "llm_outputs"
+    results_dir = tmp_path / "results"
+    for d in (tasks_dir, prompts_dir, llm_outputs_dir, results_dir):
+        d.mkdir(parents=True, exist_ok=True)
+
+    # --- Prepare files to hit every branch -----------------------------------
+
+    # 1) CODE: SyntaxError
+    (llm_outputs_dir / "task1_code_modelA.py").write_text("def bad(:\n  pass", encoding="utf-8")
+
+    # 2) CODE: no function, but with a marker comment (triggers 'Marker:' path)
+    (llm_outputs_dir / "task2_code_modelB.py").write_text(
+        "# BLOCKED_SAFETY: provider=gemini-2.5-flash; reason=VIOLENCE\n", encoding="utf-8"
+    )
+
+    # 3) CODE: valid function (should be added to self.llm_outputs if allowed)
+    (llm_outputs_dir / "task3_code_modelC.py").write_text(
+        textwrap.dedent(
+            """
+            import math
+            def foo(a, b):
+                return a + b
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    # 4) TEST: SyntaxError
+    (llm_outputs_dir / "task4_test_modelD.py").write_text("def test_x(:\n  pass", encoding="utf-8")
+
+    # 5) TEST: no test_ functions, with marker comment (triggers 'Marker:' path)
+    (llm_outputs_dir / "task5_test_modelE.py").write_text(
+        "# BLOCKED_SAFETY: provider=gemini-2.5-flash; reason=VIOLENCE\n", encoding="utf-8"
+    )
+
+    # 6) TEST: valid test_ function (should be added to self.llm_outputs if allowed)
+    (llm_outputs_dir / "task6_test_modelF.py").write_text(
+        textwrap.dedent(
+            """
+            def test_example():
+                assert 2 + 2 == 4
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    # 7) Non-matching file name (ignored)
+    (llm_outputs_dir / "random.py").write_text("x = 42\n", encoding="utf-8")
+
+    # Instantiate pipeline; tasks are irrelevant for this loader test
+    pipe = FEMBenchPipeline(
+        tasks_dir=str(tasks_dir),
+        prompts_dir=str(prompts_dir),
+        llm_outputs_dir=str(llm_outputs_dir),
+        results_dir=str(results_dir),
+    )
+
+    # Only allow modelC and modelF to pass into self.llm_outputs
+    pipe.load_all_llm_outputs(allowed_llms=["modelC", "modelF"])
+
+    # -------------------- Assertions: results dict (skipped/error cases) --------------------
+
+    # Task1/modelA => SyntaxError in function code
+    r1 = pipe.results["task1"]["modelA"]
+    assert r1["matches_reference"] is False
+    assert "SyntaxError in function code" in r1["error"]
+
+    # Task2/modelB => No function definition + Marker
+    r2 = pipe.results["task2"]["modelB"]
+    assert r2["matches_reference"] is False
+    assert "No function definition found in the code." in r2["error"]
+    assert "Marker: BLOCKED_SAFETY" in r2["error"]
+
+    # Task4/modelD => SyntaxError in test code
+    r4 = pipe.results["task4"]["modelD"]["tests"]
+    assert r4["tests_run"] is False
+    assert "SyntaxError in test code" in r4["error"]
+
+    # Task5/modelE => No test functions found + Marker
+    r5 = pipe.results["task5"]["modelE"]["tests"]
+    assert r5["tests_run"] is False
+    assert "No test functions found in the file." in r5["error"]
+    assert "Marker: BLOCKED_SAFETY" in r5["error"]
+
+    # -------------------- Assertions: llm_outputs (only allowed models included) ------------
+    # Only modelC (code) and modelF (tests) should be present due to allowed_llms filter
+    assert "task3" in pipe.llm_outputs
+    assert "modelC" in pipe.llm_outputs["task3"]
+    assert "code" in pipe.llm_outputs["task3"]["modelC"]
+    assert pipe.llm_outputs["task3"]["modelC"]["code"].startswith("def foo(")
+
+    assert "task6" in pipe.llm_outputs
+    assert "modelF" in pipe.llm_outputs["task6"]
+    assert "test" in pipe.llm_outputs["task6"]["modelF"]
+    test_dict = pipe.llm_outputs["task6"]["modelF"]["test"]
+    assert isinstance(test_dict, dict) and "test_example" in test_dict
+
+    # Ensure non-allowed models are NOT in llm_outputs
+    assert "task1" not in pipe.llm_outputs  # modelA is filtered (and syntax error)
+    assert "task2" not in pipe.llm_outputs  # modelB is filtered (and no function)
+    assert "task4" not in pipe.llm_outputs  # modelD is filtered (and syntax error)
+    assert "task5" not in pipe.llm_outputs  # modelE is filtered (and no tests)
+
+    # Non-matching 'random.py' should not produce any entries
+    assert "random" not in pipe.llm_outputs
 
 
 def _write_bad_task(py_path: Path):
