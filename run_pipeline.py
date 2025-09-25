@@ -15,6 +15,7 @@ MODEL_NAMES = [
     "claude-sonnet-4",
     "claude-opus-4.1",
     "deepseek-chat",
+    "deepseek-reasoner",
 ]
 SEED = 11
 

@@ -1,7 +1,7 @@
 # --- deepseek_client.py (DeepSeek Official API) ---
 import os
 import time
-from typing import Dict, Optional
+from typing import Dict
 import requests
 from dotenv import load_dotenv
 from llm_api.clean_utils import clean_and_extract_function, extract_test_functions
@@ -13,7 +13,31 @@ if not api_key:
     raise RuntimeError("DEEPSEEK_API_KEY is not set in your environment or .env file.")
 
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-MODEL_NAME = "deepseek-chat"  # DeepSeek-V3 for general coding
+
+# ---- Models & alias resolution ---------------------------------------------
+DEEPSEEK_CHAT = "deepseek-chat"            # V3 / V3.1 (general coding)
+DEEPSEEK_REASONER = "deepseek-reasoner"    # R1 (reasoning)
+
+# Friendly aliases (case-insensitive)
+_MODEL_ALIASES = {
+    "deepseek-v3": DEEPSEEK_CHAT,
+    "v3": DEEPSEEK_CHAT,
+    "deepseek-r1": DEEPSEEK_REASONER,
+    "r1": DEEPSEEK_REASONER,
+}
+
+def _resolve_model(name: str | None) -> str:
+    """
+    Map friendly names/aliases to official DeepSeek model IDs.
+    Defaults to deepseek-chat if not provided.
+    """
+    if not name:
+        return DEEPSEEK_CHAT
+    key = name.strip().lower()
+    return _MODEL_ALIASES.get(key, name)
+
+# Keep V3 as the library default; callers can pass "deepseek-reasoner".
+MODEL_NAME = DEEPSEEK_CHAT
 
 
 def retry_api_call(call_fn, retries: int = 3, backoff: float = 2.0):
@@ -40,41 +64,40 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 2.0):
 
 
 def _call_deepseek_api(prompt: str, temperature: float, max_tokens: int, model: str) -> str:
-    """Make the actual API call to DeepSeek Official API."""
+    """Make the actual API call to DeepSeek Official API (OpenAI-compatible)."""
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    
-    # DeepSeek uses OpenAI-compatible chat completions format
+
     payload = {
-        "model": model,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
+        "model": _resolve_model(model),  # "deepseek-chat" or "deepseek-reasoner"
+        "messages": [{"role": "user", "content": prompt}],
         "temperature": temperature,
         "max_tokens": max_tokens,
-        "stream": False
+        "stream": False,
     }
-    
+
     try:
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, timeout=120)
         response.raise_for_status()
-        
-        response_data = response.json()
-        
-        # Debug: print response structure if needed
-        # print("API Response:", response_data)
-        
-        # Handle chat completions format
-        if "choices" in response_data and len(response_data["choices"]) > 0:
-            return response_data["choices"][0]["message"]["content"]
-        else:
-            raise ValueError(f"Unexpected response format: {response_data}")
-            
+        data = response.json()
+
+        # Expect OpenAI chat-completions shape.
+        # Some R1 responses include "reasoning_content" - we intentionally ignore it.
+        if "choices" in data and data["choices"]:
+            msg = data["choices"][0].get("message", {})
+            content = msg.get("content", "")
+            if not content or not content.strip():
+                print("Warning: DeepSeek returned empty content.")
+                raise ValueError("Empty response from DeepSeek API")
+            return content
+
+        raise ValueError(f"Unexpected response format: {data}")
+
     except requests.exceptions.HTTPError as e:
         print(f"HTTP Error: {e}")
-        if hasattr(response, 'text'):
+        if hasattr(response, "text"):
             print(f"Response: {response.text}")
         raise
     except requests.exceptions.RequestException as e:
@@ -90,7 +113,8 @@ def call_deepseek_for_code(
     return_raw: bool = False,
 ) -> str:
     """
-    Calls DeepSeek Official API and returns a single cleaned function.
+    Calls DeepSeek API and returns a single cleaned function.
+    `model` may be "deepseek-chat" (default) or "deepseek-reasoner".
     """
     def call():
         return _call_deepseek_api(prompt, temperature, max_tokens, model)
@@ -111,7 +135,8 @@ def call_deepseek_for_tests(
     return_raw: bool = False,
 ) -> Dict[str, str]:
     """
-    Calls DeepSeek Official API and returns all test functions as a dict {name: code}.
+    Calls DeepSeek API and returns all test functions as a dict {name: code}.
+    `model` may be "deepseek-chat" (default) or "deepseek-reasoner".
     """
     def call():
         return _call_deepseek_api(prompt, temperature, max_tokens, model)
@@ -133,7 +158,7 @@ def test_api_connection():
             return_raw=True,
             max_tokens=100
         )
-        print("DeepSeek Official API test successful!")
+        print("DeepSeek API test successful!")
         print("Response:", result[:200] + "..." if len(result) > 200 else result)
         return True
     except Exception as e:

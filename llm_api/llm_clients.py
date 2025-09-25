@@ -15,9 +15,10 @@ _TOKEN_POLICY = {
     "o3":                 {"default": 12000, "cap": 20000},
     "gpt-5":              {"default": 12000, "cap": 20000},
     "claude-3-5":         {"default": 8000,  "cap": 12000},
-    "claude-sonnet-4":    {"default": 12000, "cap": 32000},  # bumped cap
-    "claude-opus-4.1":    {"default": 16000, "cap": 32000},  # bumped cap
+    "claude-sonnet-4":    {"default": 12000, "cap": 32000},
+    "claude-opus-4.1":    {"default": 16000, "cap": 32000},
     "deepseek-chat":      {"default": 8000,  "cap": 12000},
+    "deepseek-reasoner":  {"default": 8000,  "cap": 12000},  # NEW
 }
 
 # Accept either friendly keys above or exact provider IDs
@@ -25,6 +26,8 @@ _POLICY_ALIASES = {
     "claude-3-5-sonnet-20241022": "claude-3-5",
     "claude-sonnet-4-20250514":   "claude-sonnet-4",
     "claude-opus-4-1-20250805":   "claude-opus-4.1",
+    # DeepSeek aliases (optional)
+    "deepseek-r1":                "deepseek-reasoner",
 }
 
 def _resolve_tokens(model_name: str, max_tokens: Optional[int]) -> int:
@@ -56,7 +59,7 @@ def call_llm_for_code(
     - gpt-4o, o3, gpt-5
     - gemini-2.5-flash, gemini-2.5-pro
     - claude-3-5, claude-sonnet-4, claude-opus-4.1
-    - deepseek-chat
+    - deepseek-chat, deepseek-reasoner
     """
     mt = _resolve_tokens(model_name, max_tokens)
 
@@ -101,10 +104,10 @@ def call_llm_for_code(
             max_tokens=mt,
             return_raw=return_raw,
         )
-    elif model_name == "deepseek-chat":
+    elif model_name in ("deepseek-chat", "deepseek-reasoner"):  # NEW
         return call_deepseek_for_code(
             prompt=prompt,
-            model="deepseek-chat",
+            model=model_name,  # pass through; deepseek_client resolves aliases
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
@@ -113,7 +116,8 @@ def call_llm_for_code(
         raise ValueError(
             "Unsupported model: {model}. Supported models: "
             "gpt-4o, o3, gpt-5, gemini-2.5-flash, gemini-2.5-pro, "
-            "claude-3-5, claude-sonnet-4, claude-opus-4.1, deepseek-chat"
+            "claude-3-5, claude-sonnet-4, claude-opus-4.1, "
+            "deepseek-chat, deepseek-reasoner"
             .format(model=model_name)
         )
 
@@ -132,7 +136,7 @@ def call_llm_for_tests(
     - gpt-4o, o3, gpt-5
     - gemini-2.5-flash, gemini-2.5-pro
     - claude-3-5, claude-sonnet-4, claude-opus-4.1
-    - deepseek-chat
+    - deepseek-chat, deepseek-reasoner
     """
     mt = _resolve_tokens(model_name, max_tokens)
 
@@ -177,10 +181,10 @@ def call_llm_for_tests(
             max_tokens=mt,
             return_raw=return_raw,
         )
-    elif model_name == "deepseek-chat":
+    elif model_name in ("deepseek-chat", "deepseek-reasoner"):  # NEW
         return call_deepseek_for_tests(
             prompt=prompt,
-            model="deepseek-chat",
+            model=model_name,  # pass through; deepseek_client resolves aliases
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
@@ -189,7 +193,8 @@ def call_llm_for_tests(
         raise ValueError(
             "Unsupported model: {model}. Supported models: "
             "gpt-4o, o3, gpt-5, gemini-2.5-flash, gemini-2.5-pro, "
-            "claude-3-5, claude-sonnet-4, claude-opus-4.1, deepseek-chat"
+            "claude-3-5, claude-sonnet-4, claude-opus-4.1, "
+            "deepseek-chat, deepseek-reasoner"
             .format(model=model_name)
         )
 
@@ -205,4 +210,5 @@ def list_available_models() -> Dict[str, str]:
         "claude-sonnet-4":     "Anthropic Claude Sonnet 4 (2025-05-14)",
         "claude-opus-4.1":     "Anthropic Claude Opus 4.1 (2025-08-05)",
         "deepseek-chat":       "DeepSeek-V3 (general coding)",
+        "deepseek-reasoner":   "DeepSeek-R1 (reasoning)",  # NEW
     }
