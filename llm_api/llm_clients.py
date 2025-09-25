@@ -9,16 +9,17 @@ from llm_api.claude_client import call_claude_for_code, call_claude_for_tests
 # ---- token policy (best-effort) --------------------------------------------
 # "default" is used when max_tokens is None; "cap" is a hard ceiling per model.
 _TOKEN_POLICY = {
-    "gemini-2.5-flash":   {"default": 6000,  "cap": 8192},
-    "gemini-2.5-pro":     {"default": 20000, "cap": 65000},
-    "gpt-4o":             {"default": 6000,  "cap": 8192},
-    "o3":                 {"default": 12000, "cap": 20000},
-    "gpt-5":              {"default": 12000, "cap": 20000},
-    "claude-3-5":         {"default": 8000,  "cap": 12000},
-    "claude-sonnet-4":    {"default": 12000, "cap": 32000},
-    "claude-opus-4.1":    {"default": 16000, "cap": 32000},
-    "deepseek-chat":      {"default": 8000,  "cap": 12000},
-    "deepseek-reasoner":  {"default": 8000,  "cap": 12000},  # NEW
+    "gemini-1.5-flash":  {"default": 6000,  "cap": 8192},   # NEW
+    "gemini-2.5-flash":  {"default": 6000,  "cap": 8192},
+    "gemini-2.5-pro":    {"default": 20000, "cap": 65000},
+    "gpt-4o":            {"default": 6000,  "cap": 8192},
+    "o3":                {"default": 12000, "cap": 20000},
+    "gpt-5":             {"default": 12000, "cap": 20000},
+    "claude-3-5":        {"default": 8000,  "cap": 12000},
+    "claude-sonnet-4":   {"default": 12000, "cap": 32000},
+    "claude-opus-4.1":   {"default": 16000, "cap": 32000},
+    "deepseek-chat":     {"default": 8000,  "cap": 12000},
+    "deepseek-reasoner": {"default": 8000,  "cap": 12000},
 }
 
 # Accept either friendly keys above or exact provider IDs
@@ -57,7 +58,7 @@ def call_llm_for_code(
 
     Supported models:
     - gpt-4o, o3, gpt-5
-    - gemini-2.5-flash, gemini-2.5-pro
+    - gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro
     - claude-3-5, claude-sonnet-4, claude-opus-4.1
     - deepseek-chat, deepseek-reasoner
     """
@@ -72,7 +73,7 @@ def call_llm_for_code(
             seed=seed,
             return_raw=return_raw,
         )
-    elif model_name in ("gemini-2.5-flash", "gemini-2.5-pro"):
+    elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"):
         return call_gemini_for_code(
             prompt=prompt,
             model_name=model_name,
@@ -104,10 +105,10 @@ def call_llm_for_code(
             max_tokens=mt,
             return_raw=return_raw,
         )
-    elif model_name in ("deepseek-chat", "deepseek-reasoner"):  # NEW
+    elif model_name in ("deepseek-chat", "deepseek-reasoner"):
         return call_deepseek_for_code(
             prompt=prompt,
-            model=model_name,  # pass through; deepseek_client resolves aliases
+            model=model_name,
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
@@ -115,9 +116,8 @@ def call_llm_for_code(
     else:
         raise ValueError(
             "Unsupported model: {model}. Supported models: "
-            "gpt-4o, o3, gpt-5, gemini-2.5-flash, gemini-2.5-pro, "
-            "claude-3-5, claude-sonnet-4, claude-opus-4.1, "
-            "deepseek-chat, deepseek-reasoner"
+            "gpt-4o, o3, gpt-5, gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro, "
+            "claude-3-5, claude-sonnet-4, claude-opus-4.1, deepseek-chat, deepseek-reasoner"
             .format(model=model_name)
         )
 
@@ -134,7 +134,7 @@ def call_llm_for_tests(
 
     Supported models:
     - gpt-4o, o3, gpt-5
-    - gemini-2.5-flash, gemini-2.5-pro
+    - gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro
     - claude-3-5, claude-sonnet-4, claude-opus-4.1
     - deepseek-chat, deepseek-reasoner
     """
@@ -149,7 +149,7 @@ def call_llm_for_tests(
             seed=seed,
             return_raw=return_raw,
         )
-    elif model_name in ("gemini-2.5-flash", "gemini-2.5-pro"):
+    elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"):
         return call_gemini_for_tests(
             prompt=prompt,
             model_name=model_name,
@@ -181,10 +181,10 @@ def call_llm_for_tests(
             max_tokens=mt,
             return_raw=return_raw,
         )
-    elif model_name in ("deepseek-chat", "deepseek-reasoner"):  # NEW
+    elif model_name in ("deepseek-chat", "deepseek-reasoner"):
         return call_deepseek_for_tests(
             prompt=prompt,
-            model=model_name,  # pass through; deepseek_client resolves aliases
+            model=model_name,
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
@@ -192,23 +192,23 @@ def call_llm_for_tests(
     else:
         raise ValueError(
             "Unsupported model: {model}. Supported models: "
-            "gpt-4o, o3, gpt-5, gemini-2.5-flash, gemini-2.5-pro, "
-            "claude-3-5, claude-sonnet-4, claude-opus-4.1, "
-            "deepseek-chat, deepseek-reasoner"
+            "gpt-4o, o3, gpt-5, gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro, "
+            "claude-3-5, claude-sonnet-4, claude-opus-4.1, deepseek-chat, deepseek-reasoner"
             .format(model=model_name)
         )
 
 def list_available_models() -> Dict[str, str]:
     """Return a dictionary of available models and their descriptions."""
     return {
-        "gpt-4o":              "OpenAI GPT-4o",
-        "o3":                  "OpenAI O3 (reasoning-optimized, Aug 2025)",
-        "gpt-5":               "OpenAI GPT-5 (reasoning-capable)",
-        "gemini-2.5-flash":    "Google Gemini 2.5 Flash",
-        "gemini-2.5-pro":      "Google Gemini 2.5 Pro",
-        "claude-3-5":          "Anthropic Claude 3.5 Sonnet (2024-10-22)",
-        "claude-sonnet-4":     "Anthropic Claude Sonnet 4 (2025-05-14)",
-        "claude-opus-4.1":     "Anthropic Claude Opus 4.1 (2025-08-05)",
-        "deepseek-chat":       "DeepSeek-V3 (general coding)",
-        "deepseek-reasoner":   "DeepSeek-R1 (reasoning)",  # NEW
+        "gpt-4o":             "OpenAI GPT-4o",
+        "o3":                 "OpenAI O3 (reasoning-optimized, Aug 2025)",
+        "gpt-5":              "OpenAI GPT-5 (reasoning-capable)",
+        "gemini-1.5-flash":   "Google Gemini 1.5 Flash",   # NEW
+        "gemini-2.5-flash":   "Google Gemini 2.5 Flash",
+        "gemini-2.5-pro":     "Google Gemini 2.5 Pro",
+        "claude-3-5":         "Anthropic Claude 3.5 Sonnet (2024-10-22)",
+        "claude-sonnet-4":    "Anthropic Claude Sonnet 4 (2025-05-14)",
+        "claude-opus-4.1":    "Anthropic Claude Opus 4.1 (2025-08-05)",
+        "deepseek-chat":      "DeepSeek-V3 (general coding)",
+        "deepseek-reasoner":  "DeepSeek-R1 (reasoning)",
     }

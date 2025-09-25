@@ -1,0 +1,31 @@
+{
+  "task_id": "local_geometric_stiffness_matrix_3D_beam",
+  "llm_name": "gemini-1.5-flash",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_local_geometric_stiffness_matrix_3D_beam_comprehensive",
+        true
+      ],
+      [
+        "test_euler_buckling_cantilever_column",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_local_geometric_stiffness_matrix_3D_beam_comprehensive",
+        true
+      ],
+      [
+        "test_local_geometric_stiffness_matrix_3D_beam_comprehensive",
+        true
+      ],
+      [
+        "test_euler_buckling_cantilever_column",
+        true
+      ]
+    ]
+  }
+}

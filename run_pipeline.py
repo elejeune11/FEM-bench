@@ -10,7 +10,7 @@ RESULTS_DIR = "results"
 MODEL_NAMES = [
     "gpt-4o",
     "gpt-5",
-    "gemini-2.5-flash",
+    "gemini-1.5-flash",
     "gemini-2.5-pro",
     "claude-3-5",
     "claude-sonnet-4",
