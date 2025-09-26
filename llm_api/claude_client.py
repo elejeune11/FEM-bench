@@ -1,7 +1,7 @@
 # --- claude_client.py ---
 import os
 import time
-from typing import Dict
+from typing import Dict, Optional
 import requests
 from dotenv import load_dotenv
 from llm_api.clean_utils import clean_and_extract_function, extract_test_functions
@@ -61,7 +61,13 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 2.0):
             else:
                 raise
 
-def _call_claude_api(prompt: str, temperature: float, max_tokens: int, model: str) -> str:
+def _call_claude_api(
+    prompt: str,
+    temperature: float,
+    max_tokens: int,
+    model: str,
+    system_prompt: Optional[str] = None,
+) -> str:
     """Make the actual API call to Claude API."""
     headers = {
         "x-api-key": api_key,
@@ -77,6 +83,10 @@ def _call_claude_api(prompt: str, temperature: float, max_tokens: int, model: st
             {"role": "user", "content": prompt}
         ]
     }
+
+    # NEW: top-level system instruction if provided
+    if system_prompt:
+        payload["system"] = system_prompt
 
     response = requests.post(CLAUDE_API_URL, headers=headers, json=payload, timeout=120)
     try:
@@ -106,12 +116,19 @@ def call_claude_for_code(
     max_tokens: int = 2048,
     model: str = MODEL_NAME,
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> str:
     """
     Calls Claude API and returns a single cleaned function.
     """
     def call():
-        return _call_claude_api(prompt, temperature, max_tokens, model)
+        return _call_claude_api(
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            model=model,
+            system_prompt=system_prompt,
+        )
 
     try:
         raw = retry_api_call(call)
@@ -131,12 +148,19 @@ def call_claude_for_tests(
     max_tokens: int = 2048,
     model: str = MODEL_NAME,
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> Dict[str, str]:
     """
     Calls Claude API and returns all test functions as a dict {name: code}.
     """
     def call():
-        return _call_claude_api(prompt, temperature, max_tokens, model)
+        return _call_claude_api(
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            model=model,
+            system_prompt=system_prompt,
+        )
 
     try:
         raw = retry_api_call(call)

@@ -17,6 +17,7 @@ client = OpenAI(api_key=api_key)
 # Treat GPT-5 (and o-series) as reasoning models for Chat Completions params
 REASONING_MODELS = {"o3", "o3-pro", "gpt-5", "gpt-5-mini"}  # extend as needed
 
+
 def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
     for attempt in range(retries):
         try:
@@ -27,22 +28,31 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
             else:
                 raise
 
+
 def _prepare_chat_params(
     model: str,
     prompt: str,
     temperature: float,
     max_tokens: int,
     seed: Optional[int],
+    system_prompt: Optional[str] = None,
 ) -> dict:
     """
     Internal helper to prepare chat completion parameters depending on model.
 
     GPT-5 / o-series (reasoning models) -> use max_completion_tokens, omit temperature.
     Non-reasoning models -> use max_tokens + temperature.
+
+    If system_prompt is provided, it is injected as the first message with role='system'.
     """
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
     params = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": messages,
     }
     if seed is not None:
         params["seed"] = seed
@@ -58,6 +68,7 @@ def _prepare_chat_params(
 
     return params
 
+
 def call_openai_for_code(
     prompt: str,
     model: str = "gpt-4o",            # you can pass "gpt-5" here
@@ -65,13 +76,23 @@ def call_openai_for_code(
     max_tokens: int = 2048,
     seed: Optional[int] = None,
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> str:
     """
     Calls OpenAI and returns a single cleaned function.
     Raises an error if the output is empty.
+
+    system_prompt: optional string passed as a system message before the user message.
     """
     def call():
-        params = _prepare_chat_params(model, prompt, temperature, max_tokens, seed)
+        params = _prepare_chat_params(
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            system_prompt=system_prompt,
+        )
         response = client.chat.completions.create(**params)
 
         choice = response.choices[0]
@@ -88,6 +109,7 @@ def call_openai_for_code(
     raw = retry_api_call(call)
     return raw if return_raw else clean_and_extract_function(raw)
 
+
 def call_openai_for_tests(
     prompt: str,
     model: str = "gpt-4o",            # you can pass "gpt-5" here
@@ -95,13 +117,23 @@ def call_openai_for_tests(
     max_tokens: int = 2048,
     seed: Optional[int] = None,
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> Dict[str, str]:
     """
     Calls OpenAI and returns all test functions as a dict {name: code}.
     Raises an error if the output is empty.
+
+    system_prompt: optional string passed as a system message before the user message.
     """
     def call():
-        params = _prepare_chat_params(model, prompt, temperature, max_tokens, seed)
+        params = _prepare_chat_params(
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            system_prompt=system_prompt,
+        )
         response = client.chat.completions.create(**params)
 
         choice = response.choices[0]

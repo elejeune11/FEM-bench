@@ -1,4 +1,4 @@
-# llm_clients.py  — Best-effort mode (per-model defaults & caps)
+# llm_clients.py  — Best-effort mode (per-model defaults & caps) + system prompt plumbing
 
 from typing import Dict, Optional
 from llm_api.openai_client import call_openai_for_code, call_openai_for_tests
@@ -52,6 +52,7 @@ def call_llm_for_code(
     max_tokens: Optional[int] = None,
     seed: Optional[int] = None,
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> str:
     """
     Unified interface to call any supported model for code generation.
@@ -61,6 +62,23 @@ def call_llm_for_code(
     - gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro
     - claude-3-5, claude-sonnet-4, claude-opus-4.1
     - deepseek-chat, deepseek-reasoner
+
+    Parameters
+    ----------
+    model_name : str
+        Target model identifier (friendly alias or provider ID).
+    prompt : str
+        The user prompt (task text). Do not include system content here.
+    temperature : float
+        Sampling temperature (keep 0.0 for determinism).
+    max_tokens : Optional[int]
+        Desired max tokens for completion (will be clamped to policy cap).
+    seed : Optional[int]
+        Random seed for providers that support it.
+    return_raw : bool
+        Whether to return the raw provider payload (for debugging).
+    system_prompt : Optional[str]
+        If provided, forwarded to the provider using its native system mechanism.
     """
     mt = _resolve_tokens(model_name, max_tokens)
 
@@ -72,6 +90,7 @@ def call_llm_for_code(
             max_tokens=mt,
             seed=seed,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"):
         return call_gemini_for_code(
@@ -80,6 +99,7 @@ def call_llm_for_code(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("claude-3-5", "claude-3-5-sonnet-20241022"):
         return call_claude_for_code(
@@ -88,6 +108,7 @@ def call_llm_for_code(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("claude-sonnet-4", "claude-sonnet-4-20250514"):
         return call_claude_for_code(
@@ -96,6 +117,7 @@ def call_llm_for_code(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("claude-opus-4.1", "claude-opus-4-1-20250805"):
         return call_claude_for_code(
@@ -104,14 +126,17 @@ def call_llm_for_code(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
-    elif model_name in ("deepseek-chat", "deepseek-reasoner"):
+    elif model_name in ("deepseek-chat", "deepseek-reasoner", "deepseek-r1"):
+        resolved = "deepseek-reasoner" if model_name == "deepseek-r1" else model_name
         return call_deepseek_for_code(
             prompt=prompt,
-            model=model_name,
+            model=resolved,
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     else:
         raise ValueError(
@@ -128,6 +153,7 @@ def call_llm_for_tests(
     max_tokens: Optional[int] = None,
     seed: Optional[int] = None,
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> Dict[str, str]:
     """
     Unified interface to call any supported model for test generation.
@@ -137,6 +163,11 @@ def call_llm_for_tests(
     - gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro
     - claude-3-5, claude-sonnet-4, claude-opus-4.1
     - deepseek-chat, deepseek-reasoner
+
+    Returns
+    -------
+    Dict[str, str]
+        A dictionary mapping artifact names to content (e.g., {"tests.py": "..."}).
     """
     mt = _resolve_tokens(model_name, max_tokens)
 
@@ -148,6 +179,7 @@ def call_llm_for_tests(
             max_tokens=mt,
             seed=seed,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"):
         return call_gemini_for_tests(
@@ -156,6 +188,7 @@ def call_llm_for_tests(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("claude-3-5", "claude-3-5-sonnet-20241022"):
         return call_claude_for_tests(
@@ -164,6 +197,7 @@ def call_llm_for_tests(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("claude-sonnet-4", "claude-sonnet-4-20250514"):
         return call_claude_for_tests(
@@ -172,6 +206,7 @@ def call_llm_for_tests(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     elif model_name in ("claude-opus-4.1", "claude-opus-4-1-20250805"):
         return call_claude_for_tests(
@@ -180,14 +215,17 @@ def call_llm_for_tests(
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
-    elif model_name in ("deepseek-chat", "deepseek-reasoner"):
+    elif model_name in ("deepseek-chat", "deepseek-reasoner", "deepseek-r1"):
+        resolved = "deepseek-reasoner" if model_name == "deepseek-r1" else model_name
         return call_deepseek_for_tests(
             prompt=prompt,
-            model=model_name,
+            model=resolved,
             temperature=temperature,
             max_tokens=mt,
             return_raw=return_raw,
+            system_prompt=system_prompt,
         )
     else:
         raise ValueError(

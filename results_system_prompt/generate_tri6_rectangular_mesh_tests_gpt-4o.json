@@ -1,0 +1,43 @@
+{
+  "task_id": "generate_tri6_rectangular_mesh",
+  "llm_name": "gpt-4o",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_tri6_mesh_basic_structure_and_determinism",
+        true
+      ],
+      [
+        "test_tri6_mesh_geometry_and_conformity",
+        false
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_tri6_mesh_basic_structure_and_determinism",
+        true
+      ],
+      [
+        "test_tri6_mesh_geometry_and_conformity",
+        true
+      ],
+      [
+        "test_tri6_mesh_geometry_and_conformity",
+        true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
+        true
+      ],
+      [
+        "test_tri6_mesh_invalid_inputs",
+        true
+      ]
+    ]
+  }
+}

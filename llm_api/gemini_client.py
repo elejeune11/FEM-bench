@@ -1,7 +1,7 @@
 # --- gemini_client.py ---
 import os
 import time
-from typing import Dict
+from typing import Dict, Optional
 from dotenv import load_dotenv
 import google.generativeai as genai
 from llm_api.clean_utils import clean_and_extract_function, extract_test_functions
@@ -26,23 +26,37 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
                 raise
 
 
+def _make_model(model_name: str, system_prompt: Optional[str]):
+    """
+    Construct a Gemini GenerativeModel. If system_prompt is provided, use it as
+    the model's system_instruction; otherwise construct the model normally.
+    """
+    if system_prompt:
+        return genai.GenerativeModel(model_name, system_instruction=system_prompt)
+    return genai.GenerativeModel(model_name)
+
+
 def call_gemini_for_code(
     prompt: str,
     temperature: float = 0.0,
     max_tokens: int = 2048,
     model_name: str = "gemini-2.5-flash",
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> str:
     """
     Calls Gemini and returns a single cleaned function.
     """
-    model = genai.GenerativeModel(model_name)
+    model = _make_model(model_name, system_prompt)
 
     def call():
-        return model.generate_content(prompt, generation_config={
-            "temperature": temperature,
-            "max_output_tokens": max_tokens
-        })
+        return model.generate_content(
+            prompt,
+            generation_config={
+                "temperature": temperature,
+                "max_output_tokens": max_tokens,
+            },
+        )
 
     response = retry_api_call(call)
     raw = response.text
@@ -55,17 +69,21 @@ def call_gemini_for_tests(
     max_tokens: int = 2048,
     model_name: str = "gemini-2.5-flash",
     return_raw: bool = False,
+    system_prompt: Optional[str] = None,
 ) -> Dict[str, str]:
     """
     Calls Gemini and returns all test functions as a dict {name: code}.
     """
-    model = genai.GenerativeModel(model_name)
+    model = _make_model(model_name, system_prompt)
 
     def call():
-        return model.generate_content(prompt, generation_config={
-            "temperature": temperature,
-            "max_output_tokens": max_tokens
-        })
+        return model.generate_content(
+            prompt,
+            generation_config={
+                "temperature": temperature,
+                "max_output_tokens": max_tokens,
+            },
+        )
 
     response = retry_api_call(call)
     raw = response.text

@@ -1,0 +1,56 @@
+def test_assemble_global_stiffness_matrix_shape_and_symmetry(fcn):
+    """Tests that the global stiffness matrix assembly function produces a symmetric matrix of correct shape,
+    and that each element contributes a nonzero 12x12 block to the appropriate location.
+    Covers multiple structural configurations, for example: single element, linear chain, triangle loop, and square loop."""
+    node_coords = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    elements = [{'node_i': 0, 'node_j': 1, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}]
+    K = fcn(node_coords, elements)
+    assert K.shape == (12, 12)
+    assert np.allclose(K, K.T)
+    assert np.any(K != 0)
+    node_coords = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
+    elements = [{'node_i': 0, 'node_j': 1, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}, {'node_i': 1, 'node_j': 2, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}]
+    K = fcn(node_coords, elements)
+    assert K.shape == (18, 18)
+    assert np.allclose(K, K.T)
+    middle_dofs = slice(6, 12)
+    assert np.any(K[middle_dofs, :6] != 0)
+    assert np.any(K[middle_dofs, 12:18] != 0)
+    node_coords = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.5, 0.866, 0.0]])
+    elements = [{'node_i': 0, 'node_j': 1, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}, {'node_i': 1, 'node_j': 2, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}, {'node_i': 2, 'node_j': 0, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}]
+    K = fcn(node_coords, elements)
+    assert K.shape == (18, 18)
+    assert np.allclose(K, K.T)
+    for i in range(3):
+        for j in range(3):
+            if i != j:
+                dof_i = slice(i * 6, (i + 1) * 6)
+                dof_j = slice(j * 6, (j + 1) * 6)
+                assert np.any(K[dof_i, dof_j] != 0)
+    node_coords = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0]])
+    elements = [{'node_i': 0, 'node_j': 1, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}, {'node_i': 1, 'node_j': 2, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}, {'node_i': 2, 'node_j': 3, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}, {'node_i': 3, 'node_j': 0, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}]
+    K = fcn(node_coords, elements)
+    assert K.shape == (24, 24)
+    assert np.allclose(K, K.T)
+    connectivity_count = np.zeros((4, 4))
+    for i in range(4):
+        for j in range(4):
+            if i != j:
+                dof_i = slice(i * 6, (i + 1) * 6)
+                dof_j = slice(j * 6, (j + 1) * 6)
+                if np.any(K[dof_i, dof_j] != 0):
+                    connectivity_count[i, j] = 1
+    for i in range(4):
+        assert np.sum(connectivity_count[i, :]) == 2
+    node_coords = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
+    elements = [{'node_i': 0, 'node_j': 2, 'E': 200000000000.0, 'nu': 0.3, 'A': 0.01, 'I_y': 0.0001, 'I_z': 0.0001, 'J': 0.0002}]
+    K = fcn(node_coords, elements)
+    assert np.any(K[0:6, 0:6] != 0)
+    assert np.any(K[0:6, 12:18] != 0)
+    assert np.any(K[12:18, 0:6] != 0)
+    assert np.any(K[12:18, 12:18] != 0)
+    assert np.allclose(K[6:12, 6:12], 0)
+    assert np.allclose(K[0:6, 6:12], 0)
+    assert np.allclose(K[6:12, 0:6], 0)
+    assert np.allclose(K[6:12, 12:18], 0)
+    assert np.allclose(K[12:18, 6:12], 0)
