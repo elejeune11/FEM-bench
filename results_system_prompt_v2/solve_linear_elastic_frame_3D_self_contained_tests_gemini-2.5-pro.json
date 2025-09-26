@@ -1,0 +1,47 @@
+{
+  "task_id": "solve_linear_elastic_frame_3D_self_contained",
+  "llm_name": "gemini-2.5-pro",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_simple_beam_discretized_axis_111",
+        false
+      ],
+      [
+        "test_complex_geometry_and_basic_loading",
+        true
+      ],
+      [
+        "test_ill_conditioned_due_to_under_constrained_structure",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_simple_beam_discretized_axis_111",
+        true
+      ],
+      [
+        "test_simple_beam_discretized_axis_111",
+        true
+      ],
+      [
+        "test_complex_geometry_and_basic_loading",
+        true
+      ],
+      [
+        "test_complex_geometry_and_basic_loading",
+        true
+      ],
+      [
+        "test_ill_conditioned_due_to_under_constrained_structure",
+        true
+      ],
+      [
+        "test_ill_conditioned_due_to_under_constrained_structure",
+        true
+      ]
+    ]
+  }
+}
