@@ -184,6 +184,8 @@ rm -rf fem_bench_env  # To completely remove
 | Avg Joint Success %                                         | 44.0%    | 65.3%   | 31.7%              | 41.3%            | 46.8%        | 56.3%             | 51.6%             | 39.0%           | 51.0%               |
 
 
+Additional results involving the investigation of different system prompts can be found [here](./SYSTEM_PROMPT_STUDY.md).
+
 ### How To Run the Pipeline <a name="run_pipeline"></a>
 
 To use the LLM APIs, you must create a `.env` file at the root of your project with your own API keys:
