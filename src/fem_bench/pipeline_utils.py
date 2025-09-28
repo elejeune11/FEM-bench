@@ -6,9 +6,18 @@ from fem_bench.evaluate_output import evaluate_function_output_match, evaluate_t
 from fem_bench.evaluate_output import load_function_from_code, run_test_case
 from importlib.util import spec_from_file_location, module_from_spec
 import json
+import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Dict, Optional
+
+
+def _json_default(o):
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    if isinstance(o, np.generic):  # handles np.float64, np.int32, etc.
+        return o.item()
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
 
 
 def validate_syntax(code: str) -> tuple[bool, str | None]:
@@ -252,7 +261,7 @@ class FEMBenchPipeline:
 
                 # Write to file
                 out_path = self.results_dir / f"{task_id}_eval_{llm_name}.json"
-                out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+                out_path.write_text(json.dumps(result, indent=2, default=_json_default), encoding="utf-8")
 
     def evaluate_all_llm_tests(self):
         """
@@ -359,7 +368,7 @@ class FEMBenchPipeline:
                 ] = result
 
                 out_path = self.results_dir / f"{task_id}_tests_{llm_name}.json"
-                out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+                out_path.write_text(json.dumps(result, indent=2, default=_json_default), encoding="utf-8")
 
     def compute_aggregate_score(self) -> Dict[str, Dict[str, float]]:
         """

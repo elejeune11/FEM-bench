@@ -9,12 +9,12 @@ from datetime import datetime
 TASKS_DIR = "tasks"
 PROMPTS_DIR = "prompts"
 
-with_system_prompt = True
+with_system_prompt = False
 
 if with_system_prompt:
     LLM_OUTPUTS_DIR = "llm_outputs_system_prompt_v2"
     RESULTS_DIR = "results_system_prompt_v2"
-#     SYSTEM_PROMPT = """ v1
+#     SYSTEM_PROMPT = """ 
 # You are an expert Python engineer in scientific computing, with a specialization in Finite Element Analysis (FEM).
 # Before responding, reason privately to ensure mathematical correctness and edge-case coverage, but do not output your reasoning.
 # Always return only executable Python code—no commentary, markdown fences, or extra text.
@@ -22,17 +22,17 @@ if with_system_prompt:
 # Never add imports beyond those specified, and never reimplement or alter helper functions.
 # If the task is to write tests, output only pytest test functions.
 # Be precise, deterministic, and correctness-focused.
-# """
+# """ # v1
     SYSTEM_PROMPT = """
 You are an expert in finite element analysis and scientific computing. You completed your PhD under Tom Hughes and have spent over 10 years at Sandia National Laboratories working on computational mechanics problems.
 Focus on producing robust, correct, production-quality Python code. Your solutions should demonstrate both mathematical rigor and practical engineering judgment.
 Output only executable Python code—no markdown, comments, or extra text.
 Follow the user's task rules exactly: match the given function signatures and docstrings, respect import limits, and never alter helper functions.
 If the task is to write tests, output only pytest tests with meaningful assertions.
-"""
+""" # v2
 else:
-    LLM_OUTPUTS_DIR = "llm_outputs"
-    RESULTS_DIR = "results"
+    LLM_OUTPUTS_DIR = "llm_outputs_temperature1"
+    RESULTS_DIR = "results_temperature1"
     SYSTEM_PROMPT = None  # no system message
 
 # Convenience: single variable to pass to clients
@@ -50,6 +50,8 @@ MODEL_NAMES = [
     "deepseek-reasoner",
 ]
 SEED = 11
+
+TEMPERATURE = 0.25   # NEW
 
 # --- Helper: write a simple marker file so you can see why it failed/was blocked ---
 def _write_block_marker(py_path: Path, *, provider: str, task_id: str, phase: str, error: Exception) -> None:
@@ -103,7 +105,8 @@ for model_name in MODEL_NAMES:
                         model_name,
                         code_prompt,
                         seed=SEED,
-                        system_prompt=ACTIVE_SYSTEM_PROMPT,  # NEW
+                        temperature=TEMPERATURE,           # NEW
+                        system_prompt=ACTIVE_SYSTEM_PROMPT,
                     )
                     code_path.write_text(code_out, encoding="utf-8")
                     print(f"      [✓] Code saved to: {code_path}")
@@ -124,7 +127,8 @@ for model_name in MODEL_NAMES:
                         model_name,
                         test_prompt,
                         seed=SEED,
-                        system_prompt=ACTIVE_SYSTEM_PROMPT,  # NEW
+                        temperature=TEMPERATURE,           # NEW
+                        system_prompt=ACTIVE_SYSTEM_PROMPT,
                     )
                     test_out = "\n\n".join(test_out_dict.values())
                     test_path.write_text(test_out, encoding="utf-8")
@@ -157,6 +161,7 @@ meta = {
     "system_prompt": SYSTEM_PROMPT.strip() if SYSTEM_PROMPT else None,
     "models": MODEL_NAMES,
     "seed": SEED,
+    "temperature": TEMPERATURE,               # NEW
     "tasks_dir": TASKS_DIR,
     "prompts_dir": PROMPTS_DIR,
     "llm_outputs_dir": LLM_OUTPUTS_DIR,

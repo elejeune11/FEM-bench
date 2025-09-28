@@ -1,12 +1,34 @@
+from fem_bench.pipeline_utils import _json_default
 from fem_bench.pipeline_utils import FEMBenchPipeline
 from fem_bench.pipeline_utils import evaluate_task_tests as real_eval_tests
 from fem_bench.pipeline_utils import validate_syntax
 from fem_bench.task_base import Task
 import json
+import numpy as np
 from pathlib import Path
 import pytest
 import tempfile
 import textwrap
+
+
+def test_json_default_handles_numpy_objects():
+    obj = {
+        "arr": np.array([1, 2, 3]),
+        "scalar_f": np.float64(3.14),
+        "scalar_i": np.int32(7),
+    }
+
+    # 1. Without default, it should fail
+    with pytest.raises(TypeError):
+        json.dumps(obj)
+
+    # 2. With our helper, it should succeed
+    dumped = json.dumps(obj, default=_json_default)
+    loaded = json.loads(dumped)
+
+    assert loaded["arr"] == [1, 2, 3]
+    assert loaded["scalar_f"] == pytest.approx(3.14)
+    assert loaded["scalar_i"] == 7
 
 
 def test_fembench_pipeline_init():
