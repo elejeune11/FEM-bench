@@ -1,0 +1,31 @@
+{
+  "task_id": "local_elastic_stiffness_matrix_3D_beam",
+  "llm_name": "gpt-5",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_local_stiffness_3D_beam",
+        false
+      ],
+      [
+        "test_cantilever_deflection_matches_euler_bernoulli",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_local_stiffness_3D_beam",
+        true
+      ],
+      [
+        "test_cantilever_deflection_matches_euler_bernoulli",
+        true
+      ],
+      [
+        "test_cantilever_deflection_matches_euler_bernoulli",
+        true
+      ]
+    ]
+  }
+}

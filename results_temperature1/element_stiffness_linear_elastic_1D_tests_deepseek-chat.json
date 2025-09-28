@@ -1,0 +1,43 @@
+{
+  "task_id": "element_stiffness_linear_elastic_1D",
+  "llm_name": "deepseek-chat",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_element_stiffness_comprehensive",
+        true
+      ],
+      [
+        "test_element_stiffness_different_lengths",
+        true
+      ],
+      [
+        "test_element_stiffness_material_properties",
+        true
+      ],
+      [
+        "test_element_stiffness_negative_coordinates",
+        true
+      ],
+      [
+        "test_element_stiffness_edge_cases",
+        true
+      ],
+      [
+        "test_element_stiffness_gauss_points",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_element_stiffness_comprehensive",
+        true
+      ],
+      [
+        "test_element_stiffness_comprehensive",
+        true
+      ]
+    ]
+  }
+}

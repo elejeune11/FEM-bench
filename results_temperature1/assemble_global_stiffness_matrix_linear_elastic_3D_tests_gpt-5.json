@@ -1,0 +1,19 @@
+{
+  "task_id": "assemble_global_stiffness_matrix_linear_elastic_3D",
+  "llm_name": "gpt-5",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_assemble_global_stiffness_matrix_shape_and_symmetry",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_assemble_global_stiffness_matrix_shape_and_symmetry",
+        true
+      ]
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-09-25T23:01:08.328795Z",
+  "with_system_prompt": true,
+  "system_prompt": None,
+  "models": [
+    "gpt-4o",
+    "gpt-5",
+    "gemini-1.5-flash",
+    "gemini-2.5-pro",
+    "claude-3-5",
+    "claude-sonnet-4",
+    "claude-opus-4.1",
+    "deepseek-chat",
+    "deepseek-reasoner"
+  ],
+  "seed": 11,
+  "tasks_dir": "tasks",
+  "prompts_dir": "prompts",
+  "llm_outputs_dir": "llm_outputs_system_prompt",
+  "results_dir": "results_system_prompt"
+}

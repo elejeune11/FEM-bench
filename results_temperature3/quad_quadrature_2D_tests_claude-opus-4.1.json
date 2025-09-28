@@ -1,0 +1,63 @@
+{
+  "task_id": "quad_quadrature_2D",
+  "llm_name": "claude-opus-4.1",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_quad_quadrature_2D_invalid_inputs",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_basics",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_1pt",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_2x2",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_3x3",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_quad_quadrature_2D_invalid_inputs",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_basics",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_1pt",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_1pt",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_2x2",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_2x2",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_3x3",
+        true
+      ],
+      [
+        "test_quad_quadrature_2D_degree_exactness_3x3",
+        true
+      ]
+    ]
+  }
+}

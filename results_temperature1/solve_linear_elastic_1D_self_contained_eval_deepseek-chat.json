@@ -1,0 +1,601 @@
+{
+  "task_id": "solve_linear_elastic_1D_self_contained",
+  "llm_name": "deepseek-chat",
+  "matches_reference": false,
+  "test_results": [
+    {
+      "test_case": 1,
+      "inputs": [
+        0.0,
+        1.0,
+        2,
+        [
+          {
+            "coord_min": 0.0,
+            "coord_max": 1.0,
+            "E": 1000000000.0,
+            "A": 1.0
+          }
+        ],
+        "<function>",
+        [
+          {
+            "x_location": 0.0,
+            "u_prescribed": 0.0
+          }
+        ],
+        null,
+        2
+      ],
+      "reference_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0.0
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "generated_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0.0
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "match": true,
+      "error": null
+    },
+    {
+      "test_case": 2,
+      "inputs": [
+        0.0,
+        2.0,
+        4,
+        [
+          {
+            "coord_min": 0.0,
+            "coord_max": 2.0,
+            "E": 2000000000.0,
+            "A": 0.5
+          }
+        ],
+        "<function>",
+        [
+          {
+            "x_location": 0.0,
+            "u_prescribed": 0.0
+          }
+        ],
+        null,
+        2
+      ],
+      "reference_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            0.0,
+            8.75e-08,
+            1.5e-07,
+            1.875e-07,
+            2e-07
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            -200.0
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0,
+            1.5,
+            2.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "generated_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            4.9999999999999975e-20,
+            8.750000000004994e-08,
+            1.500000000000499e-07,
+            1.8750000000004985e-07,
+            2.0000000000004983e-07
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            1.4210854715202004e-14
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0,
+            1.5,
+            2.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "match": false,
+      "error": null
+    },
+    {
+      "test_case": 3,
+      "inputs": [
+        0.0,
+        1.0,
+        2,
+        [
+          {
+            "coord_min": 0.0,
+            "coord_max": 1.0,
+            "E": 1000000.0,
+            "A": 1.0
+          }
+        ],
+        "<function>",
+        [
+          {
+            "x_location": 0.0,
+            "u_prescribed": 0.0
+          },
+          {
+            "x_location": 1.0,
+            "u_prescribed": 0.0
+          }
+        ],
+        null,
+        2
+      ],
+      "reference_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0.0,
+            0.0
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0,
+            2
+          ]
+        }
+      },
+      "generated_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0.0,
+            0.0
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            3
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            2
+          ],
+          "data": [
+            0,
+            2
+          ]
+        }
+      },
+      "match": true,
+      "error": null
+    },
+    {
+      "test_case": 4,
+      "inputs": [
+        0.0,
+        3.0,
+        3,
+        [
+          {
+            "coord_min": 0.0,
+            "coord_max": 3.0,
+            "E": 100000000.0,
+            "A": 1.0
+          }
+        ],
+        "<function>",
+        [
+          {
+            "x_location": 0.0,
+            "u_prescribed": 0.0
+          }
+        ],
+        [
+          {
+            "x_location": 3.0,
+            "load_mag": -500.0
+          }
+        ],
+        2
+      ],
+      "reference_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            4
+          ],
+          "data": [
+            0.0,
+            -4.9999999999999996e-06,
+            -9.999999999999999e-06,
+            -1.4999999999999999e-05
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            499.99999999999994
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            4
+          ],
+          "data": [
+            0.0,
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "generated_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            4
+          ],
+          "data": [
+            -2.499999999999999e-18,
+            -5.000000000002498e-06,
+            -1.0000000000002496e-05,
+            -1.5000000000002497e-05
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            4.091778998960294e-15
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            4
+          ],
+          "data": [
+            0.0,
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "match": false,
+      "error": null
+    },
+    {
+      "test_case": 5,
+      "inputs": [
+        0.0,
+        2.0,
+        4,
+        [
+          {
+            "coord_min": 0.0,
+            "coord_max": 1.0,
+            "E": 10000000.0,
+            "A": 1.0
+          },
+          {
+            "coord_min": 1.0,
+            "coord_max": 2.0,
+            "E": 1000000000.0,
+            "A": 0.5
+          }
+        ],
+        "<function>",
+        [
+          {
+            "x_location": 0.0,
+            "u_prescribed": 0.0
+          }
+        ],
+        null,
+        3
+      ],
+      "reference_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            0.0,
+            4.375000000000013e-06,
+            7.5000000000000264e-06,
+            7.5375000000000265e-06,
+            7.550000000000027e-06
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            -100.00000000000027
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0,
+            1.5,
+            2.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "generated_output": {
+        "displacements": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            4.9999999999999957e-20,
+            4.375000000000045e-06,
+            7.50000000000004e-06,
+            7.53750000000004e-06,
+            7.55000000000004e-06
+          ]
+        },
+        "reactions": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0.0
+          ]
+        },
+        "node_coords": {
+          "type": "ndarray",
+          "shape": [
+            5
+          ],
+          "data": [
+            0.0,
+            0.5,
+            1.0,
+            1.5,
+            2.0
+          ]
+        },
+        "reaction_nodes": {
+          "type": "ndarray",
+          "shape": [
+            1
+          ],
+          "data": [
+            0
+          ]
+        }
+      },
+      "match": false,
+      "error": null
+    }
+  ]
+}

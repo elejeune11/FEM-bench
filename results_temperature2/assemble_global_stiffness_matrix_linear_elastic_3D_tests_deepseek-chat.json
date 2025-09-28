@@ -1,0 +1,39 @@
+{
+  "task_id": "assemble_global_stiffness_matrix_linear_elastic_3D",
+  "llm_name": "deepseek-chat",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_assemble_global_stiffness_matrix_shape_and_symmetry",
+        true
+      ],
+      [
+        "test_assemble_global_stiffness_matrix_single_element",
+        false
+      ],
+      [
+        "test_assemble_global_stiffness_matrix_connectivity",
+        true
+      ],
+      [
+        "test_assemble_global_stiffness_matrix_material_properties",
+        true
+      ],
+      [
+        "test_assemble_global_stiffness_matrix_optional_local_z",
+        true
+      ],
+      [
+        "test_assemble_global_stiffness_matrix_3D_geometry",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_assemble_global_stiffness_matrix_shape_and_symmetry",
+        false
+      ]
+    ]
+  }
+}

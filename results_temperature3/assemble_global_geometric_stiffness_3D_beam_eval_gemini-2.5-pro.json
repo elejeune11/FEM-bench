@@ -1,0 +1,532 @@
+{
+  "task_id": "assemble_global_geometric_stiffness_3D_beam",
+  "llm_name": "gemini-2.5-pro",
+  "matches_reference": false,
+  "test_results": [
+    {
+      "test_case": 1,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            3,
+            3
+          ],
+          "data": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        [
+          {
+            "node_i": 0,
+            "node_j": 1,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "node_i": 1,
+            "node_j": 2,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        ],
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local_elastic_stiffness_matrix_3D_beam() missing 4 required positional arguments: 'L', 'Iy', 'Iz', and 'J'"
+    },
+    {
+      "test_case": 2,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            3,
+            3
+          ],
+          "data": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        [
+          {
+            "node_i": 0,
+            "node_j": 1,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "node_i": 1,
+            "node_j": 2,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        ],
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1e-06,
+            2e-06,
+            0.0,
+            0.0,
+            0.0,
+            1e-06,
+            2e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local_elastic_stiffness_matrix_3D_beam() missing 4 required positional arguments: 'L', 'Iy', 'Iz', and 'J'"
+    },
+    {
+      "test_case": 3,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            3,
+            3
+          ],
+          "data": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.7071067811865476,
+              0.7071067811865476,
+              0.0
+            ],
+            [
+              1.4142135623730951,
+              1.4142135623730951,
+              0.0
+            ]
+          ]
+        },
+        [
+          {
+            "node_i": 0,
+            "node_j": 1,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "node_i": 1,
+            "node_j": 2,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        ],
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1e-06,
+            1e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2e-06,
+            2e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local_elastic_stiffness_matrix_3D_beam() missing 4 required positional arguments: 'L', 'Iy', 'Iz', and 'J'"
+    },
+    {
+      "test_case": 4,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            3,
+            3
+          ],
+          "data": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.5
+            ],
+            [
+              2.0,
+              0.0,
+              0.0
+            ]
+          ]
+        },
+        [
+          {
+            "node_i": 0,
+            "node_j": 1,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "node_i": 1,
+            "node_j": 2,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        ],
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1e-06,
+            0.0,
+            0.0,
+            2e-06,
+            0.0,
+            0.0,
+            2e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local_elastic_stiffness_matrix_3D_beam() missing 4 required positional arguments: 'L', 'Iy', 'Iz', and 'J'"
+    },
+    {
+      "test_case": 5,
+      "inputs": [
+        {
+          "type": "ndarray",
+          "shape": [
+            3,
+            3
+          ],
+          "data": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.7071067811865475,
+              0.7071067811865475,
+              0.0
+            ],
+            [
+              1.414213562373095,
+              1.414213562373095,
+              0.0
+            ]
+          ]
+        },
+        [
+          {
+            "node_i": 0,
+            "node_j": 1,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          },
+          {
+            "node_i": 1,
+            "node_j": 2,
+            "E": 210000000000.0,
+            "nu": 0.3,
+            "A": 0.0003,
+            "I_y": 8e-06,
+            "I_z": 5e-06,
+            "J": 2e-05,
+            "I_rho": 1.3e-05,
+            "local_z": {
+              "type": "ndarray",
+              "shape": [
+                3
+              ],
+              "data": [
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        ],
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5e-07,
+            5e-07,
+            0.0,
+            0.0,
+            -1e-06,
+            0.0,
+            1e-06,
+            1e-06,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "reference_output": null,
+      "generated_output": null,
+      "match": false,
+      "error": "local_elastic_stiffness_matrix_3D_beam() missing 4 required positional arguments: 'L', 'Iy', 'Iz', and 'J'"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "task_id": "element_distributed_load_quad8",
+  "llm_name": "gpt-5",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_edl_q8_analytic_straight_edges_total_force_scaled_all_faces",
+        true
+      ],
+      [
+        "test_edl_q8_constant_traction_total_force_on_curved_parabolic_edge",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_edl_q8_analytic_straight_edges_total_force_scaled_all_faces",
+        true
+      ],
+      [
+        "test_edl_q8_constant_traction_total_force_on_curved_parabolic_edge",
+        true
+      ]
+    ]
+  }
+}

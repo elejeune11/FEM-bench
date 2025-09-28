@@ -1,0 +1,63 @@
+{
+  "task_id": "triangle_quadrature_2D",
+  "llm_name": "claude-opus-4.1",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_triangle_quadrature_2D_invalid_inputs",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_basics",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_1pt",
+        false
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_3pt",
+        false
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_4pt",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_triangle_quadrature_2D_invalid_inputs",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_basics",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_1pt",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_1pt",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_3pt",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_3pt",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_4pt",
+        true
+      ],
+      [
+        "test_triangle_quadrature_2D_degree_exactness_4pt",
+        true
+      ]
+    ]
+  }
+}

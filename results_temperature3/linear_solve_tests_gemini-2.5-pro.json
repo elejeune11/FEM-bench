@@ -1,0 +1,18 @@
+{
+  "task_id": "linear_solve",
+  "llm_name": "gemini-2.5-pro",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "unnamed_test",
+        false
+      ],
+      [
+        "unnamed_test",
+        false
+      ]
+    ],
+    "failure_fail": []
+  }
+}

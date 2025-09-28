@@ -1,0 +1,74 @@
+def quad8_shape_functions_and_derivatives(xi: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Vectorized evaluation of quadratic (8-node) quadrilateral shape functions and derivatives.
+    Parameters
+    ----------
+    xi : np.ndarray
+        Natural coordinates (ξ, η) in the reference square.
+    Returns
+    -------
+    N : np.ndarray
+        Shape functions evaluated at the input points. Shape: (n, 8, 1).
+        Node order: [N1, N2, N3, N4, N5, N6, N7, N8].
+    dN_dxi : np.ndarray
+        Partial derivatives w.r.t. (ξ, η). Shape: (n, 8, 2).
+        Columns correspond to [∂()/∂ξ, ∂()/∂η] in the same node order.
+    Raises
+    ------
+    ValueError
+        If `xi` is not a NumPy array.
+        If `xi` has shape other than (2,) or (n, 2).
+        If `xi` contains non-finite values (NaN or Inf).
+    Notes
+    -----
+    Shape functions:
+        N1 = -1/4 (1-ξ)(1-η)(1+ξ+η)
+        N2 =  +1/4 (1+ξ)(1-η)(ξ-η-1)
+        N3 =  +1/4 (1+ξ)(1+η)(ξ+η-1)
+        N4 =  +1/4 (1-ξ)(1+η)(η-ξ-1)
+        N5 =  +1/2 (1-ξ²)(1-η)
+        N6 =  +1/2 (1+ξ)(1-η²)
+        N7 =  +1/2 (1-ξ²)(1+η)
+        N8 =  +1/2 (1-ξ)(1-η²)
+    """
+    if not isinstance(xi, np.ndarray):
+        raise ValueError('xi must be a NumPy array')
+    if xi.shape == (2,):
+        xi = xi.reshape(1, 2)
+        n = 1
+    elif len(xi.shape) == 2 and xi.shape[1] == 2:
+        n = xi.shape[0]
+    else:
+        raise ValueError('xi must have shape (2,) or (n, 2)')
+    if not np.all(np.isfinite(xi)):
+        raise ValueError('xi contains non-finite values')
+    xi_coord = xi[:, 0]
+    eta_coord = xi[:, 1]
+    N1 = -0.25 * (1 - xi_coord) * (1 - eta_coord) * (1 + xi_coord + eta_coord)
+    N2 = 0.25 * (1 + xi_coord) * (1 - eta_coord) * (xi_coord - eta_coord - 1)
+    N3 = 0.25 * (1 + xi_coord) * (1 + eta_coord) * (xi_coord + eta_coord - 1)
+    N4 = 0.25 * (1 - xi_coord) * (1 + eta_coord) * (eta_coord - xi_coord - 1)
+    N5 = 0.5 * (1 - xi_coord ** 2) * (1 - eta_coord)
+    N6 = 0.5 * (1 + xi_coord) * (1 - eta_coord ** 2)
+    N7 = 0.5 * (1 - xi_coord ** 2) * (1 + eta_coord)
+    N8 = 0.5 * (1 - xi_coord) * (1 - eta_coord ** 2)
+    N = np.stack([N1, N2, N3, N4, N5, N6, N7, N8], axis=1)
+    N = N.reshape(n, 8, 1)
+    dN1_dxi = -0.25 * (1 - eta_coord) * (2 * xi_coord + eta_coord)
+    dN2_dxi = 0.25 * (1 - eta_coord) * (2 * xi_coord - eta_coord - 1)
+    dN3_dxi = 0.25 * (1 + eta_coord) * (2 * xi_coord + eta_coord - 1)
+    dN4_dxi = -0.25 * (1 + eta_coord) * (eta_coord - 2 * xi_coord - 1)
+    dN5_dxi = -xi_coord * (1 - eta_coord)
+    dN6_dxi = 0.5 * (1 - eta_coord ** 2)
+    dN7_dxi = -xi_coord * (1 + eta_coord)
+    dN8_dxi = -0.5 * (1 - eta_coord ** 2)
+    dN1_deta = -0.25 * (1 - xi_coord) * (xi_coord + 2 * eta_coord)
+    dN2_deta = -0.25 * (1 + xi_coord) * (xi_coord - 2 * eta_coord - 1)
+    dN3_deta = 0.25 * (1 + xi_coord) * (xi_coord + 2 * eta_coord - 1)
+    dN4_deta = 0.25 * (1 - xi_coord) * (2 * eta_coord - xi_coord - 1)
+    dN5_deta = -0.5 * (1 - xi_coord ** 2)
+    dN6_deta = -(1 + xi_coord) * eta_coord
+    dN7_deta = 0.5 * (1 - xi_coord ** 2)
+    dN8_deta = -(1 - xi_coord) * eta_coord
+    dN_dxi = np.stack([np.stack([dN1_dxi, dN1_deta], axis=1), np.stack([dN2_dxi, dN2_deta], axis=1), np.stack([dN3_dxi, dN3_deta], axis=1), np.stack([dN4_dxi, dN4_deta], axis=1), np.stack([dN5_dxi, dN5_deta], axis=1), np.stack([dN6_dxi, dN6_deta], axis=1), np.stack([dN7_dxi, dN7_deta], axis=1), np.stack([dN8_dxi, dN8_deta], axis=1)], axis=1)
+    return (N, dN_dxi)
