@@ -1,0 +1,30 @@
+### Task-by-task Accuracy@3 (best of 3 seeds)
+
+| Task                                                        | gpt-4o   | gpt-5   | gemini-2.5-pro   | claude-3-5   | claude-sonnet-4   | claude-opus-4.1   | deepseek-chat   | deepseek-reasoner   |
+|:------------------------------------------------------------|:---------|:--------|:-----------------|:-------------|:------------------|:------------------|:----------------|:--------------------|
+| assemble_global_geometric_stiffness_3D_beam                 | 2/3 ✓    | 2/3 ✓   | 2/3 ✓            | 3/3 ✓        | 3/3 ✓             | 0/3 ×             | 3/3 ✓           | 2/3 ✓               |
+| assemble_global_stiffness_matrix_linear_elastic_3D          | 3/3 ✓    | 2/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| beam_transformation_matrix_3D                               | 3/3 ✓    | 1/3 ✓   | 2/3 ✓            | 0/3 ×        | 3/3 ✓             | 3/3 ✓             | 0/3 ×           | 0/3 ×               |
+| compute_integral_of_derivative_quad8                        | 3/3 ✓    | 2/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| compute_local_element_loads_beam_3D                         | 3/3 ✓    | 0/3 ×   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| compute_physical_gradient_quad8                             | 0/3 ×    | 2/3 ✓   | 0/3 ×            | 0/3 ×        | 2/3 ✓             | 3/3 ✓             | 2/3 ✓           | 3/3 ✓               |
+| eigenvalue_analysis_msa_3D                                  | 0/3 ×    | 0/3 ×   | 0/3 ×            | 0/3 ×        | 0/3 ×             | 0/3 ×             | 0/3 ×           | 0/3 ×               |
+| elastic_critical_load_analysis_frame_3D                     | 3/3 ✓    | 3/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| elastic_critical_load_analysis_frame_3D_part_self_contained | 0/3 ×    | 0/3 ×   | 0/3 ×            | 0/3 ×        | 0/3 ×             | 0/3 ×             | 0/3 ×           | 0/3 ×               |
+| elastic_critical_load_analysis_frame_3D_self_contained      | 0/3 ×    | 0/3 ×   | 0/3 ×            | 0/3 ×        | 0/3 ×             | 0/3 ×             | 0/3 ×           | 0/3 ×               |
+| element_distributed_load_quad8                              | 2/3 ✓    | 3/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 0/3 ×           | 1/3 ✓               |
+| element_stiffness_linear_elastic_1D                         | 3/3 ✓    | 0/3 ×   | 2/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| generate_quad8_rectangular_mesh                             | 3/3 ✓    | 3/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| generate_tri6_rectangular_mesh                              | 1/3 ✓    | 3/3 ✓   | 3/3 ✓            | 0/3 ×        | 2/3 ✓             | 3/3 ✓             | 3/3 ✓           | 2/3 ✓               |
+| linear_solve                                                | 3/3 ✓    | 2/3 ✓   | 3/3 ✓            | 2/3 ✓        | 0/3 ×             | 1/3 ✓             | 0/3 ×           | 1/3 ✓               |
+| linear_uniform_mesh_1D                                      | 3/3 ✓    | 1/3 ✓   | 2/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| local_elastic_stiffness_matrix_3D_beam                      | 2/3 ✓    | 2/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| local_geometric_stiffness_matrix_3D_beam                    | 0/3 ×    | 0/3 ×   | 0/3 ×            | 0/3 ×        | 0/3 ×             | 0/3 ×             | 0/3 ×           | 0/3 ×               |
+| quad8_shape_functions_and_derivatives                       | 0/3 ×    | 2/3 ✓   | 3/3 ✓            | 0/3 ×        | 0/3 ×             | 0/3 ×             | 3/3 ✓           | 3/3 ✓               |
+| quad_quadrature_2D                                          | 2/3 ✓    | 2/3 ✓   | 3/3 ✓            | 1/3 ✓        | 0/3 ×             | 1/3 ✓             | 0/3 ×           | 1/3 ✓               |
+| solve_linear_elastic_1D_self_contained                      | 1/3 ✓    | 1/3 ✓   | 2/3 ✓            | 2/3 ✓        | 0/3 ×             | 3/3 ✓             | 1/3 ✓           | 1/3 ✓               |
+| solve_linear_elastic_frame_3D                               | 3/3 ✓    | 2/3 ✓   | 3/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 3/3 ✓           | 3/3 ✓               |
+| solve_linear_elastic_frame_3D_self_contained                | 0/3 ×    | 2/3 ✓   | 2/3 ✓            | 1/3 ✓        | 0/3 ×             | 0/3 ×             | 0/3 ×           | 1/3 ✓               |
+| tri6_shape_functions_and_derivatives                        | 0/3 ×    | 2/3 ✓   | 3/3 ✓            | 1/3 ✓        | 1/3 ✓             | 3/3 ✓             | 3/3 ✓           | 2/3 ✓               |
+| triangle_quadrature_2D                                      | 1/3 ✓    | 3/3 ✓   | 2/3 ✓            | 3/3 ✓        | 3/3 ✓             | 3/3 ✓             | 1/3 ✓           | 3/3 ✓               |
+| **Overall Accuracy@3**                                      | 17/25    | 19/25   | 20/25            | 17/25        | 16/25             | 18/25             | 16/25           | 20/25               |

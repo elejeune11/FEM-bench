@@ -186,6 +186,8 @@ rm -rf fem_bench_env  # To completely remove
 
 Additional results involving the investigation of different system prompts can be found [here](./SYSTEM_PROMPT_STUDY.md).
 
+Additional results involving the investigation of temperature can be found [here](./TEMPERATURE_STUDY.md).
+
 ### How To Run the Pipeline <a name="run_pipeline"></a>
 
 To use the LLM APIs, you must create a `.env` file at the root of your project with your own API keys:
