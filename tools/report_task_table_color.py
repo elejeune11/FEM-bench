@@ -19,8 +19,11 @@ def build_sorted_task_table_with_colors(
       4) task_id (asc)
 
     Each cell shows: 'X/K ✓' where X = #seeds that were successful for that model on that task.
-    The Task column is color-coded by aggregate task success rate across all (models × seeds):
-        > 75%: green, > 50%: blue, > 0%: yellow, otherwise red.
+
+    The Task column is now labeled by **coverage** using GitHub-safe emojis:
+        🟩 = all models (100%) had ≥1 success
+        🟡 = some but not all models had ≥1 success
+        ❌ = no model had a success
 
     Expects files named '{task_id}_eval_{llm}.json' with top-level key 'matches_reference'.
     """
@@ -59,19 +62,21 @@ def build_sorted_task_table_with_colors(
                 models_with_any += 1
             cell_strings.append(f"{x}/{K} {'✓' if any_ok else '×'}")
 
-        # Aggregate success rate for color: successes / (num_models * K)
-        denom = max(len(model_list) * K, 1)
-        task_rate = total_successes / denom
+        # Aggregate metrics
+        denom_models = max(len(model_list), 1)
+        coverage = models_with_any / denom_models                    # used for emoji label
+        denom_all = max(len(model_list) * K, 1)
+        task_rate = total_successes / denom_all                      # still used for tertiary tiebreak
 
-        # Color the task label
-        task_cell = _color_task_label(task_id, task_rate)
+        # Emoji label by coverage (GitHub-safe)
+        task_cell = _color_task_label(task_id, coverage)
 
         # Record for sorting: negative for desc
         sort_keys.append((
-            -models_with_any,
-            -total_successes,
-            -task_rate,
-            task_id
+            -models_with_any,        # 1) coverage (primary)
+            -total_successes,        # 2) total successes
+            -task_rate,              # 3) overall success rate
+            task_id                  # 4) stable
         ))
         rows.append([task_cell] + cell_strings)
 
@@ -125,23 +130,16 @@ def _parse_eval_filename(filename: str) -> Tuple[str, str]:
     return left, model
 
 
-def _color_task_label(task_id: str, rate: float) -> str:
+def _color_task_label(task_id: str, coverage: float) -> str:
     """
-    Color code the task name using simple HTML spans (works in GitHub/Docs markdown):
-      >75% green, >50% blue, >0% yellow, else red.
+    Emoji label by COVERAGE (fraction of models with >=1 success):
+      1.0 → 🟩  |  (0,1) → 🟡  |  0.0 → ❌
     """
-    if rate > 0.75:
-        color = "#1e7e34"   # green-ish
-        bg = "#d4edda"
-    elif rate > 0.50:
-        color = "#0c5460"   # blue-ish
-        bg = "#d1ecf1"
-    elif rate > 0.0:
-        color = "#856404"   # yellow/brown text on yellow bg
-        bg = "#fff3cd"
+    c = max(0.0, min(1.0, float(coverage)))
+    if c == 1.0:
+        emoji = "🟩"
+    elif c > 0.0:
+        emoji = "🟡"
     else:
-        color = "#721c24"   # red
-        bg = "#f8d7da"
-
-    # Non-breaking spaces around to give a pill look
-    return f'<span style="background:{bg}; color:{color}; padding:2px 6px; border-radius:6px; white-space:nowrap;">{task_id}</span>'
+        emoji = "❌"
+    return f"{emoji} {task_id}"

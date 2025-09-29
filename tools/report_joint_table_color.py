@@ -165,21 +165,16 @@ def _parse_tests_filename(filename: str) -> Tuple[str, str]:
 
 def _color_label(text: str, coverage: float) -> str:
     """
-    Color code a label (task::test) by coverage:
-      100% (all models had >=1 Joint success) → green
-      >0% but not all models → yellow
-      0% (no models) → red
+    Emoji code for coverage:
+      100% → 🟩
+      >0% but <100% → 🟡
+      0% → ❌
     """
-    # clamp to [0,1]
     c = max(0.0, min(1.0, float(coverage)))
     if c == 1.0:
-        color = "#1e7e34"; bg = "#d4edda"   # green
+        emoji = "🟩"
     elif c > 0.0:
-        color = "#856404"; bg = "#fff3cd"   # yellow
+        emoji = "🟡"
     else:
-        color = "#721c24"; bg = "#f8d7da"   # red
-
-    return (
-        f'<span style="background:{bg}; color:{color}; '
-        f'padding:2px 6px; border-radius:6px; white-space:nowrap;">{text}</span>'
-    )
+        emoji = "❌"
+    return f"{emoji} {text}"
