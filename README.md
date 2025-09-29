@@ -189,6 +189,8 @@ Results involving the investigation of different system prompts can be found [he
 
 Results involving the investigation of temperature can be found [here](./TEMPERATURE_STUDY.md).
 
+For these studies, the pipeline was executed six times in total. The aggregate results of all runs are presented in the following two tables.
+
 ### Task-by-task Accuracy@K - Sorted "Easiest" to "Hardest"
 
 | Task                                                           | gpt-4o   | gpt-5   | gemini-1.5-flash   | gemini-2.5-pro   | claude-3-5   | claude-sonnet-4   | claude-opus-4.1   | deepseek-chat   | deepseek-reasoner   |
@@ -222,7 +224,7 @@ Results involving the investigation of temperature can be found [here](./TEMPERA
 
 
 
-### Per test Joint Accuracy@K - Sorted "Easiest" to "Hardest"
+### Per Test Joint Accuracy@K - Sorted "Easiest" to "Hardest"
 
 | Task::Test                                                                                                                   | gpt-4o        | gpt-5         | gemini-1.5-flash   | gemini-2.5-pro   | claude-3-5    | claude-sonnet-4   | claude-opus-4.1   | deepseek-chat   | deepseek-reasoner   |
 |:-----------------------------------------------------------------------------------------------------------------------------|:--------------|:--------------|:-------------------|:-----------------|:--------------|:------------------|:------------------|:----------------|:--------------------|
