@@ -220,7 +220,7 @@ For these studies, the pipeline was executed six times in total. The aggregate r
 | ❌ elastic_critical_load_analysis_frame_3D_part_self_contained | 0/6 ×    | 0/6 ×   | 0/6 ×              | 0/6 ×            | 0/6 ×        | 0/6 ×             | 0/6 ×             | 0/6 ×           | 0/6 ×               |
 | ❌ elastic_critical_load_analysis_frame_3D_self_contained      | 0/6 ×    | 0/6 ×   | 0/6 ×              | 0/6 ×            | 0/6 ×        | 0/6 ×             | 0/6 ×             | 0/6 ×           | 0/6 ×               |
 | ❌ local_geometric_stiffness_matrix_3D_beam                    | 0/6 ×    | 0/6 ×   | 0/6 ×              | 0/6 ×            | 0/6 ×        | 0/6 ×             | 0/6 ×             | 0/6 ×           | 0/6 ×               |
-| **Overall Best of 6 Passes**                                         | 17/25    | 20/25   | 9/25               | 21/25            | 20/25        | 19/25             | 19/25             | 19/25           | 20/25               |
+| **Overall Pass@6**                                         | 17/25    | 20/25   | 9/25               | 21/25            | 20/25        | 19/25             | 19/25             | 19/25           | 20/25               |
 
 
 
@@ -303,7 +303,7 @@ For these studies, the pipeline was executed six times in total. The aggregate r
 | ❌ elastic_critical_load_analysis_frame_3D_self_contained::test_cantilever_euler_buckling_mesh_convergence                   | 0/6 ×         | 0/6 ×         | 0/6 ×              | 0/6 ×            | 0/6 ×         | 0/6 ×             | 0/6 ×             | 0/6 ×           | 0/6 ×               |
 | ❌ elastic_critical_load_analysis_frame_3D_self_contained::test_euler_buckling_cantilever_circular_param_sweep               | 0/6 ×         | 0/6 ×         | 0/6 ×              | 0/6 ×            | 0/6 ×         | 0/6 ×             | 0/6 ×             | 0/6 ×           | 0/6 ×               |
 | ❌ elastic_critical_load_analysis_frame_3D_self_contained::test_orientation_invariance_cantilever_buckling_rect_section      | 0/6 ×         | 0/6 ×         | 0/6 ×              | 0/6 ×            | 0/6 ×         | 0/6 ×             | 0/6 ×             | 0/6 ×           | 0/6 ×               |
-| **Overall Best of 6 Passes**                                                                                                          | 46/75 (61.3%) | 63/75 (84.0%) | 25/75 (33.3%)      | 52/75 (69.3%)    | 48/75 (64.0%) | 55/75 (73.3%)     | 51/75 (68.0%)     | 50/75 (66.7%)   | 57/75 (76.0%)       |
+| **Overall Pass Joint@6**                                                                                                          | 46/75 (61.3%) | 63/75 (84.0%) | 25/75 (33.3%)      | 52/75 (69.3%)    | 48/75 (64.0%) | 55/75 (73.3%)     | 51/75 (68.0%)     | 50/75 (66.7%)   | 57/75 (76.0%)       |
 
 
 ### How To Run the Pipeline <a name="run_pipeline"></a>
