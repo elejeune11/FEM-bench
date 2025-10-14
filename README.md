@@ -44,6 +44,10 @@ You can think of FEM-Bench as having three parts:
 
 * **Tasks**: Each task defines a reference implementation, test cases, and metadata for both code and test generation. These form the basis for evaluating LLM performance on well-defined FEM-related coding challenges.
 
+A schematic of the FEM-Bench workflow is shown here:
+
+![FEM-Bench workflow schematic](./FEMBench.png)
+
 **A major goal of this tool is to make it easy to create and deploy new Tasks, ensuring the system stays relevant and highly extensible.**
 
 ### File Structure <a name="files"></a>
@@ -121,7 +125,7 @@ rm -rf fem_bench_env  # To completely remove
 * **Function Correctness (✓ = Match)**: Indicates whether each model's generated function produced outputs that exactly matched the reference implementation on all verification inputs.
 * **Joint Test Success Rate (%)**: Shows the percentage of model-generated test functions that both (1) passed on the reference implementation and (2) failed on all known-broken implementations. This metric captures tests that successfully distinguish correct from incorrect solutions. *(Note: this does not guarantee comprehensive coverage — only a curated set of failure cases are tested.)*
 
-### Function Correctness (✓ = Match) -- First Deterministic Run
+### Function Correctness (✓ = Match) - First Deterministic Run
 
 | Task                                                        | gpt-4o   | gpt-5   | gemini-1.5-flash   | gemini-2.5-pro   | claude-3-5   | claude-sonnet-4   | claude-opus-4.1   | deepseek-chat   | deepseek-reasoner   |
 |:------------------------------------------------------------|:---------|:--------|:-------------------|:-----------------|:-------------|:------------------|:------------------|:----------------|:--------------------|
@@ -317,7 +321,7 @@ CLAUDE_API_KEY=your_anthropic_key_here
 DEEPSEEK_API_KEY=your_deepseek_key_here
 ```
 
-These keys are **not included** in the repo for security. Each client loads the appropriate key using `dotenv`. Missing keys will raise a clear error during runtime. The current code supports: gpt-4o, gemini-flash, gemini-pro, claude-3-5, deepseek-chat. You can modify the code to change this, and you only need to include keys for the models you plan to use.
+These keys are **not included** in the repo for security. Each client loads the appropriate key using `dotenv`. Missing keys will raise a clear error during runtime. The current code supports nine models: gpt-4o, gpt-5, gemini-1.5-flash, gemini-2.5-pro, claude-3-5, claude-sonnet-4, claude-opus-4.1, deepseek-chat, and deepseek-reasoner. You can modify the code to change this, and you only need to include keys for the models you plan to use.
 
 The `run_pipeline.py` script automates a **full LLM benchmarking cycle**:
 1. **Load tasks** from the `tasks/` directory.
@@ -439,8 +443,9 @@ After we have more Tasks completed, we will prepare a manuscript on our results.
 
 
 ## TODO list <a name="todo"></a>
-- [ ] Create additional tasks to complete the initial benchmark set  
-- [ ] Iterate on prompt strategy to improve output quality (maybe)
-- [ ] Investigate the role of LLM temperature on performance (maybe)
+- [ ] Create additional tasks to complete the initial benchmark set
+- [ ] Iterate on prompt strategy to improve output quality (so far 2 system prompts tried)
+- [ ] Investigate the role of LLM temperature on performance (one small study conducted)
 - [ ] Improve pipeline robustness i.e., what issues arrise with new tasks? 
 - [ ] Continue to collate and summarize results across tasks and models
+- [ ] Analyze patterns in LLM generated code
