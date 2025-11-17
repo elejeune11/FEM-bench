@@ -7,15 +7,19 @@ from llm_api.clean_utils import clean_and_extract_function, extract_test_functio
 
 # Load environment variables from .env
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-
-if not api_key:
-    raise RuntimeError("OPENAI_API_KEY is not set in your environment or .env file.")
-
-client = OpenAI(api_key=api_key)
 
 # Treat GPT-5 (and o-series) as reasoning models for Chat Completions params
 REASONING_MODELS = {"o3", "o3-pro", "gpt-5", "gpt-5-mini"}  # extend as needed
+
+
+def _get_openai_client():
+    """
+    Returns an OpenAI client, checking for the API key.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set in your environment or .env file.")
+    return OpenAI(api_key=api_key)
 
 
 def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
@@ -84,6 +88,7 @@ def call_openai_for_code(
 
     system_prompt: optional string passed as a system message before the user message.
     """
+    client = _get_openai_client()
     def call():
         params = _prepare_chat_params(
             model=model,
@@ -125,6 +130,7 @@ def call_openai_for_tests(
 
     system_prompt: optional string passed as a system message before the user message.
     """
+    client = _get_openai_client()
     def call():
         params = _prepare_chat_params(
             model=model,

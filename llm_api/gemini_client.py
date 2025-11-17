@@ -4,15 +4,23 @@ import time
 from typing import Dict, Optional
 from dotenv import load_dotenv
 import google.generativeai as genai
-from llm_api.clean_utils import clean_and_extract_function, extract_test_functions
+from llm_api.clean_utils import (
+    clean_and_extract_function,
+    extract_test_functions,
+)
 
 # Load API key
 load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise RuntimeError("GEMINI_API_KEY is not set in your environment or .env file.")
 
-genai.configure(api_key=api_key)
+
+def _configure_gemini():
+    """Loads the Gemini API key and configures the genai library."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "GEMINI_API_KEY is not set in your environment or .env file."
+        )
+    genai.configure(api_key=api_key)
 
 
 def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
@@ -21,7 +29,7 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
             return call_fn()
         except Exception as e:
             if attempt < retries - 1:
-                time.sleep(backoff ** attempt)
+                time.sleep(backoff**attempt)
             else:
                 raise
 
@@ -32,7 +40,9 @@ def _make_model(model_name: str, system_prompt: Optional[str]):
     the model's system_instruction; otherwise construct the model normally.
     """
     if system_prompt:
-        return genai.GenerativeModel(model_name, system_instruction=system_prompt)
+        return genai.GenerativeModel(
+            model_name, system_instruction=system_prompt
+        )
     return genai.GenerativeModel(model_name)
 
 
@@ -47,6 +57,7 @@ def call_gemini_for_code(
     """
     Calls Gemini and returns a single cleaned function.
     """
+    _configure_gemini()
     model = _make_model(model_name, system_prompt)
 
     def call():
@@ -74,6 +85,7 @@ def call_gemini_for_tests(
     """
     Calls Gemini and returns all test functions as a dict {name: code}.
     """
+    _configure_gemini()
     model = _make_model(model_name, system_prompt)
 
     def call():
