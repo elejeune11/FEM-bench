@@ -1,0 +1,33 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+{% if task.required_imports %}
+- Use only the following imports:
+{{ task.required_imports | join('\n') }}
+{% else %}
+- No imports are available
+{% endif %}
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+{% if task.fcn_dependency_code %}
+{{ task.fcn_dependency_code | map('dedent') | join('\n\n') }}
+{% else %}
+(None)
+{% endif %}
+
+
+## Function Signature:
+## Only complete the function below:
+{{ signature }}
+{{ docstring }}
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.
