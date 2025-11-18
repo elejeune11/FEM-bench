@@ -1,6 +1,7 @@
 import ast
 import textwrap
 from fem_bench.task_base import Task
+from jinja2 import Environment, FileSystemLoader
 
 
 def extract_signature_and_docstring(code: str) -> tuple[str, str]:
@@ -31,58 +32,24 @@ def extract_signature_and_docstring(code: str) -> tuple[str, str]:
     return signature, docstring_indented
 
 
-def format_dependency_functions(dep_code_list: list[str]) -> str:
-    """Format full helper function definitions (code blocks)."""
-    if not dep_code_list:
-        return "## Available Helper Functions:\n(None)\n"
-
-    formatted_blocks = []
-    for code in dep_code_list:
-        code_block = textwrap.dedent(code).strip()
-        formatted_blocks.append(code_block)
-
-    return "## Available Helper Functions:\n" + "\n\n".join(formatted_blocks) + "\n"
-
-
-def task_to_code_prompt(task: Task) -> str:
+def task_to_code_prompt(task: Task, template_dir: str, template_name: str) -> str:
     """Generate a structured LLM prompt with signature, docstring, imports, and helpers."""
+    env = Environment(
+        loader=FileSystemLoader(searchpath=template_dir),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+    code_template = env.get_template(template_name)
     signature, docstring = extract_signature_and_docstring(task.main_fcn_code)
 
-    # Import constraints
-    if task.required_imports:
-        import_lines = "\n".join(task.required_imports)
-        import_instruction = f"- Use only the following imports: {import_lines}"
-    else:
-        import_instruction = "- No imports are available"
+    context = {
+        "task": task,
+        "signature": signature,
+        "docstring": docstring,
+    }
 
-    # Dependencies (helper functions)
-    helper_section = format_dependency_functions(task.fcn_dependency_code)
-
-    prompt = f"""\
-# Python Function Implementation Task
-
-Write a Python function that matches the exact signature and docstring provided below.
-
-## Requirements:
-- Keep the function name, parameter names, and docstring exactly as shown
-- Do not add any code outside the function definition
-{import_instruction}
-- You may call only the helper functions listed below — their full implementations are provided
-- Do not re-implement or modify them
-- Output only valid Python code (no explanations, comments, or markdown)
-- Implement the functionality as described in the docstring
-
-{helper_section}
-
-## Function Signature:
-## Only complete the function below:
-{signature}
-{docstring}
-
-# Output:
-# Only return the complete Python function — no extra text, explanation, or formatting.
-"""
-    return prompt
+    return code_template.render(context)
 
 
 def extract_test_name_and_docstring(code: str) -> tuple[str, str]:
@@ -150,4 +117,3 @@ Write pytest-style test functions that verify the correctness of the function ab
 # Only return valid pytest test functions — no prose, markdown, or commentary.
 """
     return prompt
-
