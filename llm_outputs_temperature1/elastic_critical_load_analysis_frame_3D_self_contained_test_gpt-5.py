@@ -3,34 +3,43 @@ def test_euler_buckling_cantilever_circular_param_sweep(fcn):
     Cantilever (fixed-free) circular column aligned with +z.
     Sweep through radii r ∈ {0.5, 0.75, 1.0} and lengths L ∈ {10, 20, 40}.
     For each case, run the full pipeline and compare λ·P_ref to the Euler cantilever value analytical solution.
-    Use 10 elements and check relative error within a reasonable tolerance for this discretization.
+    Use 10 elements, set tolerances to be appropriate for the anticipated discretization error at 1e-2.
     """
-    E = 210000000000.0
-    nu = 0.3
-    ne = 10
-    P0 = 1.0
+
+    def build_model(L, r, n_el, P_ref):
+        n_nodes = n_el + 1
+        node_coords = np.zeros((n_nodes, 3), dtype=float)
+        for i in range(n_nodes):
+            node_coords[i, 2] = i * (L / n_el)
+        E = 210000000000.0
+        nu = 0.3
+        A = math.pi * r ** 2
+        Iy = math.pi * r ** 4 / 4.0
+        Iz = Iy
+        J = math.pi * r ** 4 / 2.0
+        I_rho = Iy + Iz
+        elements = []
+        for i in range(n_el):
+            elements.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'I_y': Iy, 'I_z': Iz, 'J': J, 'I_rho': I_rho, 'local_z': [1.0, 0.0, 0.0]})
+        bc = {0: [True, True, True, True, True, True]}
+        loads = {n_el: [0.0, 0.0, -P_ref, 0.0, 0.0, 0.0]}
+        return (node_coords, elements, bc, loads, E, Iy)
+
+    def euler_cantilever(E, I, L):
+        K = 2.0
+        return math.pi ** 2 * E * I / (K * L) ** 2
     radii = [0.5, 0.75, 1.0]
     lengths = [10.0, 20.0, 40.0]
-    tol = 0.02
+    n_el = 10
+    P_ref = 1000.0
     for r in radii:
-        A = np.pi * r ** 2
-        I = np.pi * r ** 4 / 4.0
-        J = 2.0 * I
-        I_rho = J
         for L in lengths:
-            z = np.linspace(0.0, L, ne + 1)
-            node_coords = np.column_stack([np.zeros_like(z), np.zeros_like(z), z])
-            local_z = [1.0, 0.0, 0.0]
-            elements = []
-            for i in range(ne):
-                elements.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'Iy': I, 'Iz': I, 'J': J, 'I_rho': I_rho, 'local_z': local_z})
-            boundary_conditions = {0: [True, True, True, True, True, True]}
-            nodal_loads = {ne: [0.0, 0.0, -P0, 0.0, 0.0, 0.0]}
-            (lam, mode) = fcn(node_coords, elements, boundary_conditions, nodal_loads)
-            P_cr_num = lam * P0
-            P_cr_euler = np.pi ** 2 * E * I / (4.0 * L ** 2)
-            rel_err = abs(P_cr_num - P_cr_euler) / P_cr_euler
-            assert rel_err < tol
+            (node_coords, elements, bc, loads, E, I) = build_model(L, r, n_el, P_ref)
+            (lam, mode) = fcn(node_coords, elements, bc, loads)
+            Pcr_num = lam * P_ref
+            Pcr_ref = euler_cantilever(E, I, L)
+            rel_err = abs(Pcr_num - Pcr_ref) / Pcr_ref
+            assert rel_err < 0.02
 
 def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
     """
@@ -41,52 +50,75 @@ def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
     The buckling mode from the rotated model should equal the base mode transformed by R:
       [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
     """
-    E = 210000000000.0
-    nu = 0.3
-    ne = 10
+
+    def rot_z(a):
+        (ca, sa) = (math.cos(a), math.sin(a))
+        return np.array([[ca, -sa, 0.0], [sa, ca, 0.0], [0.0, 0.0, 1.0]], dtype=float)
+
+    def rot_y(a):
+        (ca, sa) = (math.cos(a), math.sin(a))
+        return np.array([[ca, 0.0, sa], [0.0, 1.0, 0.0], [-sa, 0.0, ca]], dtype=float)
+
+    def build_rect_model(L, b, h, n_el, P_ref, R=None):
+        n_nodes = n_el + 1
+        coords = np.zeros((n_nodes, 3), dtype=float)
+        for i in range(n_nodes):
+            coords[i, 2] = i * (L / n_el)
+        E = 70000000000.0
+        nu = 0.29
+        A = b * h
+        Iy = b * h ** 3 / 12.0
+        Iz = h * b ** 3 / 12.0
+        J = Iy + Iz
+        I_rho = Iy + Iz
+        elements = []
+        for i in range(n_el):
+            local_z = np.array([1.0, 0.0, 0.0], dtype=float)
+            if R is not None:
+                local_z = R @ local_z
+            elements.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'I_y': Iy, 'I_z': Iz, 'J': J, 'I_rho': I_rho, 'local_z': local_z.tolist()})
+        if R is None:
+            node_coords = coords
+        else:
+            node_coords = coords @ R.T
+        bc = {0: [True, True, True, True, True, True]}
+        base_force = np.array([0.0, 0.0, -P_ref], dtype=float)
+        base_moment = np.zeros(3, dtype=float)
+        if R is None:
+            load_vec = np.r_[base_force, base_moment]
+        else:
+            load_vec = np.r_[R @ base_force, R @ base_moment]
+        loads = {n_el: load_vec.tolist()}
+        return (node_coords, elements, bc, loads)
+
+    def build_T(R, n_nodes):
+        T = np.zeros((6 * n_nodes, 6 * n_nodes), dtype=float)
+        for i in range(n_nodes):
+            i6 = 6 * i
+            T[i6:i6 + 3, i6:i6 + 3] = R
+            T[i6 + 3:i6 + 6, i6 + 3:i6 + 6] = R
+        return T
     L = 12.0
-    b = 1.0
-    h = 2.0
-    A = b * h
-    Iy = b * h ** 3 / 12.0
-    Iz = h * b ** 3 / 12.0
-    J = Iy + Iz
-    I_rho = Iy + Iz
-    P0 = 1.0
-    z = np.linspace(0.0, L, ne + 1)
-    node_coords_base = np.column_stack([np.zeros_like(z), np.zeros_like(z), z])
-    local_z_base = [1.0, 0.0, 0.0]
-    elements_base = []
-    for i in range(ne):
-        elements_base.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'Iy': Iy, 'Iz': Iz, 'J': J, 'I_rho': I_rho, 'local_z': local_z_base})
-    boundary_conditions = {0: [True, True, True, True, True, True]}
-    nodal_loads_base = {ne: [0.0, 0.0, -P0, 0.0, 0.0, 0.0]}
-    (lam_base, mode_base) = fcn(node_coords_base, elements_base, boundary_conditions, nodal_loads_base)
-    alpha = 0.7
-    (ca, sa) = (np.cos(alpha), np.sin(alpha))
-    R = np.array([[ca, 0.0, sa], [0.0, 1.0, 0.0], [-sa, 0.0, ca]])
-    node_coords_rot = (R @ node_coords_base.T).T
-    elements_rot = []
-    local_z_rot = (R @ np.array(local_z_base)).tolist()
-    for i in range(ne):
-        elements_rot.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'Iy': Iy, 'Iz': Iz, 'J': J, 'I_rho': I_rho, 'local_z': local_z_rot})
-    F_base = np.array([0.0, 0.0, -P0])
-    F_rot = (R @ F_base).tolist()
-    nodal_loads_rot = {ne: F_rot + [0.0, 0.0, 0.0]}
-    (lam_rot, mode_rot) = fcn(node_coords_rot, elements_rot, boundary_conditions, nodal_loads_rot)
-    rel_diff_lam = abs(lam_rot - lam_base) / abs(lam_base)
-    assert rel_diff_lam < 1e-08
-    n_nodes = node_coords_base.shape[0]
-    T = np.zeros((6 * n_nodes, 6 * n_nodes))
-    for i in range(n_nodes):
-        T[6 * i:6 * i + 3, 6 * i:6 * i + 3] = R
-        T[6 * i + 3:6 * i + 6, 6 * i + 3:6 * i + 6] = R
-    v_base_T = T @ mode_base
-    denom = float(np.dot(v_base_T, v_base_T))
-    scale = float(np.dot(mode_rot, v_base_T)) / denom if denom > 0 else 1.0
-    diff = mode_rot - scale * v_base_T
-    rel_mode_err = np.linalg.norm(diff) / (np.linalg.norm(mode_rot) + 1e-16)
-    assert rel_mode_err < 1e-05
+    b = 0.2
+    h = 0.1
+    n_el = 12
+    P_ref = 2500.0
+    (node_coords_base, elements_base, bc_base, loads_base) = build_rect_model(L, b, h, n_el, P_ref, R=None)
+    (lam_base, mode_base) = fcn(node_coords_base, elements_base, bc_base, loads_base)
+    R = rot_z(0.3) @ rot_y(0.7)
+    (node_coords_rot, elements_rot, bc_rot, loads_rot) = build_rect_model(L, b, h, n_el, P_ref, R=R)
+    (lam_rot, mode_rot) = fcn(node_coords_rot, elements_rot, bc_rot, loads_rot)
+    rel_diff = abs(lam_rot - lam_base) / max(1.0, abs(lam_base))
+    assert rel_diff < 1e-08
+    n_nodes = n_el + 1
+    T = build_T(R, n_nodes)
+    mode_pred = T @ mode_base
+    denom = float(np.dot(mode_pred, mode_pred))
+    if denom == 0.0:
+        pytest.fail('Predicted mode has zero norm.')
+    alpha = float(np.dot(mode_rot, mode_pred)) / denom
+    resid = np.linalg.norm(mode_rot - alpha * mode_pred) / max(1e-14, np.linalg.norm(mode_rot))
+    assert resid < 5e-06
 
 def test_cantilever_euler_buckling_mesh_convergence(fcn):
     """
@@ -95,31 +127,43 @@ def test_cantilever_euler_buckling_mesh_convergence(fcn):
     approaches the analytical Euler value with decreasing relative error, and that the
     finest mesh achieves very high accuracy.
     """
-    E = 210000000000.0
-    nu = 0.3
-    L = 10.0
-    r = 0.75
-    A = np.pi * r ** 2
-    I = np.pi * r ** 4 / 4.0
-    J = 2.0 * I
-    I_rho = J
-    P0 = 1.0
-    meshes = [2, 4, 8, 16, 32]
-    errors = []
-    for ne in meshes:
-        z = np.linspace(0.0, L, ne + 1)
-        node_coords = np.column_stack([np.zeros_like(z), np.zeros_like(z), z])
-        local_z = [1.0, 0.0, 0.0]
+
+    def build_model(L, r, n_el, P_ref):
+        n_nodes = n_el + 1
+        node_coords = np.zeros((n_nodes, 3), dtype=float)
+        for i in range(n_nodes):
+            node_coords[i, 2] = i * (L / n_el)
+        E = 210000000000.0
+        nu = 0.3
+        A = math.pi * r ** 2
+        Iy = math.pi * r ** 4 / 4.0
+        Iz = Iy
+        J = math.pi * r ** 4 / 2.0
+        I_rho = Iy + Iz
         elements = []
-        for i in range(ne):
-            elements.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'Iy': I, 'Iz': I, 'J': J, 'I_rho': I_rho, 'local_z': local_z})
-        boundary_conditions = {0: [True, True, True, True, True, True]}
-        nodal_loads = {ne: [0.0, 0.0, -P0, 0.0, 0.0, 0.0]}
-        (lam, _) = fcn(node_coords, elements, boundary_conditions, nodal_loads)
-        P_cr_num = lam * P0
-        P_cr_euler = np.pi ** 2 * E * I / (4.0 * L ** 2)
-        rel_err = abs(P_cr_num - P_cr_euler) / P_cr_euler
+        for i in range(n_el):
+            elements.append({'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'I_y': Iy, 'I_z': Iz, 'J': J, 'I_rho': I_rho, 'local_z': [1.0, 0.0, 0.0]})
+        bc = {0: [True, True, True, True, True, True]}
+        loads = {n_el: [0.0, 0.0, -P_ref, 0.0, 0.0, 0.0]}
+        return (node_coords, elements, bc, loads, E, Iy)
+
+    def euler_cantilever(E, I, L):
+        K = 2.0
+        return math.pi ** 2 * E * I / (K * L) ** 2
+    L = 20.0
+    r = 1.0
+    P_ref = 1000.0
+    n_el_list = [2, 4, 8, 16, 32]
+    errors = []
+    Pcr_ref = None
+    for n_el in n_el_list:
+        (node_coords, elements, bc, loads, E, I) = build_model(L, r, n_el, P_ref)
+        (lam, mode) = fcn(node_coords, elements, bc, loads)
+        Pcr_num = lam * P_ref
+        if Pcr_ref is None:
+            Pcr_ref = euler_cantilever(E, I, L)
+        rel_err = abs(Pcr_num - Pcr_ref) / Pcr_ref
         errors.append(rel_err)
-    for i in range(1, len(errors)):
-        assert errors[i] <= errors[i - 1] + 1e-12
-    assert errors[-1] < 0.001
+    assert errors[-1] < errors[0] / 2.0
+    assert errors[-1] < errors[-2]
+    assert errors[-1] < 0.01

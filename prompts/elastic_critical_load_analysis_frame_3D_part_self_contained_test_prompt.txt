@@ -46,9 +46,9 @@ def elastic_critical_load_analysis_frame_3D_part_self_contained(node_coords: np.
           -----------------------------------------------
           - 'A'  : float
                 Cross-sectional area.
-          - 'Iy' : float
+          - 'I_y' : float
                 Second moment of area about local y.
-          - 'Iz' : float
+          - 'I_z' : float
                 Second moment of area about local z.
           - 'J'  : float
                 Torsional constant (for elastic/torsional stiffness).

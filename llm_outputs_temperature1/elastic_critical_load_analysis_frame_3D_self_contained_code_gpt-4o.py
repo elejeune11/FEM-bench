@@ -79,4 +79,4 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
       if desired (e.g., by max absolute translational DOF).
       the returned mode can depend on numerical details.
     """
-    raise NotImplementedError('This function needs to be implemented.')
+    raise NotImplementedError('This function is not yet implemented.')

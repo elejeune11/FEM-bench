@@ -11,24 +11,77 @@ import tempfile
 import textwrap
 
 
-def test_json_default_handles_numpy_objects():
+def test_json_default_is_robust_for_numpy_and_complex():
     obj = {
-        "arr": np.array([1, 2, 3]),
-        "scalar_f": np.float64(3.14),
+        # Arrays
+        "arr_int": np.array([1, 2, 3], dtype=np.int32),
+        "arr_float": np.array([1.5, 2.5, 3.5], dtype=np.float64),
+        # Complex array mixes: real, near-real (tiny imag), and real+imag
+        "arr_complex": np.array([1+0j, 2+1e-14j, 3+4j], dtype=np.complex128),
+
+        # NumPy scalars
         "scalar_i": np.int32(7),
+        "scalar_f": np.float64(3.14),
+        "scalar_c_realish": np.complex128(5+1e-15j),   # should collapse to 5.0
+        "scalar_c_complex": np.complex128(1+2j),       # should be {"real": 1.0, "imag": 2.0}
+
+        # Python complex (not NumPy)
+        "py_complex_realish": 10+1e-15j,               # should collapse to 10.0
+        "py_complex": 0.5 - 3j,                        # dict form
+
+        # Containers
+        "as_tuple": (1, 2, 3),                         # -> [1,2,3]
+        "as_set": {3, 1, 2},                           # -> [1,2,3] (sorted for determinism)
+
+        # Nested structure
+        "nested": {
+            "inner_arr": np.array([0, 1]),
+            "inner_tuple": (np.int64(9), np.float32(2.25)),
+            "inner_complex_arr": np.array([1+0j, 0+2j]),
+        },
     }
 
-    # 1. Without default, it should fail
+    # 1) Without default, at least one of these should fail
     with pytest.raises(TypeError):
         json.dumps(obj)
 
-    # 2. With our helper, it should succeed
+    # 2) With our helper, it should succeed and be JSON round-trippable
     dumped = json.dumps(obj, default=_json_default)
     loaded = json.loads(dumped)
 
-    assert loaded["arr"] == [1, 2, 3]
-    assert loaded["scalar_f"] == pytest.approx(3.14)
+    # --- Arrays ---
+    assert loaded["arr_int"] == [1, 2, 3]
+    assert loaded["arr_float"] == [pytest.approx(1.5), pytest.approx(2.5), pytest.approx(3.5)]
+
+    # Complex array:
+    #  - 1+0j -> 1.0
+    #  - 2+1e-14j -> 2.0 (near-real collapse with tol 1e-12)
+    #  - 3+4j -> {"real": 3.0, "imag": 4.0}
+    assert loaded["arr_complex"][0] == pytest.approx(1.0)
+    assert loaded["arr_complex"][1] == pytest.approx(2.0)
+    assert loaded["arr_complex"][2] == {"real": 3.0, "imag": 4.0}
+
+    # --- NumPy scalars ---
     assert loaded["scalar_i"] == 7
+    assert loaded["scalar_f"] == pytest.approx(3.14)
+    assert loaded["scalar_c_realish"] == pytest.approx(5.0)
+    assert loaded["scalar_c_complex"] == {"real": 1.0, "imag": 2.0}
+
+    # --- Python complex ---
+    assert loaded["py_complex_realish"] == pytest.approx(10.0)
+    assert loaded["py_complex"] == {"real": 0.5, "imag": -3.0}
+
+    # --- Containers ---
+    assert loaded["as_tuple"] == [1, 2, 3]
+    assert loaded["as_set"] == [1, 2, 3]  # sorted for determinism
+
+    # --- Nested structure checks ---
+    assert loaded["nested"]["inner_arr"] == [0, 1]
+    # (np.int64 -> int, np.float32 -> float)
+    assert loaded["nested"]["inner_tuple"] == [9, pytest.approx(2.25)]
+    # complex array inside nested:
+    assert loaded["nested"]["inner_complex_arr"][0] == pytest.approx(1.0)
+    assert loaded["nested"]["inner_complex_arr"][1] == {"real": 0.0, "imag": 2.0}
 
 
 def test_fembench_pipeline_init():

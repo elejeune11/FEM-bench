@@ -5,43 +5,10 @@
   "test_results": {
     "reference_pass": [
       [
-        "test_euler_buckling_cantilever_circular_param_sweep",
-        false
-      ],
-      [
-        "test_orientation_invariance_cantilever_buckling_rect_section",
-        false
-      ],
-      [
-        "test_cantilever_euler_buckling_mesh_convergence",
+        "test_placeholder",
         false
       ]
     ],
-    "failure_fail": [
-      [
-        "test_euler_buckling_cantilever_circular_param_sweep",
-        true
-      ],
-      [
-        "test_euler_buckling_cantilever_circular_param_sweep",
-        true
-      ],
-      [
-        "test_orientation_invariance_cantilever_buckling_rect_section",
-        true
-      ],
-      [
-        "test_orientation_invariance_cantilever_buckling_rect_section",
-        true
-      ],
-      [
-        "test_cantilever_euler_buckling_mesh_convergence",
-        true
-      ],
-      [
-        "test_cantilever_euler_buckling_mesh_convergence",
-        true
-      ]
-    ]
+    "failure_fail": []
   }
 }

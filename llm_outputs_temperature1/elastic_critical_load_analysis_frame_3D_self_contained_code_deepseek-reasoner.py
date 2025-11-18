@@ -46,14 +46,14 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
                 a default convention will be applied to construct the local axes.
     boundary_conditions : dict
         Dictionary mapping node index -> boundary condition specification. Each
-        node's specification can be provided in either of two forms:
+        node’s specification can be provided in either of two forms:
           the DOF is constrained (fixed).
           at that node are fixed.
-        All constrained DOFs are removed from the free set. It is the caller's
+        All constrained DOFs are removed from the free set. It is the caller’s
         responsibility to supply constraints sufficient to eliminate rigid-body
         modes.
     nodal_loads : dict[int, Sequence[float]]
-        Mapping from node index -> length-6 vector of load components applied at
+        Mapping from node index → length-6 vector of load components applied at
         that node in the **global** DOF order `[F_x, F_y, F_z, M_x, M_y, M_z]`.
         Consumed by `assemble_global_load_vector_linear_elastic_3D` to form `P`.
     Returns
@@ -80,40 +80,45 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
       the returned mode can depend on numerical details.
     """
     n_nodes = node_coords.shape[0]
-    n_dof = 6 * n_nodes
-    constrained_dofs = set()
-    for (node, spec) in boundary_conditions.items():
-        if isinstance(spec[0], bool):
-            for (i, fixed) in enumerate(spec):
-                if fixed:
-                    constrained_dofs.add(6 * node + i)
+    n_dofs = 6 * n_nodes
+    fixed_dofs = set()
+    for (node_idx, bc_spec) in boundary_conditions.items():
+        if len(bc_spec) == 6 and all((isinstance(x, bool) for x in bc_spec)):
+            for (dof_local, is_fixed) in enumerate(bc_spec):
+                if is_fixed:
+                    fixed_dofs.add(6 * node_idx + dof_local)
         else:
-            for dof_idx in spec:
-                constrained_dofs.add(6 * node + dof_idx)
-    free_dofs = sorted(set(range(n_dof)) - constrained_dofs)
+            for dof_local in bc_spec:
+                fixed_dofs.add(6 * node_idx + dof_local)
+    free_dofs = sorted(set(range(n_dofs)) - fixed_dofs)
+    if len(free_dofs) == 0:
+        raise ValueError('No free DOFs remain after applying boundary conditions')
     K = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
-    P = assemble_global_load_vector_linear_elastic_3D(node_coords, elements, nodal_loads)
-    K_free = K[np.ix_(free_dofs, free_dofs)]
-    P_free = P[free_dofs]
+    P = assemble_global_load_vector_linear_elastic_3D(node_coords, nodal_loads)
+    K_red = K[np.ix_(free_dofs, free_dofs)]
+    P_red = P[free_dofs]
     try:
-        u_free = scipy.linalg.solve(K_free, P_free, assume_a='sym')
-    except (scipy.linalg.LinAlgError, ValueError) as e:
+        u_red = scipy.linalg.solve(K_red, P_red, assume_a='sym')
+    except scipy.linalg.LinAlgError as e:
         raise ValueError(f'Linear static solution failed: {e}') from e
-    u = np.zeros(n_dof)
-    u[free_dofs] = u_free
+    u = np.zeros(n_dofs)
+    u[free_dofs] = u_red
     K_g = assemble_geometric_stiffness_matrix_3D(node_coords, elements, u)
-    K_g_free = K_g[np.ix_(free_dofs, free_dofs)]
+    K_g_red = K_g[np.ix_(free_dofs, free_dofs)]
     try:
-        (eigenvalues, eigenvectors) = scipy.linalg.eigh(K_free, -K_g_free)
-    except (scipy.linalg.LinAlgError, ValueError) as e:
+        (eigenvalues, eigenvectors_red) = scipy.linalg.eig(K_red, -K_g_red)
+    except scipy.linalg.LinAlgError as e:
         raise ValueError(f'Eigenvalue solution failed: {e}') from e
-    positive_eigenvalues = eigenvalues[eigenvalues > 0]
-    if len(positive_eigenvalues) == 0:
-        raise ValueError('No positive eigenvalues found in buckling analysis')
-    min_positive_idx = np.argmin(positive_eigenvalues)
-    elastic_critical_load_factor = positive_eigenvalues[min_positive_idx]
-    original_idx = np.where(eigenvalues == elastic_critical_load_factor)[0][0]
-    eigenvector_free = eigenvectors[:, original_idx]
-    deformed_shape_vector = np.zeros(n_dof)
-    deformed_shape_vector[free_dofs] = eigenvector_free
+    eigenvalues = np.real(eigenvalues)
+    eigenvectors_red = np.real(eigenvectors_red)
+    if np.any(np.abs(np.imag(eigenvalues)) > 1e-10):
+        raise ValueError('Significant complex eigenvalues detected')
+    positive_mask = eigenvalues > 0
+    if not np.any(positive_mask):
+        raise ValueError('No positive eigenvalues found')
+    min_positive_idx = np.argmin(eigenvalues[positive_mask])
+    elastic_critical_load_factor = eigenvalues[positive_mask][min_positive_idx]
+    eigenvector_red = eigenvectors_red[:, positive_mask][:, min_positive_idx]
+    deformed_shape_vector = np.zeros(n_dofs)
+    deformed_shape_vector[free_dofs] = eigenvector_red
     return (elastic_critical_load_factor, deformed_shape_vector)

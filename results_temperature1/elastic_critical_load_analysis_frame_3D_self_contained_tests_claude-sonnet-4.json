@@ -3,12 +3,7 @@
   "llm_name": "claude-sonnet-4",
   "tests_run": true,
   "test_results": {
-    "reference_pass": [
-      [
-        "test_placeholder",
-        false
-      ]
-    ],
+    "reference_pass": [],
     "failure_fail": []
   }
 }

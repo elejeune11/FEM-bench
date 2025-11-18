@@ -73,7 +73,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "index 6 is out of bounds for axis 0 with size 6"
     },
     {
       "test_case": 2,
@@ -145,7 +145,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "index 6 is out of bounds for axis 0 with size 6"
     },
     {
       "test_case": 3,
@@ -244,7 +244,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "index 12 is out of bounds for axis 0 with size 12"
     },
     {
       "test_case": 4,
@@ -370,7 +370,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "index 18 is out of bounds for axis 0 with size 18"
     },
     {
       "test_case": 5,
@@ -469,7 +469,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "index 12 is out of bounds for axis 0 with size 12"
     }
   ]
 }

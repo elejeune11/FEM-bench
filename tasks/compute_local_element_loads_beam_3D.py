@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from typing import Optional
 
+
 def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
     """
     Return the 12x12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.

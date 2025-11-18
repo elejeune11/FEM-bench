@@ -73,7 +73,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "name '_compute_transformation_matrix_3D' is not defined"
     },
     {
       "test_case": 2,
@@ -145,7 +145,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "name '_compute_transformation_matrix_3D' is not defined"
     },
     {
       "test_case": 3,
@@ -244,7 +244,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "name '_compute_transformation_matrix_3D' is not defined"
     },
     {
       "test_case": 4,
@@ -370,7 +370,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "name '_compute_transformation_matrix_3D' is not defined"
     },
     {
       "test_case": 5,
@@ -469,7 +469,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "name '_compute_transformation_matrix_3D' is not defined"
     }
   ]
 }

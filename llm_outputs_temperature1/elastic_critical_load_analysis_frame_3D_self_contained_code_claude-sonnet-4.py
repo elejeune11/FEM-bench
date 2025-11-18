@@ -82,127 +82,143 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
     n_nodes = node_coords.shape[0]
     n_dofs = 6 * n_nodes
 
-    def compute_transformation_matrix(node_i_coords, node_j_coords, local_z_dir=None):
-        dx = node_j_coords - node_i_coords
-        L = np.linalg.norm(dx)
-        if L < 1e-12:
+    def create_local_coordinate_system(node_i_coords, node_j_coords, local_z_direction):
+        local_x = node_j_coords - node_i_coords
+        length = np.linalg.norm(local_x)
+        if length < 1e-12:
             raise ValueError('Element has zero length')
-        ex = dx / L
-        if local_z_dir is not None:
-            ez = np.array(local_z_dir, dtype=float)
-            ez = ez / np.linalg.norm(ez)
-        elif abs(np.dot(ex, [0, 0, 1])) > 0.9:
-            ez = np.array([0, 1, 0])
+        local_x = local_x / length
+        if local_z_direction is None:
+            if abs(local_x[2]) < 0.9:
+                temp = np.array([0.0, 0.0, 1.0])
+            else:
+                temp = np.array([1.0, 0.0, 0.0])
+            local_z = temp - np.dot(temp, local_x) * local_x
+            local_z = local_z / np.linalg.norm(local_z)
         else:
-            ez = np.array([0, 0, 1])
-        ez = ez - np.dot(ez, ex) * ex
-        ez = ez / np.linalg.norm(ez)
-        ey = np.cross(ez, ex)
-        R = np.column_stack([ex, ey, ez])
+            local_z = np.array(local_z_direction)
+            local_z = local_z / np.linalg.norm(local_z)
+            local_z = local_z - np.dot(local_z, local_x) * local_x
+            local_z = local_z / np.linalg.norm(local_z)
+        local_y = np.cross(local_z, local_x)
+        return (local_x, local_y, local_z, length)
+
+    def create_transformation_matrix(local_x, local_y, local_z):
         T = np.zeros((12, 12))
+        R = np.column_stack([local_x, local_y, local_z])
         for i in range(4):
             T[3 * i:3 * i + 3, 3 * i:3 * i + 3] = R
-        return (T, L)
+        return T
 
-    def compute_element_stiffness_local(E, nu, A, Iy, Iz, J, L):
+    def create_element_elastic_stiffness(element, length):
+        E = element['E']
+        nu = element['nu']
+        A = element['A']
+        I_y = element['I_y']
+        I_z = element['I_z']
+        J = element['J']
         G = E / (2 * (1 + nu))
         k = np.zeros((12, 12))
-        k[0, 0] = E * A / L
-        k[0, 6] = -E * A / L
-        k[6, 0] = -E * A / L
-        k[6, 6] = E * A / L
-        k[3, 3] = G * J / L
-        k[3, 9] = -G * J / L
-        k[9, 3] = -G * J / L
-        k[9, 9] = G * J / L
-        k[2, 2] = 12 * E * Iy / L ** 3
-        k[2, 4] = 6 * E * Iy / L ** 2
-        k[2, 8] = -12 * E * Iy / L ** 3
-        k[2, 10] = 6 * E * Iy / L ** 2
-        k[4, 2] = 6 * E * Iy / L ** 2
-        k[4, 4] = 4 * E * Iy / L
-        k[4, 8] = -6 * E * Iy / L ** 2
-        k[4, 10] = 2 * E * Iy / L
-        k[8, 2] = -12 * E * Iy / L ** 3
-        k[8, 4] = -6 * E * Iy / L ** 2
-        k[8, 8] = 12 * E * Iy / L ** 3
-        k[8, 10] = -6 * E * Iy / L ** 2
-        k[10, 2] = 6 * E * Iy / L ** 2
-        k[10, 4] = 2 * E * Iy / L
-        k[10, 8] = -6 * E * Iy / L ** 2
-        k[10, 10] = 4 * E * Iy / L
-        k[1, 1] = 12 * E * Iz / L ** 3
-        k[1, 5] = -6 * E * Iz / L ** 2
-        k[1, 7] = -12 * E * Iz / L ** 3
-        k[1, 11] = -6 * E * Iz / L ** 2
-        k[5, 1] = -6 * E * Iz / L ** 2
-        k[5, 5] = 4 * E * Iz / L
-        k[5, 7] = 6 * E * Iz / L ** 2
-        k[5, 11] = 2 * E * Iz / L
-        k[7, 1] = -12 * E * Iz / L ** 3
-        k[7, 5] = 6 * E * Iz / L ** 2
-        k[7, 7] = 12 * E * Iz / L ** 3
-        k[7, 11] = 6 * E * Iz / L ** 2
-        k[11, 1] = -6 * E * Iz / L ** 2
-        k[11, 5] = 2 * E * Iz / L
-        k[11, 7] = 6 * E * Iz / L ** 2
-        k[11, 11] = 4 * E * Iz / L
+        k[0, 0] = E * A / length
+        k[0, 6] = -E * A / length
+        k[6, 0] = -E * A / length
+        k[6, 6] = E * A / length
+        k[3, 3] = G * J / length
+        k[3, 9] = -G * J / length
+        k[9, 3] = -G * J / length
+        k[9, 9] = G * J / length
+        k[2, 2] = 12 * E * I_y / length ** 3
+        k[2, 4] = 6 * E * I_y / length ** 2
+        k[2, 8] = -12 * E * I_y / length ** 3
+        k[2, 10] = 6 * E * I_y / length ** 2
+        k[4, 2] = 6 * E * I_y / length ** 2
+        k[4, 4] = 4 * E * I_y / length
+        k[4, 8] = -6 * E * I_y / length ** 2
+        k[4, 10] = 2 * E * I_y / length
+        k[8, 2] = -12 * E * I_y / length ** 3
+        k[8, 4] = -6 * E * I_y / length ** 2
+        k[8, 8] = 12 * E * I_y / length ** 3
+        k[8, 10] = -6 * E * I_y / length ** 2
+        k[10, 2] = 6 * E * I_y / length ** 2
+        k[10, 4] = 2 * E * I_y / length
+        k[10, 8] = -6 * E * I_y / length ** 2
+        k[10, 10] = 4 * E * I_y / length
+        k[1, 1] = 12 * E * I_z / length ** 3
+        k[1, 5] = -6 * E * I_z / length ** 2
+        k[1, 7] = -12 * E * I_z / length ** 3
+        k[1, 11] = -6 * E * I_z / length ** 2
+        k[5, 1] = -6 * E * I_z / length ** 2
+        k[5, 5] = 4 * E * I_z / length
+        k[5, 7] = 6 * E * I_z / length ** 2
+        k[5, 11] = 2 * E * I_z / length
+        k[7, 1] = -12 * E * I_z / length ** 3
+        k[7, 5] = 6 * E * I_z / length ** 2
+        k[7, 7] = 12 * E * I_z / length ** 3
+        k[7, 11] = 6 * E * I_z / length ** 2
+        k[11, 1] = -6 * E * I_z / length ** 2
+        k[11, 5] = 2 * E * I_z / length
+        k[11, 7] = 6 * E * I_z / length ** 2
+        k[11, 11] = 4 * E * I_z / length
         return k
 
-    def compute_element_geometric_stiffness_local(P_axial, Iy, Iz, I_rho, L):
+    def create_element_geometric_stiffness(element, length, axial_force):
+        I_y = element['I_y']
+        I_z = element['I_z']
+        I_rho = element['I_rho']
         kg = np.zeros((12, 12))
-        if abs(P_axial) < 1e-12:
+        if abs(axial_force) < 1e-12:
             return kg
-        kg[2, 2] = 6 / 5 * P_axial / L
-        kg[2, 4] = P_axial / 10
-        kg[2, 8] = -6 / 5 * P_axial / L
-        kg[2, 10] = P_axial / 10
-        kg[4, 2] = P_axial / 10
-        kg[4, 4] = 2 * P_axial * L / 15
-        kg[4, 8] = -P_axial / 10
-        kg[4, 10] = -P_axial * L / 30
-        kg[8, 2] = -6 / 5 * P_axial / L
-        kg[8, 4] = -P_axial / 10
-        kg[8, 8] = 6 / 5 * P_axial / L
-        kg[8, 10] = -P_axial / 10
-        kg[10, 2] = P_axial / 10
-        kg[10, 4] = -P_axial * L / 30
-        kg[10, 8] = -P_axial / 10
-        kg[10, 10] = 2 * P_axial * L / 15
-        kg[1, 1] = 6 / 5 * P_axial / L
-        kg[1, 5] = -P_axial / 10
-        kg[1, 7] = -6 / 5 * P_axial / L
-        kg[1, 11] = -P_axial / 10
-        kg[5, 1] = -P_axial / 10
-        kg[5, 5] = 2 * P_axial * L / 15
-        kg[5, 7] = P_axial / 10
-        kg[5, 11] = -P_axial * L / 30
-        kg[7, 1] = -6 / 5 * P_axial / L
-        kg[7, 5] = P_axial / 10
-        kg[7, 7] = 6 / 5 * P_axial / L
-        kg[7, 11] = P_axial / 10
-        kg[11, 1] = -P_axial / 10
-        kg[11, 5] = -P_axial * L / 30
-        kg[11, 7] = P_axial / 10
-        kg[11, 11] = 2 * P_axial * L / 15
+        kg[2, 2] = 6 / 5 * axial_force / length
+        kg[2, 8] = -6 / 5 * axial_force / length
+        kg[8, 2] = -6 / 5 * axial_force / length
+        kg[8, 8] = 6 / 5 * axial_force / length
+        kg[4, 4] = 2 * axial_force * length / 15
+        kg[4, 10] = -axial_force * length / 30
+        kg[10, 4] = -axial_force * length / 30
+        kg[10, 10] = 2 * axial_force * length / 15
+        kg[2, 4] = axial_force / 10
+        kg[2, 10] = -axial_force / 10
+        kg[4, 2] = axial_force / 10
+        kg[10, 2] = -axial_force / 10
+        kg[8, 4] = -axial_force / 10
+        kg[8, 10] = axial_force / 10
+        kg[4, 8] = -axial_force / 10
+        kg[10, 8] = axial_force / 10
+        kg[1, 1] = 6 / 5 * axial_force / length
+        kg[1, 7] = -6 / 5 * axial_force / length
+        kg[7, 1] = -6 / 5 * axial_force / length
+        kg[7, 7] = 6 / 5 * axial_force / length
+        kg[5, 5] = 2 * axial_force * length / 15
+        kg[5, 11] = -axial_force * length / 30
+        kg[11, 5] = -axial_force * length / 30
+        kg[11, 11] = 2 * axial_force * length / 15
+        kg[1, 5] = -axial_force / 10
+        kg[1, 11] = axial_force / 10
+        kg[5, 1] = -axial_force / 10
+        kg[11, 1] = axial_force / 10
+        kg[7, 5] = axial_force / 10
+        kg[7, 11] = -axial_force / 10
+        kg[5, 7] = axial_force / 10
+        kg[11, 7] = -axial_force / 10
         return kg
-    K_global = np.zeros((n_dofs, n_dofs))
-    for elem in elements:
-        node_i = elem['node_i']
-        node_j = elem['node_j']
-        (T, L) = compute_transformation_matrix(node_coords[node_i], node_coords[node_j], elem.get('local_z'))
-        k_local = compute_element_stiffness_local(elem['E'], elem['nu'], elem['A'], elem['Iy'], elem['Iz'], elem['J'], L)
+    K = np.zeros((n_dofs, n_dofs))
+    for element in elements:
+        node_i = element['node_i']
+        node_j = element['node_j']
+        node_i_coords = node_coords[node_i]
+        node_j_coords = node_coords[node_j]
+        local_z_direction = element.get('local_z', None)
+        (local_x, local_y, local_z, length) = create_local_coordinate_system(node_i_coords, node_j_coords, local_z_direction)
+        T = create_transformation_matrix(local_x, local_y, local_z)
+        k_local = create_element_elastic_stiffness(element, length)
         k_global = T.T @ k_local @ T
-        dofs_i = np.arange(6 * node_i, 6 * node_i + 6)
-        dofs_j = np.arange(6 * node_j, 6 * node_j + 6)
-        dofs = np.concatenate([dofs_i, dofs_j])
-        for (i, dof_i) in enumerate(dofs):
-            for (j, dof_j) in enumerate(dofs):
-                K_global[dof_i, dof_j] += k_global[i, j]
-    P_global = np.zeros(n_dofs)
+        dofs = np.concatenate([np.arange(6 * node_i, 6 * node_i + 6), np.arange(6 * node_j, 6 * node_j + 6)])
+        for i in range(12):
+            for j in range(12):
+                K[dofs[i], dofs[j]] += k_global[i, j]
+    P = np.zeros(n_dofs)
     for (node_idx, loads) in nodal_loads.items():
-        dofs = np.arange(6 * node_idx, 6 * node_idx + 6)
-        P_global[dofs] += loads
+        P[6 * node_idx:6 * node_idx + 6] = loads
     constrained_dofs = set()
     for (node_idx, bc_spec) in boundary_conditions.items():
         if len(bc_spec) == 6 and all((isinstance(x, (bool, np.bool_)) for x in bc_spec)):
@@ -214,43 +230,48 @@ def elastic_critical_load_analysis_frame_3D_self_contained(node_coords: np.ndarr
                 constrained_dofs.add(6 * node_idx + dof_idx)
     free_dofs = np.array([i for i in range(n_dofs) if i not in constrained_dofs])
     if len(free_dofs) == 0:
-        raise ValueError('All DOFs are constrained')
-    K_free = K_global[np.ix_(free_dofs, free_dofs)]
-    P_free = P_global[free_dofs]
+        raise ValueError('No free DOFs available')
+    K_free = K[np.ix_(free_dofs, free_dofs)]
+    P_free = P[free_dofs]
     try:
         u_free = np.linalg.solve(K_free, P_free)
     except np.linalg.LinAlgError:
-        raise ValueError('Singular stiffness matrix - check boundary conditions')
+        raise ValueError('Singular stiffness matrix')
     u_global = np.zeros(n_dofs)
     u_global[free_dofs] = u_free
-    Kg_global = np.zeros((n_dofs, n_dofs))
-    for elem in elements:
-        node_i = elem['node_i']
-        node_j = elem['node_j']
-        (T, L) = compute_transformation_matrix(node_coords[node_i], node_coords[node_j], elem.get('local_z'))
-        dofs_i = np.arange(6 * node_i, 6 * node_i + 6)
-        dofs_j = np.arange(6 * node_j, 6 * node_j + 6)
-        dofs = np.concatenate([dofs_i, dofs_j])
-        u_elem_global = u_global[dofs]
-        u_elem_local = T @ u_elem_global
-        P_axial = elem['E'] * elem['A'] * (u_elem_local[6] - u_elem_local[0]) / L
-        kg_local = compute_element_geometric_stiffness_local(P_axial, elem['Iy'], elem['Iz'], elem['I_rho'], L)
+    Kg = np.zeros((n_dofs, n_dofs))
+    for element in elements:
+        node_i = element['node_i']
+        node_j = element['node_j']
+        node_i_coords = node_coords[node_i]
+        node_j_coords = node_coords[node_j]
+        local_z_direction = element.get('local_z', None)
+        (local_x, local_y, local_z, length) = create_local_coordinate_system(node_i_coords, node_j_coords, local_z_direction)
+        T = create_transformation_matrix(local_x, local_y, local_z)
+        dofs = np.concatenate([np.arange(6 * node_i, 6 * node_i + 6), np.arange(6 * node_j, 6 * node_j + 6)])
+        u_element = u_global[dofs]
+        u_local = T @ u_element
+        E = element['E']
+        A = element['A']
+        axial_force = E * A * (u_local[6] - u_local[0]) / length
+        kg_local = create_element_geometric_stiffness(element, length, axial_force)
         kg_global = T.T @ kg_local @ T
-        for (i, dof_i) in enumerate(dofs):
-            for (j, dof_j) in enumerate(dofs):
-                Kg_global[dof_i, dof_j] += kg_global[i, j]
-    Kg_free = Kg_global[np.ix_(free_dofs, free_dofs)]
+        for i in range(12):
+            for j in range(12):
+                Kg[dofs[i], dofs[j]] += kg_global[i, j]
+    K_free = K[np.ix_(free_dofs, free_dofs)]
+    Kg_free = Kg[np.ix_(free_dofs, free_dofs)]
     try:
-        (eigenvals, eigenvecs) = scipy.linalg.eigh(-Kg_free, K_free)
+        (eigenvalues, eigenvectors) = scipy.linalg.eigh(K_free, -Kg_free)
     except np.linalg.LinAlgError:
         raise ValueError('Failed to solve eigenvalue problem')
-    positive_eigenvals = eigenvals[eigenvals > 1e-08]
-    if len(positive_eigenvals) == 0:
+    positive_eigenvalues = eigenvalues[eigenvalues > 1e-08]
+    if len(positive_eigenvalues) == 0:
         raise ValueError('No positive eigenvalues found')
-    min_eigenval_idx = np.argmin(positive_eigenvals)
-    critical_load_factor = positive_eigenvals[min_eigenval_idx]
-    eigenval_idx = np.where(eigenvals == positive_eigenvals[min_eigenval_idx])[0][0]
-    mode_free = eigenvecs[:, eigenval_idx]
-    mode_global = np.zeros(n_dofs)
-    mode_global[free_dofs] = mode_free
-    return (critical_load_factor, mode_global)
+    min_idx = np.argmin(positive_eigenvalues)
+    critical_load_factor = positive_eigenvalues[min_idx]
+    eigenvalue_idx = np.where(eigenvalues == positive_eigenvalues[min_idx])[0][0]
+    mode_shape_free = eigenvectors[:, eigenvalue_idx]
+    mode_shape_global = np.zeros(n_dofs)
+    mode_shape_global[free_dofs] = mode_shape_free
+    return (critical_load_factor, mode_shape_global)

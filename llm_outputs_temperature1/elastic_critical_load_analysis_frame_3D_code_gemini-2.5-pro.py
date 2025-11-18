@@ -97,17 +97,14 @@ def elastic_critical_load_analysis_frame_3D(node_coords: np.ndarray, elements: S
     """
     n_nodes = node_coords.shape[0]
     processed_bcs = {}
-    for (node_idx, bc_spec) in boundary_conditions.items():
-        if not bc_spec:
-            continue
-        if all((isinstance(item, bool) for item in bc_spec)):
-            processed_bcs[node_idx] = bc_spec
+    for (node_idx, spec) in boundary_conditions.items():
+        if spec and isinstance(spec[0], (int, np.integer)):
+            bool_spec = [False] * 6
+            for dof_idx in spec:
+                bool_spec[dof_idx] = True
+            processed_bcs[node_idx] = bool_spec
         else:
-            flags = [False] * 6
-            for dof_idx in bc_spec:
-                if 0 <= int(dof_idx) < 6:
-                    flags[int(dof_idx)] = True
-            processed_bcs[node_idx] = flags
+            processed_bcs[node_idx] = spec
     K_e_global = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
     P_global = assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes)
     (fixed, free) = partition_degrees_of_freedom(processed_bcs, n_nodes)

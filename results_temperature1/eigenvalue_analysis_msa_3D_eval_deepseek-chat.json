@@ -6,7 +6,6 @@
     {
       "test_case": 1,
       "inputs": [
-        2,
         {
           "type": "ndarray",
           "shape": [
@@ -378,17 +377,61 @@
             true,
             false
           ]
+        },
+        2
+      ],
+      "reference_output": [
+        13.454545454545455,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
         }
       ],
-      "reference_output": null,
-      "generated_output": null,
-      "match": false,
-      "error": "unsupported operand type(s) for *: 'dict' and 'int'"
+      "generated_output": [
+        13.454545454545455,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "match": true,
+      "error": null
     },
     {
       "test_case": 2,
       "inputs": [
-        2,
         {
           "type": "ndarray",
           "shape": [
@@ -760,17 +803,61 @@
             true,
             false
           ]
+        },
+        2
+      ],
+      "reference_output": [
+        1.478205734713355,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.45183506161195885,
+            0.0,
+            0.0,
+            0.0,
+            0.8921014948413197
+          ]
         }
       ],
-      "reference_output": null,
-      "generated_output": null,
+      "generated_output": [
+        1.4782057347133544,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.20206678247642915,
+            0.0,
+            0.0,
+            0.0,
+            -0.3989599170588738
+          ]
+        }
+      ],
       "match": false,
-      "error": "unsupported operand type(s) for *: 'dict' and 'int'"
+      "error": null
     },
     {
       "test_case": 3,
       "inputs": [
-        3,
         {
           "type": "ndarray",
           "shape": [
@@ -1534,17 +1621,73 @@
             true,
             false
           ]
+        },
+        3
+      ],
+      "reference_output": [
+        16.470588235294116,
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
         }
       ],
-      "reference_output": null,
-      "generated_output": null,
+      "generated_output": [
+        16.470588235294112,
+        {
+          "type": "ndarray",
+          "shape": [
+            18
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.7071067811865475,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
       "match": false,
-      "error": "unsupported operand type(s) for *: 'dict' and 'int'"
+      "error": null
     },
     {
       "test_case": 4,
       "inputs": [
-        4,
         {
           "type": "ndarray",
           "shape": [
@@ -2844,17 +2987,85 @@
             true,
             false
           ]
+        },
+        4
+      ],
+      "reference_output": [
+        20.0,
+        {
+          "type": "ndarray",
+          "shape": [
+            24
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
         }
       ],
-      "reference_output": null,
-      "generated_output": null,
-      "match": false,
-      "error": "unsupported operand type(s) for *: 'dict' and 'int'"
+      "generated_output": [
+        20.0,
+        {
+          "type": "ndarray",
+          "shape": [
+            24
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "match": true,
+      "error": null
     },
     {
       "test_case": 5,
       "inputs": [
-        2,
         {
           "type": "ndarray",
           "shape": [
@@ -3226,12 +3437,57 @@
             false,
             true
           ]
+        },
+        2
+      ],
+      "reference_output": [
+        5.303030303030303,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
         }
       ],
-      "reference_output": null,
-      "generated_output": null,
+      "generated_output": [
+        5.303030303030304,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5773502691896258,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
       "match": false,
-      "error": "unsupported operand type(s) for *: 'dict' and 'int'"
+      "error": null
     }
   ]
 }

@@ -8,16 +8,19 @@ def test_euler_buckling_cantilever_circular_param_sweep(fcn):
     radii = [0.5, 0.75, 1.0]
     lengths = [10, 20, 40]
     E = 210000000000.0
+    nu = 0.3
     for r in radii:
         for L in lengths:
             I = np.pi * r ** 4 / 4
-            P_euler = np.pi ** 2 * E * I / L ** 2
+            A = np.pi * r ** 2
+            P_analytical = np.pi ** 2 * E * I / L ** 2
             node_coords = np.array([[0, 0, i * L / 10] for i in range(11)])
-            elements = [{'node_i': i, 'node_j': i + 1, 'E': E, 'nu': 0.3, 'A': np.pi * r ** 2, 'Iy': I, 'Iz': I, 'J': I, 'I_rho': I, 'local_z': [0, 0, 1]} for i in range(10)]
+            elements = [{'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'I_y': I, 'I_z': I, 'J': I, 'I_rho': I, 'local_z': [0, 0, 1]} for i in range(10)]
             boundary_conditions = {0: [True, True, True, True, True, True]}
             nodal_loads = {10: [0, 0, -1, 0, 0, 0]}
             (lambda_cr, _) = fcn(node_coords, elements, boundary_conditions, nodal_loads)
-            assert abs(lambda_cr - P_euler) / P_euler < 1e-05
+            P_cr = lambda_cr * 1
+            assert abs(P_cr - P_analytical) / P_analytical < 1e-05
 
 def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
     """
@@ -25,25 +28,29 @@ def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
     The cantilever model is solved in its original orientation and again after applying
     a rigid-body rotation R to the geometry, element axes, and applied load. The critical
     load factor λ should be identical in both cases.
+    The buckling mode from the rotated model should equal the base mode transformed by R:
+      [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
     """
     E = 210000000000.0
-    Iy = 0.0001
-    Iz = 0.0002
+    nu = 0.3
+    A = 0.01
+    I_y = 1e-06
+    I_z = 2e-06
     L = 10
     node_coords = np.array([[0, 0, i * L / 10] for i in range(11)])
-    elements = [{'node_i': i, 'node_j': i + 1, 'E': E, 'nu': 0.3, 'A': 0.01, 'Iy': Iy, 'Iz': Iz, 'J': 0.0001, 'I_rho': 0.0001, 'local_z': [0, 0, 1]} for i in range(10)]
+    elements = [{'node_i': i, 'node_j': i + 1, 'E': E, 'nu': nu, 'A': A, 'I_y': I_y, 'I_z': I_z, 'J': I_y, 'I_rho': I_y, 'local_z': [0, 0, 1]} for i in range(10)]
     boundary_conditions = {0: [True, True, True, True, True, True]}
     nodal_loads = {10: [0, 0, -1, 0, 0, 0]}
     (lambda_cr_base, mode_base) = fcn(node_coords, elements, boundary_conditions, nodal_loads)
     R = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
     node_coords_rot = node_coords @ R.T
-    elements_rot = [{'node_i': e['node_i'], 'node_j': e['node_j'], 'E': e['E'], 'nu': e['nu'], 'A': e['A'], 'Iy': e['Iy'], 'Iz': e['Iz'], 'J': e['J'], 'I_rho': e['I_rho'], 'local_z': R @ e['local_z']} for e in elements]
+    elements_rot = [{'node_i': e['node_i'], 'node_j': e['node_j'], 'E': e['E'], 'nu': e['nu'], 'A': e['A'], 'I_y': e['I_y'], 'I_z': e['I_z'], 'J': e['J'], 'I_rho': e['I_rho'], 'local_z': R @ e['local_z']} for e in elements]
     nodal_loads_rot = {k: R @ np.array(v[:3]) for (k, v) in nodal_loads.items()}
     (lambda_cr_rot, mode_rot) = fcn(node_coords_rot, elements_rot, boundary_conditions, nodal_loads_rot)
     assert abs(lambda_cr_base - lambda_cr_rot) < 1e-05
     T = np.kron(np.eye(11), np.block([[R, np.zeros((3, 3))], [np.zeros((3, 3)), R]]))
-    mode_transformed = T @ mode_base
-    assert np.allclose(mode_rot / np.linalg.norm(mode_rot), mode_transformed / np.linalg.norm(mode_transformed), atol=1e-05)
+    mode_base_transformed = T @ mode_base
+    assert np.allclose(mode_rot / np.linalg.norm(mode_rot), mode_base_transformed / np.linalg.norm(mode_base_transformed), atol=1e-05)
 
 def test_cantilever_euler_buckling_mesh_convergence(fcn):
     """
@@ -54,18 +61,19 @@ def test_cantilever_euler_buckling_mesh_convergence(fcn):
     """
     E = 210000000000.0
     r = 0.5
-    I = np.pi * r ** 4 / 4
     L = 10
-    P_euler = np.pi ** 2 * E * I / L ** 2
-    num_elements_list = [10, 20, 40, 80]
-    previous_error = float('inf')
-    for num_elements in num_elements_list:
-        node_coords = np.array([[0, 0, i * L / num_elements] for i in range(num_elements + 1)])
-        elements = [{'node_i': i, 'node_j': i + 1, 'E': E, 'nu': 0.3, 'A': np.pi * r ** 2, 'Iy': I, 'Iz': I, 'J': I, 'I_rho': I, 'local_z': [0, 0, 1]} for i in range(num_elements)]
+    I = np.pi * r ** 4 / 4
+    A = np.pi * r ** 2
+    P_analytical = np.pi ** 2 * E * I / L ** 2
+    errors = []
+    for n_elements in [5, 10, 20, 40]:
+        node_coords = np.array([[0, 0, i * L / n_elements] for i in range(n_elements + 1)])
+        elements = [{'node_i': i, 'node_j': i + 1, 'E': E, 'nu': 0.3, 'A': A, 'I_y': I, 'I_z': I, 'J': I, 'I_rho': I, 'local_z': [0, 0, 1]} for i in range(n_elements)]
         boundary_conditions = {0: [True, True, True, True, True, True]}
-        nodal_loads = {num_elements: [0, 0, -1, 0, 0, 0]}
+        nodal_loads = {n_elements: [0, 0, -1, 0, 0, 0]}
         (lambda_cr, _) = fcn(node_coords, elements, boundary_conditions, nodal_loads)
-        current_error = abs(lambda_cr - P_euler) / P_euler
-        assert current_error < previous_error
-        previous_error = current_error
-    assert previous_error < 1e-05
+        P_cr = lambda_cr * 1
+        error = abs(P_cr - P_analytical) / P_analytical
+        errors.append(error)
+    assert all((errors[i] > errors[i + 1] for i in range(len(errors) - 1)))
+    assert errors[-1] < 1e-05

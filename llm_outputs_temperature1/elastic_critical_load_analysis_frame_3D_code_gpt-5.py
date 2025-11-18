@@ -96,42 +96,49 @@ def elastic_critical_load_analysis_frame_3D(node_coords: np.ndarray, elements: S
       the returned mode can depend on numerical details.
     """
     node_coords = np.asarray(node_coords, dtype=float)
-    n_nodes = int(node_coords.shape[0])
-
-    def _normalize_bcs(bc_dict, n_nodes):
-        bc_bool = {}
-        for (n, spec) in (bc_dict or {}).items():
-            arr = np.asarray(spec)
-            if arr.dtype == bool and arr.size == 6:
-                bc_bool[int(n)] = [bool(x) for x in arr.tolist()]
-            elif arr.size == 6 and np.issubdtype(arr.dtype, np.integer) and np.all((arr == 0) | (arr == 1)):
-                bc_bool[int(n)] = [bool(x) for x in arr.tolist()]
+    if node_coords.ndim != 2 or node_coords.shape[1] != 3:
+        raise ValueError('node_coords must be an array of shape (n_nodes, 3).')
+    n_nodes = node_coords.shape[0]
+    n_dof = 6 * n_nodes
+    bc_bool: dict[int, np.ndarray] = {}
+    if boundary_conditions is not None:
+        for (n, spec) in boundary_conditions.items():
+            ni = int(n)
+            if ni < 0 or ni >= n_nodes:
+                raise ValueError(f'Boundary condition specified for invalid node index {ni}.')
+            try:
+                seq = list(spec)
+            except TypeError:
+                raise ValueError(f'Boundary condition for node {ni} must be sequence-like.')
+            if len(seq) == 6:
+                mask = np.asarray(seq, dtype=bool)
             else:
-                idx = [int(i) for i in np.asarray(spec, dtype=int).tolist()]
-                flags = [False] * 6
-                for i in idx:
-                    if i < 0 or i >= 6:
-                        raise ValueError(f'Boundary condition DOF index out of range at node {n}: {i}')
-                    flags[i] = True
-                bc_bool[int(n)] = flags
-        return bc_bool
-
-    def _normalize_elements(elems):
-        out = []
-        for e in elems:
-            d = dict(e)
-            if 'I_y' not in d and 'Iy' in d:
-                d['I_y'] = d['Iy']
-            if 'I_z' not in d and 'Iz' in d:
-                d['I_z'] = d['Iz']
-            out.append(d)
-        return out
-    elements_norm = _normalize_elements(elements)
-    bc_bool = _normalize_bcs(boundary_conditions, n_nodes)
-    K = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements_norm)
+                mask = np.zeros(6, dtype=bool)
+                for idx in seq:
+                    ii = int(idx)
+                    if ii < 0 or ii >= 6:
+                        raise ValueError(f'Invalid DOF index {ii} in boundary condition for node {ni}.')
+                    mask[ii] = True
+            bc_bool[ni] = mask
+    if nodal_loads is None:
+        nodal_loads = {}
+    else:
+        for n in nodal_loads.keys():
+            ni = int(n)
+            if ni < 0 or ni >= n_nodes:
+                raise ValueError(f'Nodal load specified for invalid node index {ni}.')
+    K_e = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
+    if K_e.shape != (n_dof, n_dof):
+        raise ValueError('Assembled elastic stiffness has incorrect shape.')
     P = assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes)
+    if P.shape != (n_dof,):
+        raise ValueError('Assembled global load vector has incorrect shape.')
     (fixed, free) = partition_degrees_of_freedom(bc_bool, n_nodes)
-    (u, _) = linear_solve(P, K, fixed, free)
-    K_g = assemble_global_geometric_stiffness_3D_beam(node_coords, elements_norm, u)
-    (lam, mode) = eigenvalue_analysis(K, K_g, bc_bool, n_nodes)
-    return (lam, mode)
+    if free.size == 0:
+        raise ValueError('No free degrees of freedom remain after applying boundary conditions.')
+    (u_ref, _) = linear_solve(P, K_e, fixed, free)
+    K_g = assemble_global_geometric_stiffness_3D_beam(node_coords, elements, u_ref)
+    if K_g.shape != (n_dof, n_dof):
+        raise ValueError('Assembled geometric stiffness has incorrect shape.')
+    (lam, phi) = eigenvalue_analysis(K_e, K_g, bc_bool, n_nodes)
+    return (lam, phi)

@@ -15,10 +15,43 @@ import pytest
 - Implement the functionality as described in the docstring
 
 ## Available Helper Functions:
-def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
+def local_elastic_stiffness_matrix_3D_beam(
+    E: float,
+    nu: float,
+    A: float,
+    L: float,
+    Iy: float,
+    Iz: float,
+    J: float
+) -> np.ndarray:
     """
-    Return the 12x12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.
-    DOF order (local): [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+    Return the 12×12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.
+
+    The beam is assumed to be aligned with the local x-axis. The stiffness matrix
+    relates local nodal displacements and rotations to forces and moments using the equation:
+
+        [force_vector] = [stiffness_matrix] @ [displacement_vector]
+
+    Degrees of freedom are ordered as:
+        [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+
+    Where:
+        - u, v, w: displacements along local x, y, z
+        - θx, θy, θz: rotations about local x, y, z
+        - Subscripts 1 and 2 refer to node i and node j of the element
+
+    Parameters:
+        E (float): Young's modulus
+        nu (float): Poisson's ratio (used for torsion only)
+        A (float): Cross-sectional area
+        L (float): Length of the beam element
+        Iy (float): Second moment of area about the local y-axis
+        Iz (float): Second moment of area about the local z-axis
+        J (float): Torsional constant
+
+    Returns:
+        np.ndarray: A 12x12 symmetric stiffness matrix representing axial, torsional,
+                    and bending stiffness in local coordinates.
     """
     k = np.zeros((12, 12))
     EA_L = E * A / L
@@ -169,9 +202,9 @@ def elastic_critical_load_analysis_frame_3D_part_self_contained(node_coords: np.
           -----------------------------------------------
           - 'A'  : float
                 Cross-sectional area.
-          - 'Iy' : float
+          - 'I_y' : float
                 Second moment of area about local y.
-          - 'Iz' : float
+          - 'I_z' : float
                 Second moment of area about local z.
           - 'J'  : float
                 Torsional constant (for elastic/torsional stiffness).

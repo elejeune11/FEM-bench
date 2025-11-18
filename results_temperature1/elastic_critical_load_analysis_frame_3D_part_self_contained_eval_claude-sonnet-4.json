@@ -70,10 +70,54 @@
           ]
         }
       ],
-      "reference_output": null,
-      "generated_output": null,
+      "reference_output": [
+        31.239516044243288,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5377677092116545,
+            0.0,
+            0.0,
+            0.0,
+            0.8430930499827699,
+            0.0
+          ]
+        }
+      ],
+      "generated_output": [
+        31.239516044243242,
+        {
+          "type": "ndarray",
+          "shape": [
+            12
+          ],
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.2869862702582889,
+            0.0,
+            0.0,
+            0.0,
+            -0.4499268471324506,
+            -0.0
+          ]
+        }
+      ],
       "match": false,
-      "error": "'Iy'"
+      "error": null
     },
     {
       "test_case": 2,
@@ -145,7 +189,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "The leading minor of order 4 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
     },
     {
       "test_case": 3,
@@ -244,7 +288,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "The leading minor of order 6 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
     },
     {
       "test_case": 4,
@@ -370,7 +414,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "The leading minor of order 4 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
     },
     {
       "test_case": 5,
@@ -469,7 +513,7 @@
       "reference_output": null,
       "generated_output": null,
       "match": false,
-      "error": "'Iy'"
+      "error": "The leading minor of order 4 of B is not positive definite. The factorization of B could not be completed and no eigenvalues or eigenvectors were computed."
     }
   ]
 }

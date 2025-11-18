@@ -13,10 +13,41 @@ from typing import Dict, Optional
 
 
 def _json_default(o):
+    import numpy as np
+
+    def _complex_to_json(z):
+        z = complex(z)  # ensure Python complex
+        if abs(z.imag) < 1e-12:
+            return float(z.real)
+        return {"real": float(z.real), "imag": float(z.imag)}
+
+    # NumPy arrays
     if isinstance(o, np.ndarray):
+        if np.iscomplexobj(o):
+            # Mixed outputs (floats and dicts) => use object array, then tolist()
+            out = np.empty(o.shape, dtype=object)
+            it = np.nditer(o, flags=["multi_index"])
+            for z in it:
+                out[it.multi_index] = _complex_to_json(z.item())
+            return out.tolist()
         return o.tolist()
-    if isinstance(o, np.generic):  # handles np.float64, np.int32, etc.
-        return o.item()
+
+    # NumPy scalars
+    if isinstance(o, np.generic):
+        if np.iscomplexobj(o):
+            return _complex_to_json(o.item())
+        return o.item()  # int/float become native types
+
+    # Python complex
+    if isinstance(o, complex):
+        return _complex_to_json(o)
+
+    # Containers
+    if isinstance(o, tuple):
+        return list(o)
+    if isinstance(o, set):
+        return sorted(list(o))
+
     raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
 
 

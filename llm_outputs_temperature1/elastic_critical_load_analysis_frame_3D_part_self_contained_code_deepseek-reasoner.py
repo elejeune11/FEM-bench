@@ -86,52 +86,85 @@ def elastic_critical_load_analysis_frame_3D_part_self_contained(node_coords: np.
     """
     n_nodes = node_coords.shape[0]
     n_dofs = 6 * n_nodes
-    constrained_dofs = set()
-    for (node_idx, bc_spec) in boundary_conditions.items():
-        if len(bc_spec) == 6 and all((isinstance(x, bool) for x in bc_spec)):
-            for (dof_local, is_fixed) in enumerate(bc_spec):
-                if is_fixed:
-                    constrained_dofs.add(6 * node_idx + dof_local)
-        else:
-            for dof_local in bc_spec:
-                constrained_dofs.add(6 * node_idx + dof_local)
-    free_dofs = sorted(set(range(n_dofs)) - constrained_dofs)
     K_global = np.zeros((n_dofs, n_dofs))
-    for elem in elements:
-        node_i = elem['node_i']
-        node_j = elem['node_j']
-        coords_i = node_coords[node_i]
-        coords_j = node_coords[node_j]
-        L = np.linalg.norm(coords_j - coords_i)
-        k_local = local_elastic_stiffness_matrix_3D_beam(elem['E'], elem['nu'], elem['A'], L, elem['Iy'], elem['Iz'], elem['J'])
-        T = np.eye(12)
-        k_global_elem = T.T @ k_local @ T
-        dofs_i = list(range(6 * node_i, 6 * node_i + 6))
-        dofs_j = list(range(6 * node_j, 6 * node_j + 6))
-        assembly_dofs = dofs_i + dofs_j
-        for (i, dof_i) in enumerate(assembly_dofs):
-            for (j, dof_j) in enumerate(assembly_dofs):
-                K_global[dof_i, dof_j] += k_global_elem[i, j]
+    for element in elements:
+        node_i = element['node_i']
+        node_j = element['node_j']
+        coord_i = node_coords[node_i]
+        coord_j = node_coords[node_j]
+        L = np.linalg.norm(coord_j - coord_i)
+        E = element['E']
+        nu = element['nu']
+        A = element['A']
+        I_y = element['I_y']
+        I_z = element['I_z']
+        J = element['J']
+        k_local = local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J)
+        local_z = element.get('local_z', None)
+        T = _compute_transformation_matrix_3D(coord_i, coord_j, local_z)
+        k_global = T.T @ k_local @ T
+        dofs_i = range(6 * node_i, 6 * node_i + 6)
+        dofs_j = range(6 * node_j, 6 * node_j + 6)
+        all_dofs = np.concatenate([dofs_i, dofs_j])
+        K_global[np.ix_(all_dofs, all_dofs)] += k_global
     P_global = np.zeros(n_dofs)
     for (node_idx, loads) in nodal_loads.items():
         start_dof = 6 * node_idx
         P_global[start_dof:start_dof + 6] = loads
+    constrained_dofs = _parse_boundary_conditions(boundary_conditions, n_nodes)
+    free_dofs = np.setdiff1d(np.arange(n_dofs), constrained_dofs)
+    if len(free_dofs) == 0:
+        raise ValueError('No free DOFs remaining after applying boundary conditions')
     K_free = K_global[np.ix_(free_dofs, free_dofs)]
     P_free = P_global[free_dofs]
     try:
         u_free = scipy.linalg.solve(K_free, P_free, assume_a='sym')
     except scipy.linalg.LinAlgError:
-        raise ValueError('Singular stiffness matrix - check boundary conditions')
+        raise ValueError('Linear system is singular - check boundary conditions')
     u_global = np.zeros(n_dofs)
     u_global[free_dofs] = u_free
-    K_g_global = np.zeros((n_dofs, n_dofs))
-    for elem in elements:
-        node_i = elem['node_i']
-        node_j = elem['node_j']
-        coords_i = node_coords[node_i]
-        coords_j = node_coords[node_j]
-        L = np.linalg.norm(coords_j - coords_i)
-        u_elem = np.zeros(12)
-        dofs_i = list(range(6 * node_i, 6 * node_i + 6))
-        dofs_j = list(range(6 * node_j, 6 * node_j + 6))
-        assembly
+    K_geo_global = np.zeros((n_dofs, n_dofs))
+    for element in elements:
+        node_i = element['node_i']
+        node_j = element['node_j']
+        coord_i = node_coords[node_i]
+        coord_j = node_coords[node_j]
+        L = np.linalg.norm(coord_j - coord_i)
+        A = element['A']
+        I_rho = element['I_rho']
+        local_z = element.get('local_z', None)
+        T = _compute_transformation_matrix_3D(coord_i, coord_j, local_z)
+        dofs_i = range(6 * node_i, 6 * node_i + 6)
+        dofs_j = range(6 * node_j, 6 * node_j + 6)
+        all_dofs = np.concatenate([dofs_i, dofs_j])
+        u_element_global = u_global[all_dofs]
+        u_element_local = T @ u_element_global
+        k_local = local_elastic_stiffness_matrix_3D_beam(element['E'], element['nu'], element['A'], L, element['I_y'], element['I_z'], element['J'])
+        f_element_local = k_local @ u_element_local
+        Fx2 = f_element_local[6]
+        Mx2 = f_element_local[9]
+        My1 = f_element_local[4]
+        Mz1 = f_element_local[5]
+        My2 = f_element_local[10]
+        Mz2 = f_element_local[11]
+        k_geo_local = local_geometric_stiffness_matrix_3D_beam(L, A, I_rho, Fx2, Mx2, My1, Mz1, My2, Mz2)
+        k_geo_global_element = T.T @ k_geo_local @ T
+        K_geo_global[np.ix_(all_dofs, all_dofs)] += k_geo_global_element
+    K_free = K_global[np.ix_(free_dofs, free_dofs)]
+    K_geo_free = K_geo_global[np.ix_(free_dofs, free_dofs)]
+    try:
+        (eigenvalues, eigenvectors) = scipy.linalg.eig(K_free, -K_geo_free)
+    except scipy.linalg.LinAlgError:
+        raise ValueError('Generalized eigenvalue problem failed to solve')
+    real_mask = np.abs(eigenvalues.imag) < 1e-10
+    eigenvalues_real = eigenvalues[real_mask].real
+    eigenvectors_real = eigenvectors[:, real_mask].real
+    positive_mask = eigenvalues_real > 1e-10
+    if not np.any(positive_mask):
+        raise ValueError('No positive eigenvalues found')
+    min_positive_idx = np.argmin(eigenvalues_real[positive_mask])
+    elastic_critical_load_factor = eigenvalues_real[positive_mask][min_positive_idx]
+    eigenvector_free = eigenvectors_real[:, positive_mask][:, min_positive_idx]
+    deformed_shape_vector = np.zeros(n_dofs)
+    deformed_shape_vector[free_dofs] = eigenvector_free
+    return (elastic_critical_load_factor, deformed_shape_vector)
