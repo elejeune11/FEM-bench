@@ -8,9 +8,6 @@ from llm_api.clean_utils import clean_and_extract_function, extract_test_functio
 
 # Load env
 load_dotenv()
-api_key = os.getenv("CLAUDE_API_KEY")
-if not api_key:
-    raise RuntimeError("CLAUDE_API_KEY is not set in your environment or .env file.")
 
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
@@ -69,6 +66,10 @@ def _call_claude_api(
     system_prompt: Optional[str] = None,
 ) -> str:
     """Make the actual API call to Claude API."""
+    api_key = os.getenv("CLAUDE_API_KEY")
+    if not api_key:
+        raise RuntimeError("CLAUDE_API_KEY is not set in your environment or .env file.")
+
     headers = {
         "x-api-key": api_key,
         "Content-Type": "application/json",

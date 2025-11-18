@@ -8,9 +8,6 @@ from llm_api.clean_utils import clean_and_extract_function, extract_test_functio
 
 # Load DeepSeek API key
 load_dotenv()
-api_key = os.getenv("DEEPSEEK_API_KEY")
-if not api_key:
-    raise RuntimeError("DEEPSEEK_API_KEY is not set in your environment or .env file.")
 
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
@@ -71,6 +68,10 @@ def _call_deepseek_api(
     system_prompt: Optional[str] = None,
 ) -> str:
     """Make the actual API call to DeepSeek Official API (OpenAI-compatible)."""
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    if not api_key:
+        raise RuntimeError("DEEPSEEK_API_KEY is not set in your environment or .env file.")
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
