@@ -16,6 +16,7 @@ dependencies = [
     "matplotlib>=3.3.0",
     "pandas",
     "tabulate",
+    "jinja2",
 ]
 
 [project.optional-dependencies]

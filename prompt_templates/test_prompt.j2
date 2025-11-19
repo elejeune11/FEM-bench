@@ -1,0 +1,31 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+{{ signature }}
+{{ docstring }}
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Function Signature:
+## Test Functions to Implement:
+{% if test_cases %}
+{% for test in test_cases %}
+- {{ test.name }}: "{{ test.doc }}"
+{% endfor %}
+{% else %}
+- (no test cases found)
+{% endif %}
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.
