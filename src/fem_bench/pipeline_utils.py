@@ -41,16 +41,18 @@ class FEMBenchPipeline:
         llm_outputs_dir: str,
         prompts_dir: str,
         results_dir: str,
-        template_dir: str,
-        template_name: str
+        prompt_template_dir: str,
+        code_prompt_template_name: str,
+        test_prompt_template_name: str,
     ):
         # --- Directory setup ---
         self.tasks_dir = Path(tasks_dir)
         self.llm_outputs_dir = Path(llm_outputs_dir)
         self.prompts_dir = Path(prompts_dir)
         self.results_dir = Path(results_dir)
-        self.template_dir = Path(template_dir)
-        self.template_name = template_name
+        self.prompt_template_dir = Path(prompt_template_dir)
+        self.code_prompt_template_name = code_prompt_template_name
+        self.test_prompt_template_name = test_prompt_template_name
 
         # Create directories if they don’t exist
         for d in [self.prompts_dir, self.results_dir]:
@@ -93,7 +95,7 @@ class FEMBenchPipeline:
         Saved files are written to {self.prompts_dir}/{task_id}_code_prompt.txt.
         """
         for task_id, task in self.tasks.items():
-            prompt = task_to_code_prompt(task, self.template_dir, self.template_name)
+            prompt = task_to_code_prompt(task, self.prompt_template_dir, self.code_prompt_template_name)
             prompt_path = self.prompts_dir / f"{task_id}_code_prompt.txt"
             prompt_path.write_text(prompt, encoding="utf-8")
             self.prompts.setdefault(task_id, {})["code"] = prompt
@@ -104,7 +106,7 @@ class FEMBenchPipeline:
         Saved files are written to {self.prompts_dir}/{task_id}_test_prompt.txt.
         """
         for task_id, task in self.tasks.items():
-            prompt = task_to_test_prompt(task, self.template_dir, self.template_name)
+            prompt = task_to_test_prompt(task, self.prompt_template_dir, self.test_prompt_template_name)
             prompt_path = self.prompts_dir / f"{task_id}_test_prompt.txt"
             prompt_path.write_text(prompt, encoding="utf-8")
             self.prompts.setdefault(task_id, {})["tests"] = prompt
