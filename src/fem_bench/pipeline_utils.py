@@ -104,7 +104,7 @@ class FEMBenchPipeline:
         Saved files are written to {self.prompts_dir}/{task_id}_test_prompt.txt.
         """
         for task_id, task in self.tasks.items():
-            prompt = task_to_test_prompt(task)
+            prompt = task_to_test_prompt(task, self.template_dir, self.template_name)
             prompt_path = self.prompts_dir / f"{task_id}_test_prompt.txt"
             prompt_path.write_text(prompt, encoding="utf-8")
             self.prompts.setdefault(task_id, {})["tests"] = prompt
