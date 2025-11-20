@@ -39,6 +39,7 @@ def task_to_code_prompt(task: Task, template_dir: str, template_name: str) -> st
         trim_blocks=True,
         lstrip_blocks=True,
     )
+    env.filters['dedent'] = textwrap.dedent
 
     code_template = env.get_template(template_name)
     signature, docstring = extract_signature_and_docstring(task.main_fcn_code)
@@ -71,6 +72,7 @@ def task_to_test_prompt(task: Task, template_dir: str, template_name: str)-> str
         trim_blocks=True,
         lstrip_blocks=True,
     )
+    env.filters['dedent'] = textwrap.dedent
     test_template = env.get_template(template_name)
 
     # Extract main function signature and docstring
