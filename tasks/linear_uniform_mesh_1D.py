@@ -78,15 +78,20 @@ def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.
 
 
 def task_info():
-    task_id = "linear_uniform_mesh_1D"
-    task_short_description = "creates a 1D uniform mesh with node coordiantes and element connectivity"
-    created_date = "2025-07-08"
-    created_by = "elejeune11"
-    main_fcn = linear_uniform_mesh_1D
-    required_imports = ["import numpy as np", "import pytest"]
-    fcn_dependencies = []
-    reference_verification_inputs = [[0.0, 10.0, 10],
-                                     [-5.0, 5.0, 7],
-                                     [3.0, -1.0, 6]]
-    test_cases = [{"test_code": test_basic_mesh_creation, "expected_failures": [fail_basic_mesh_creation]}, {"test_code": test_single_element_mesh, "expected_failures": [fail_single_element_mesh]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": "linear_uniform_mesh_1D",
+        "task_short_description": "creates a 1D uniform mesh with node coordiantes and element connectivity",
+        "created_date": "2025-07-08",
+        "created_by": "elejeune11",
+        "main_fcn": linear_uniform_mesh_1D,
+        "required_imports": ["import numpy as np", "import pytest"],
+        "fcn_dependencies": [],
+        "reference_verification_inputs": [
+            [0.0, 10.0, 10],
+            [-5.0, 5.0, 7],
+            [3.0, -1.0, 6],
+        ],
+        "test_cases": [{"test_code": test_basic_mesh_creation, "expected_failures": [fail_basic_mesh_creation]}, {"test_code": test_single_element_mesh, "expected_failures": [fail_single_element_mesh]}],
+        "python_version": "3.11.5",
+        "package_versions": {"numpy": "1.25.2", "pytest": "7.4.3"},
+    }
