@@ -97,6 +97,7 @@ def task_to_test_prompt(task: Task, template_dir: str, template_name: str)-> str
 
     # 4. Prepare context and render
     context = {
+        "task": task,
         "signature": signature,
         "docstring": docstring,
         "test_cases": test_cases_data
