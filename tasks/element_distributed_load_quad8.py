@@ -406,4 +406,16 @@ def task_info():
     test_cases = [{"test_code": test_edl_q8_analytic_straight_edges_total_force_scaled_all_faces, "expected_failures": [element_distributed_load_quad8__all_ones]},
                   {"test_code": test_edl_q8_constant_traction_total_force_on_curved_parabolic_edge, "expected_failures": [element_distributed_load_quad8__all_ones]}
                   ]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

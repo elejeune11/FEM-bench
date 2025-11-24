@@ -403,4 +403,16 @@ def task_info():
         ]
     ]
     test_cases = [{"test_code": test_no_load_self_contained, "expected_failures": [return_all_ones]}, {"test_code": test_uniform_extension_analytical_self_contained, "expected_failures": [return_all_zeros]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

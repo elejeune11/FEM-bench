@@ -512,4 +512,16 @@ def task_info():
                   {"test_code": test_integral_of_derivative_quad8_affine_linear_field, "expected_failures": [compute_integral_of_derivative_quad8_all_ones]},
                   {"test_code": test_integral_of_derivative_quad8_order_check_asymmetric_curved, "expected_failures": [compute_integral_of_derivative_quad8_all_ones]},
                   ]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

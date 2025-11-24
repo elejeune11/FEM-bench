@@ -232,4 +232,16 @@ def task_info():
         ]
     ]
     test_cases = [{"test_code": test_linear_solve_arbitrary_solvable_cases, "expected_failures": [linear_solve_no_partition]}, {"test_code": test_linear_solve_raises_on_ill_conditioned_matrix, "expected_failures": [linear_solve_no_error_check]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

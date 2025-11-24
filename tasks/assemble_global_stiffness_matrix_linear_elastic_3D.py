@@ -331,4 +331,16 @@ def task_info():
         ]
     ]
     test_cases = [{"test_code": test_assemble_global_stiffness_matrix_shape_and_symmetry, "expected_failures": [assemble_global_stiffness_matrix_linear_elastic_3D_broken]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

@@ -558,4 +558,16 @@ def task_info():
                   {"test_code": test_quad8_mesh_geometry_and_conformity, "expected_failures": [generate_quad8_rectangular_mesh_ccw_bug, generate_quad8_rectangular_mesh_duplicate_node_bug]},
                   {"test_code": test_quad8_mesh_invalid_inputs, "expected_failures": [generate_quad8_rectangular_mesh_no_error_nx_ny, generate_quad8_rectangular_mesh_no_error_domain]}
                   ]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

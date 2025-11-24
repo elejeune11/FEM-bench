@@ -92,6 +92,6 @@ def task_info():
             [3.0, -1.0, 6],
         ],
         "test_cases": [{"test_code": test_basic_mesh_creation, "expected_failures": [fail_basic_mesh_creation]}, {"test_code": test_single_element_mesh, "expected_failures": [fail_single_element_mesh]}],
-        "python_version": "3.11.5",
-        "package_versions": {"numpy": "1.25.2", "pytest": "7.4.3"},
+        # "python_version": "3.11.5",
+        # "package_versions": {"numpy": "1.25.2", "pytest": "7.4.3"},
     }

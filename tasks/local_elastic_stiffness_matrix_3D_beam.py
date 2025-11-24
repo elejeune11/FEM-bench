@@ -295,4 +295,16 @@ def task_info():
                                      [6790, 0.2, 10.6, 4.7, 44, 34, 20.1],]
     test_cases = [{"test_code": test_local_stiffness_3D_beam, "expected_failures": [local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy]},
                   {"test_code": test_cantilever_deflection_matches_euler_bernoulli, "expected_failures": [all_random, local_elastic_stiffness_matrix_3D_beam_flipped_Iz_Iy]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }
