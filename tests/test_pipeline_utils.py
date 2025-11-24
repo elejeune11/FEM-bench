@@ -13,7 +13,6 @@ import textwrap
 
 repo_root = Path(__file__).resolve().parents[1]
 
-def test_json_default_handles_numpy_objects():
 def test_json_default_is_robust_for_numpy_and_complex():
     obj = {
         # Arrays
