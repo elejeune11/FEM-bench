@@ -1,0 +1,35 @@
+{
+  "task_id": "elastic_critical_load_analysis_frame_3D",
+  "llm_name": "deepseek-reasoner",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        false
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        false
+      ]
+    ]
+  }
+}

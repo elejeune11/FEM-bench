@@ -22,3 +22,6 @@ fem_bench_env/bin/*
 fem_bench_env/share/
 
 .env
+
+.coverage
+.coverage.*

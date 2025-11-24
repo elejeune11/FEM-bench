@@ -1,0 +1,177 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def elastic_critical_load_analysis_frame_3D(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int]], nodal_loads: dict[int, Sequence[float]]):
+    """
+    Perform linear (eigenvalue) buckling analysis for a 3D frame and return the
+    elastic critical load factor and associated global buckling mode shape.
+
+    Overview
+    --------
+    The routine:
+      1) Assembles the global elastic stiffness matrix `K`.
+      2) Assembles the global reference load vector `P`.
+      3) Solves the linear static problem `K u = P` (with boundary conditions) to
+         obtain the displacement state `u` under the reference load.
+      4) Assembles the geometric stiffness `K_g` consistent with that state.
+      5) Solves the generalized eigenproblem on the free DOFs,
+             K φ = -λ K_g φ,
+         and returns the smallest positive eigenvalue `λ` as the elastic
+         critical load factor and its corresponding global mode shape `φ`
+         (constrained DOFs set to zero).
+
+    Parameters
+    ----------
+    node_coords : (n_nodes, 3) ndarray of float
+        Cartesian coordinates (x, y, z) for each node, indexed 0..n_nodes-1.
+    elements : Sequence[dict]
+        Element definitions consumed by the assembly routines. Each dictionary
+        must supply properties for a 2-node 3D Euler-Bernoulli beam aligned with
+        its local x-axis. Required keys (minimum):
+          Topology
+          --------
+          - 'node_i' : int
+                Start node index (0-based).
+          - 'node_j' : int
+                End node index (0-based).
+          Material
+          --------
+          - 'E' : float
+                Young's modulus (used in axial, bending, and torsion terms).
+          - 'nu' : float
+                Poisson's ratio (used in torsion only, per your stiffness routine).
+          Section (local axes y,z about the beam's local x)
+          -----------------------------------------------
+          - 'A'  : float
+                Cross-sectional area.
+          - 'I_y' : float
+                Second moment of area about local y.
+          - 'I_z' : float
+                Second moment of area about local z.
+          - 'J'  : float
+                Torsional constant (for elastic/torsional stiffness).
+          - 'I_rho' : float
+                Polar moment about the local x-axis used by the geometric stiffness
+                with torsion-bending coupling (see your geometric K routine).
+          Orientation
+          -----------
+          - 'local_z' : Sequence[float] of length 3 **or** None
+                Provide a 3-vector giving the direction of the element's local z-axis to 
+                disambiguate the local triad used in the 12x12 transformation; if set to `None`, 
+                a default convention will be applied to construct the local axes.
+    boundary_conditions : dict
+        Dictionary mapping node index -> boundary condition specification. Each
+        node’s specification can be provided in either of two forms:
+        - Sequence of 6 booleans: [ux, uy, uz, rx, ry, rz], where True means
+          the DOF is constrained (fixed).
+        - Sequence of integer indices: e.g. [0, 1, 2] means the DOFs ux, uy, uz
+          at that node are fixed.
+        All constrained DOFs are removed from the free set. It is the caller’s
+        responsibility to supply constraints sufficient to eliminate rigid-body
+        modes.
+    nodal_loads : dict[int, Sequence[float]]
+        Mapping from node index → length-6 vector of load components applied at
+        that node in the **global** DOF order `[F_x, F_y, F_z, M_x, M_y, M_z]`.
+        Consumed by `assemble_global_load_vector_linear_elastic_3D` to form `P`.
+
+    Returns
+    -------
+    elastic_critical_load_factor : float
+        The smallest positive eigenvalue `λ` (> 0). If `P` is the reference load
+        used to form `K_g`, then the predicted elastic buckling load is
+        `P_cr = λ · P`.
+    deformed_shape_vector : (6*n_nodes,) ndarray of float
+        Global buckling mode vector with constrained DOFs set to zero. No
+        normalization is applied (mode scale is arbitrary; only the shape matters).
+
+    Assumptions
+    -----------
+    - Frame elements possess 6 DOF per node and use global DOF order
+      `[u_x, u_y, u_z, θ_x, θ_y, θ_z]`.
+    - Small-displacement (eigenvalue) buckling theory: geometric nonlinearity is
+      represented via `K_g` assembled at the reference load state, not via a full
+      nonlinear equilibrium/path-following analysis.
+    - Boundary conditions must remove rigid-body modes from the free set.
+    - Units are consistent across coordinates, properties, and loads.
+
+    Helper Functions (used here)
+    ----------------------------
+    - `assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements) -> ndarray`
+        Builds the global elastic stiffness `K` with shape `(6*n_nodes, 6*n_nodes)`.
+    - `assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes) -> ndarray`
+        Builds the global reference load vector `P` with shape `(6*n_nodes,)`.
+    - `partition_degrees_of_freedom(boundary_conditions, n_nodes) -> tuple[list[int], list[int]]`
+        Returns `(fixed, free)` DOF indices given `boundary_conditions`.
+    - `linear_solve(P, K, fixed, free) -> tuple[np.ndarray, Any]`
+        Solves the constrained linear system for displacements; returns
+        `(u_global, reactions_or_aux)`.
+    - `assemble_global_geometric_stiffness_3D_beam(node_coords, elements, u_global) -> ndarray`
+        Builds the global geometric stiffness `K_g` (same shape as `K`), using
+        the displacement state `u_global` from the linear solve.
+    - `eigenvalue_analysis(K_e_global, K_g_global, boundary_conditions, n_nodes) -> tuple[float, np.ndarray]`
+        Solves `K φ = -λ K_g φ` on free DOFs, selects the smallest positive `λ`,
+        and embeds the mode back into a full global vector.
+
+    (Downstream) Helpers:
+    -----------------------------------------------------------------------
+    These are not called directly here but are dependencies of:
+    `assemble_global_geometric_stiffness_3D_beam`:
+    - `beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, local_z=None) -> (12,12) ndarray`
+    - `compute_local_element_loads_beam_3D(ele, xi, yi, zi, xj, yj, zj, u_e_global) -> (12,) ndarray`
+    - `local_geometric_stiffness_matrix_3D_beam(L, A, I_rho, Fx2, Mx2, My1, Mz1, My2, Mz2) -> (12,12) ndarray`
+    `assemble_global_stiffness_matrix_linear_elastic_3D`:
+    - `beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, local_z=None) -> (12,12) ndarray`
+    - `local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J) -> (12,12) ndarray`
+
+    Raises
+    ------
+    ValueError
+        Propagated from called routines if:
+        - BCs are invalid or leave rigid-body modes in the free set.
+        - Reduced matrices are singular/ill-conditioned beyond tolerances.
+        - No positive eigenvalue is found or eigenpairs are significantly complex.
+
+    Notes
+    -----
+    - The scale of `deformed_shape_vector` is arbitrary; normalize for plotting
+      if desired (e.g., by max absolute translational DOF).
+    - If multiple nearly-equal smallest eigenvalues exist (mode multiplicity),
+      the returned mode can depend on numerical details.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Function Signature:
+## Test Functions to Implement:
+- test_euler_buckling_cantilever_circular_param_sweep: "Cantilever (fixed-free) circular column aligned with +z.
+Sweep through radii r ∈ {0.5, 0.75, 1.0} and lengths L ∈ {10, 20, 40}.
+For each case, run the full pipeline and compare λ·P_ref to the Euler cantilever value analytical solution.
+Use 10 elements, set tolerances to be appropriate for the anticipated discretization error at 10-5."
+- test_orientation_invariance_cantilever_buckling_rect_section: "Orientation invariance test with a rectangular section (Iy ≠ Iz).
+
+The cantilever model is solved in its original orientation and again after applying
+a rigid-body rotation R to the geometry, element axes, and applied load. The critical
+load factor λ should be identical in both cases.
+
+The buckling mode from the rotated model should equal the base mode transformed by R:
+- Build T as a block-diagonal matrix with R applied to both the translational
+  [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
+- Then mode_rot ≈ T @ mode_base, allowing for arbitrary scale and sign."
+- test_cantilever_euler_buckling_mesh_convergence: "Verify mesh convergence for Euler buckling of a fixed–free circular cantilever.
+The test refines the beam discretization and checks that the numerical critical load
+approaches the analytical Euler value with decreasing relative error, and that the
+finest mesh achieves very high accuracy."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.
