@@ -1,8 +1,20 @@
-import numpy as np
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports: import numpy as np
 import scipy
 from typing import Optional, Sequence
+import pytest
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
 
-
+## Available Helper Functions:
 def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.ndarray]):
     """
     Compute the 12x12 transformation matrix Gamma for a 3D beam element.
@@ -61,7 +73,6 @@ def beam_transformation_matrix_3D(x1, y1, z1, x2, y2, z2, ref_vec: Optional[np.n
     gamma = np.vstack((ex, ey, ez))  # 3×3
     return np.kron(np.eye(4), gamma)  # 12×12
 
-
 def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
     """
     Return the 12x12 local elastic stiffness matrix for a 3D Euler-Bernoulli beam element.
@@ -118,7 +129,6 @@ def local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, Iy, Iz, J):
     k[4, 4] = k[10, 10] = 4.0 * EIy_L / L
     k[4, 10] = k[10, 4] = 2.0 * EIy_L / L
     return k
-
 
 def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
     """
@@ -195,7 +205,6 @@ def assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements):
 
     return K
 
-
 def assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes):
     """
     Assembles the global load vector for a 3D linear elastic frame structure with 6 degrees of freedom per node.
@@ -236,7 +245,6 @@ def assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes):
         P[_node_dofs(n)] += np.asarray(load, dtype=float)
     return P
 
-
 def partition_degrees_of_freedom(boundary_conditions, n_nodes):
     """
     Partitions the degrees of freedom (DOFs) into fixed and free sets for a 3D frame structure.
@@ -245,7 +253,7 @@ def partition_degrees_of_freedom(boundary_conditions, n_nodes):
     ----------
     boundary_conditions : dict[int, array-like of bool]
         Dictionary mapping node indices to 6-element boolean arrays, where `True` indicates the DOF is fixed.
-    
+
     n_nodes : int
         Total number of nodes in the structure.
 
@@ -266,7 +274,6 @@ def partition_degrees_of_freedom(boundary_conditions, n_nodes):
     fixed = np.asarray(fixed, dtype=int)
     free = np.setdiff1d(np.arange(n_dof), fixed, assume_unique=True)
     return fixed, free
-
 
 def linear_solve(P_global, K_global, fixed, free):
     """
@@ -318,7 +325,6 @@ def linear_solve(P_global, K_global, fixed, free):
     else:
         raise ValueError(f"Cannot solve system: stiffness matrix is ill-conditioned (cond={condition_number:.2e})")
     return u, nodal_reaction_vector
-
 
 def compute_local_element_loads_beam_3D(ele_info, xi, yi, zi, xj, yj, zj, u_dofs_global):
     """
@@ -399,7 +405,6 @@ def compute_local_element_loads_beam_3D(ele_info, xi, yi, zi, xj, yj, zj, u_dofs
     u_dofs_local = Gamma @ u_dofs_global
     load_dofs_local = k_e_local @ u_dofs_local
     return load_dofs_local
-
 
 def local_geometric_stiffness_matrix_3D_beam(
     L: float,
@@ -516,7 +521,6 @@ def local_geometric_stiffness_matrix_3D_beam(
     k_g[11, 11] = 2.0 * Fx2 * L / 15.0
     return k_g
 
-
 def assemble_global_geometric_stiffness_3D_beam(
     node_coords: np.ndarray,
     elements: Sequence[dict],
@@ -608,7 +612,6 @@ def assemble_global_geometric_stiffness_3D_beam(
         k_g_global = Gamma.T @ k_g_local @ Gamma
         K[np.ix_(dofs, dofs)] += k_g_global
     return K
-
 
 def eigenvalue_analysis(K_e_global, K_g_global, boundary_conditions, n_nodes):
     """
@@ -721,12 +724,9 @@ def eigenvalue_analysis(K_e_global, K_g_global, boundary_conditions, n_nodes):
     return eig_value, deformed_shape_vector
 
 
-def elastic_critical_load_analysis_frame_3D(
-    node_coords: np.ndarray,
-    elements: Sequence[dict],
-    boundary_conditions: dict[int, Sequence[int]],
-    nodal_loads: dict[int, Sequence[float]],
-):
+## Function Signature:
+## Only complete the function below:
+def elastic_critical_load_analysis_frame_3D(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int]], nodal_loads: dict[int, Sequence[float]]):
     """
     Perform linear (eigenvalue) buckling analysis for a 3D frame and return the
     elastic critical load factor and associated global buckling mode shape.
@@ -863,461 +863,6 @@ def elastic_critical_load_analysis_frame_3D(
     - If multiple nearly-equal smallest eigenvalues exist (mode multiplicity),
       the returned mode can depend on numerical details.
     """
-    # Dimensions
-    n_nodes = node_coords.shape[0]
 
-    # Assemble global elastic stiffness matrix
-    K = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
-
-    # Assemble global load vector P
-    P = assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes)
-
-    # Free / fixed DOFs
-    fixed, free = partition_degrees_of_freedom(boundary_conditions, n_nodes)
-
-    # Solve
-    u_global, _ = linear_solve(P, K, fixed, free)
-
-    # Assemble global geometric stiffness matrix
-    K_g = assemble_global_geometric_stiffness_3D_beam(node_coords, elements, u_global)
-    
-    # solve eigenvalue problem
-    elastic_critical_load_factor, deformed_shape_vector = eigenvalue_analysis(K, K_g, boundary_conditions, n_nodes)
-    return elastic_critical_load_factor, deformed_shape_vector
-
-
-def elastic_critical_load_analysis_frame_3D_all_zeros(
-    node_coords, elements, boundary_conditions, nodal_loads
-):
-    """
-    Expected failure: returns λ = 0 and a zero mode.
-    """
-    n_nodes = int(node_coords.shape[0])
-    ndof = 6 * n_nodes
-    lam = 0.0
-    mode = np.zeros(ndof, dtype=float)
-    return lam, mode
-
-
-def elastic_critical_load_analysis_frame_3D_all_ones(
-    node_coords, elements, boundary_conditions, nodal_loads
-):
-    """
-    Expected failure: returns λ = 1 and a mode of all ones (no BC embedding).
-    """
-    n_nodes = int(node_coords.shape[0])
-    ndof = 6 * n_nodes
-    lam = 1.0
-    mode = np.ones(ndof, dtype=float)
-    return lam, mode
-
-
-def test_euler_buckling_cantilever_circular_param_sweep(fcn):
-    """
-    Cantilever (fixed-free) circular column aligned with +z.
-    Sweep through radii r ∈ {0.5, 0.75, 1.0} and lengths L ∈ {10, 20, 40}.
-    For each case, run the full pipeline and compare λ·P_ref to the Euler cantilever value analytical solution.
-    Use 10 elements, set tolerances to be appropriate for the anticipated discretization error at 10-5.
-    """
-    E = 1000.0
-    nu = 0.3
-    num_nodes = 11
-    n_elems = num_nodes - 1
-    P_ref = 1.0  # unit reference load makes λ ≈ P_cr directly
-
-    lengths = [10.0, 20.0, 40.0]
-    radii = [0.5, 0.75, 1.0]
-
-    for L in lengths:
-        for r in radii:
-            # Geometry along +z
-            z = np.linspace(0.0, L, num_nodes)
-            node_coords = np.c_[np.zeros_like(z), np.zeros_like(z), z]
-
-            # Section properties for a circle
-            A     = np.pi * r**2
-            I_y   = np.pi * r**4 / 4.0
-            I_z   = np.pi * r**4 / 4.0
-            I_rho = np.pi * r**4 / 2.0
-            J     = np.pi * r**4 / 2.0
-
-            # Elements along +z with local_z ≠ axis
-            elements = [
-                dict(
-                    node_i=i, node_j=i + 1,
-                    E=E, nu=nu, A=A, I_y=I_y, I_z=I_z, J=J, I_rho=I_rho,
-                    local_z=np.array([1.0, 0.0, 0.0], dtype=float),
-                )
-                for i in range(n_elems)
-            ]
-
-            # Clamp base, free tip
-            boundary_conditions = {0: [True, True, True, True, True, True]}
-
-            # Reference load: compressive axial at tip along -z
-            nodal_loads = {n: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] for n in range(num_nodes)}
-            nodal_loads[num_nodes - 1][2] = -P_ref
-
-            # Run analysis
-            lam, mode = fcn(
-                node_coords=node_coords,
-                elements=elements,
-                boundary_conditions=boundary_conditions,
-                nodal_loads=nodal_loads,
-            )
-
-            # Sanity checks
-            assert np.isfinite(lam) and lam > 0.0
-            assert mode.shape == (6 * num_nodes,)
-            assert np.all(np.isfinite(mode))
-
-            # Euler cantilever reference
-            I = I_z
-            Pcr_analytical = (np.pi**2) * E * I / (4.0 * L**2)
-            Pcr_numeric = lam * P_ref
-            rel_err = abs(Pcr_numeric - Pcr_analytical) / Pcr_analytical
-
-            assert rel_err < 1e-5, (
-                f"Cantilever Euler mismatch for L={L}, r={r}: "
-                f"rel_err={rel_err:.3e} "
-                f"(Pnum={Pcr_numeric:.6e}, Panal={Pcr_analytical:.6e}, lam={lam:.6g})"
-            )
-
-
-def test_orientation_invariance_cantilever_buckling_rect_section(fcn):
-    """
-    Orientation invariance test with a rectangular section (Iy ≠ Iz).
-
-    The cantilever model is solved in its original orientation and again after applying
-    a rigid-body rotation R to the geometry, element axes, and applied load. The critical
-    load factor λ should be identical in both cases.
-
-    The buckling mode from the rotated model should equal the base mode transformed by R:
-    - Build T as a block-diagonal matrix with R applied to both the translational
-      [ux, uy, uz] and rotational [θx, θy, θz] DOFs at each node.
-    - Then mode_rot ≈ T @ mode_base, allowing for arbitrary scale and sign.
-    """
-    # --- Base cantilever model ---
-    E, nu = 1000.0, 0.30
-    L = 2.0
-    num_nodes = 11
-    n_elems = num_nodes - 1
-
-    # Geometry along +z
-    z = np.linspace(0.0, L, num_nodes)
-    node_coords = np.c_[np.zeros_like(z), np.zeros_like(z), z]
-
-    # Rectangular cross-section: width b along local y, thickness h along local z
-    b = 0.08
-    h = 0.05
-    A  = b * h
-    Iy = b * h**3 / 12.0
-    Iz = h * b**3 / 12.0
-    if b < h:
-        b, h = h, b
-    J = b * h**3 * (1/3 - 0.21 * (h/b) * (1 - (h**4) / (12 * b**4)))
-    I_rho = Iy + Iz
-
-    elements = [
-        dict(
-            node_i=i, node_j=i + 1,
-            E=E, nu=nu, A=A, I_y=Iy, I_z=Iz, J=J, I_rho=I_rho,
-            local_z=np.array([0.0, 1.0, 0.0], dtype=float),  # benign triad for a +z member
-        )
-        for i in range(n_elems)
-    ]
-
-    # Clamp base (all 6 DOFs), tip free
-    boundary_conditions = {0: [True, True, True, True, True, True]}
-
-    # Reference load: unit compression at free tip along -z
-    P_ref = 1.0
-    nodal_loads = {n: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] for n in range(num_nodes)}
-    nodal_loads[num_nodes - 1][2] = -P_ref
-
-    # Solve base problem
-    lam_base, mode_base = fcn(
-        node_coords=node_coords,
-        elements=elements,
-        boundary_conditions=boundary_conditions,
-        nodal_loads=nodal_loads,
-    )
-
-    # --- Build a rigid rotation R (35° about a non-collinear axis) ---
-    a = np.array([2.0, -1.0, 0.5], dtype=float)
-    a /= np.linalg.norm(a)
-    x, y, zax = a
-    theta = np.deg2rad(35.0)
-    c, s, C = np.cos(theta), np.sin(theta), 1.0 - np.cos(theta)
-    R = np.array([
-        [c + x*x*C,     x*y*C - zax*s, x*zax*C + y*s],
-        [y*x*C + zax*s, c + y*y*C,     y*zax*C - x*s],
-        [zax*x*C - y*s, zax*y*C + x*s, c + zax*zax*C],
-    ], dtype=float)
-
-    # Rotate node coordinates
-    node_coords_rot = (R @ node_coords.T).T
-
-    # Rotate each element's local z
-    elements_rot = []
-    for e in elements:
-        e_rot = dict(e)
-        e_rot["local_z"] = R @ e["local_z"]
-        elements_rot.append(e_rot)
-
-    # Rotate the tip load vector [0,0,-P_ref]
-    F_tip_base = np.array([0.0, 0.0, -P_ref], dtype=float)
-    F_tip_rot = R @ F_tip_base
-    nodal_loads_rot = {n: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] for n in range(num_nodes)}
-    nodal_loads_rot[num_nodes - 1][0] = F_tip_rot[0]
-    nodal_loads_rot[num_nodes - 1][1] = F_tip_rot[1]
-    nodal_loads_rot[num_nodes - 1][2] = F_tip_rot[2]
-
-    # Same BCs (clamped base)
-    boundary_conditions_rot = {0: [True, True, True, True, True, True]}
-
-    # Solve rotated problem
-    lam_rot, mode_rot = fcn(
-        node_coords=node_coords_rot,
-        elements=elements_rot,
-        boundary_conditions=boundary_conditions_rot,
-        nodal_loads=nodal_loads_rot,
-    )
-
-    # --- Check λ invariance ---
-    assert np.isfinite(lam_base) and lam_base > 0
-    assert np.isfinite(lam_rot) and lam_rot > 0
-    assert np.isclose(lam_rot, lam_base, rtol=1e-9, atol=0.0), (
-        f"λ not invariant under rigid rotation: base={lam_base:.6e}, rot={lam_rot:.6e}"
-    )
-
-    # --- Check mode transforms: mode_rot ≈ T @ mode_base (up to sign/scale)
-    ndof = 6 * num_nodes
-    T = np.zeros((ndof, ndof), dtype=float)
-    for n in range(num_nodes):
-        bidx = 6 * n
-        T[bidx:bidx+3,     bidx:bidx+3]   = R  # translations
-        T[bidx+3:bidx+6,   bidx+3:bidx+6] = R  # rotations
-
-    mode_expected = T @ mode_base
-
-    # Compare on free DOFs only (node 0 fixed: DOFs 0..5)
-    free = np.arange(6, ndof, dtype=int)
-    v1, v2 = mode_rot[free], mode_expected[free]
-    n1, n2 = np.linalg.norm(v1), np.linalg.norm(v2)
-    assert n1 > 0 and n2 > 0, "Degenerate mode encountered."
-
-    # Normalize and account for sign ambiguity
-    v1n, v2n = v1 / n1, v2 / n2
-    err = min(np.linalg.norm(v1n - v2n), np.linalg.norm(v1n + v2n))
-    assert err < 1e-5, f"Rotated mode does not match T @ base mode (err={err:.3e})"
-
-
-def test_cantilever_euler_buckling_mesh_convergence(fcn):
-    """
-    Verify mesh convergence for Euler buckling of a fixed–free circular cantilever.
-    The test refines the beam discretization and checks that the numerical critical load
-    approaches the analytical Euler value with decreasing relative error, and that the
-    finest mesh achieves very high accuracy.
-    """
-    # --- Problem setup (fixed for the sweep) ---
-    E, nu = 1000.0, 0.30
-    L = 20.0
-    r = 1.0
-    P_ref = 1.0  # unit reference → λ ≈ P_cr directly
-
-    # Circular section properties
-    A     = np.pi * r**2
-    I_y   = np.pi * r**4 / 4.0
-    I_z   = np.pi * r**4 / 4.0
-    I_rho = np.pi * r**4 / 2.0
-    J     = np.pi * r**4 / 2.0
-
-    # Analytical Euler buckling load for cantilever about either principal axis
-    I = I_z
-    Pcr_exact = (np.pi**2) * E * I / (4.0 * L**2)
-
-    # Mesh refinements (elements); increase as needed
-    meshes = [10, 20, 30, 40]
-
-    rel_errors = []
-
-    for n_elems in meshes:
-        n_nodes = n_elems + 1
-
-        # Geometry: straight along +z
-        z = np.linspace(0.0, L, n_nodes)
-        node_coords = np.c_[np.zeros_like(z), np.zeros_like(z), z]
-
-        # Elements: local_z chosen orthogonal to axis (+x) for a well-defined triad
-        elements = [
-            dict(
-                node_i=i, node_j=i + 1,
-                E=E, nu=nu, A=A, I_y=I_y, I_z=I_z, J=J, I_rho=I_rho,
-                local_z=np.array([1.0, 0.0, 0.0], dtype=float),
-            )
-            for i in range(n_elems)
-        ]
-
-        # Boundary conditions: clamp base node (all 6 DOFs fixed), tip free
-        boundary_conditions = {0: [True, True, True, True, True, True]}
-
-        # Reference load: compressive axial at the free tip (−z)
-        # Per-node load vector: [Fx, Fy, Fz, Mx, My, Mz]
-        nodal_loads = {n: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] for n in range(n_nodes)}
-        nodal_loads[n_nodes - 1][2] = -P_ref
-
-        # Solve
-        lam, mode = fcn(
-            node_coords=node_coords,
-            elements=elements,
-            boundary_conditions=boundary_conditions,
-            nodal_loads=nodal_loads,
-        )
-
-        # Sanity checks
-        assert np.isfinite(lam) and lam > 0.0
-        assert mode.shape == (6 * n_nodes,)
-        assert np.all(np.isfinite(mode))
-
-        # Relative error vs Euler
-        Pcr_num = lam * P_ref
-        rel_err = abs(Pcr_num - Pcr_exact) / Pcr_exact
-        rel_errors.append(rel_err)
-
-    # Monotone improvement (allow tiny numerical wiggle)
-    for i in range(1, len(rel_errors)):
-        assert rel_errors[i] <= rel_errors[i - 1] * 1.02 + 1e-12, (
-            f"Error did not decrease with refinement at step {i}: "
-            f"{rel_errors[i-1]:.3e} → {rel_errors[i]:.3e} for meshes {meshes[i-1]}→{meshes[i]}"
-        )
-
-    # Finest mesh should be quite accurate
-    assert rel_errors[-1] < 1e-6, (
-        f"Finest mesh error too large: {rel_errors[-1]:.3e} "
-        f"(meshes={meshes}, errors={rel_errors})"
-    )
-
-
-def task_info():
-    task_id = "elastic_critical_load_analysis_frame_3D"
-    task_short_description = "performs elastic critical load analysis given problem setup"
-    created_date = "2025-09-17"
-    created_by = "elejeune11"
-    main_fcn = elastic_critical_load_analysis_frame_3D
-    required_imports = ["import numpy as np", "import scipy", "from typing import Optional, Sequence", "import pytest"]
-    fcn_dependencies = [beam_transformation_matrix_3D, local_elastic_stiffness_matrix_3D_beam, assemble_global_stiffness_matrix_linear_elastic_3D, assemble_global_load_vector_linear_elastic_3D, partition_degrees_of_freedom, linear_solve, compute_local_element_loads_beam_3D, local_geometric_stiffness_matrix_3D_beam, assemble_global_geometric_stiffness_3D_beam, eigenvalue_analysis]
-    reference_verification_inputs = [
-        # 1) Short cantilever (2 nodes), circular, axial tip load (axis-aligned +z)
-        [
-            np.array([[0.0, 0.0, 0.0],
-                    [0.0, 0.0, 1.0]], dtype=float),
-            [dict(node_i=0, node_j=1, E=1.0e5, nu=0.30,
-                A=np.pi*0.20**2,
-                I_y=np.pi*0.20**4/4, I_z=np.pi*0.20**4/4,
-                J=np.pi*0.20**4/2, I_rho=np.pi*0.20**4/2,
-                local_z=np.array([1.0, 0.0, 0.0], dtype=float))],
-            {0: [True, True, True, True, True, True]},
-            {1: [0.0, 0.0, -10.0, 0.0, 0.0, 0.0]},
-        ],
-
-        # 2) Longer cantilever (2 nodes), rectangular, rotated ~30° about y
-        [
-            np.array([[0.0, 0.0, 0.0],
-                    [4.33, 0.0, 2.5]], dtype=float),  # tip rotated in x-z plane
-            [dict(node_i=0, node_j=1, E=2.0e5, nu=0.25,
-                A=0.08*0.05,
-                I_y=0.08*0.05**3/12, I_z=0.05*0.08**3/12,
-                J=1.0e-3, I_rho=1.0e-3,
-                local_z=np.array([0.0, 1.0, 0.0], dtype=float))],
-            {0: [True, True, True, True, True, True]},
-            {1: [-25.0, 0.0, -43.3, 0.0, 0.0, 0.0]},  # axial compression along element axis
-        ],
-
-        # 3) Two-element cantilever (3 nodes), circular, rotated and with small lateral
-        [
-            np.array([[0.0, 0.0, 0.0],
-                    [0.94, -0.34, 0.94],
-                    [1.88, -0.68, 1.88]], dtype=float),  # roughly rotated about x and z
-            [
-                dict(node_i=0, node_j=1, E=1.5e5, nu=0.30,
-                    A=np.pi*0.25**2,
-                    I_y=np.pi*0.25**4/4, I_z=np.pi*0.25**4/4,
-                    J=np.pi*0.25**4/2, I_rho=np.pi*0.25**4/2,
-                    local_z=np.array([1.0, 0.0, 0.0], dtype=float)),
-                dict(node_i=1, node_j=2, E=1.5e5, nu=0.30,
-                    A=np.pi*0.25**2,
-                    I_y=np.pi*0.25**4/4, I_z=np.pi*0.25**4/4,
-                    J=np.pi*0.25**4/2, I_rho=np.pi*0.25**4/2,
-                    local_z=np.array([1.0, 0.0, 0.0], dtype=float)),
-            ],
-            {0: [True, True, True, True, True, True]},
-            {2: [-14.1, 5.0, -14.1, 0.0, 0.0, 0.0]},  # axial + small lateral
-        ],
-
-        # 4) Three-element cantilever (4 nodes), rectangular, rotated ~45° about z, tip moment
-        [
-            np.array([[0.0, 0.0, 0.0],
-                    [1.06, 1.06, 1.5],
-                    [2.12, 2.12, 3.0],
-                    [3.18, 3.18, 4.5]], dtype=float),
-            [
-                dict(node_i=0, node_j=1, E=1.0e5, nu=0.30,
-                    A=0.10*0.06,
-                    I_y=0.10*0.06**3/12, I_z=0.06*0.10**3/12,
-                    J=2.0e-3, I_rho=2.0e-3,
-                    local_z=np.array([0.0, 1.0, 0.0], dtype=float)),
-                dict(node_i=1, node_j=2, E=1.0e5, nu=0.30,
-                    A=0.10*0.06,
-                    I_y=0.10*0.06**3/12, I_z=0.06*0.10**3/12,
-                    J=2.0e-3, I_rho=2.0e-3,
-                    local_z=np.array([0.0, 1.0, 0.0], dtype=float)),
-                dict(node_i=2, node_j=3, E=1.0e5, nu=0.30,
-                    A=0.10*0.06,
-                    I_y=0.10*0.06**3/12, I_z=0.06*0.10**3/12,
-                    J=2.0e-3, I_rho=2.0e-3,
-                    local_z=np.array([0.0, 1.0, 0.0], dtype=float)),
-            ],
-            {0: [True, True, True, True, True, True]},
-            {3: [-21.2, -21.2, -21.2, 5.0, 0.0, 0.0]},  # axial + tip moment
-        ],
-
-        # 5) Moderate cantilever (3 nodes), circular, rotated ~35° about [1,1,0],
-        #    with lateral + small tip moment
-        [
-            np.array([[0.0, 0.0, 0.0],
-                    [1.23, 0.88, 2.12],
-                    [2.46, 1.76, 4.24]], dtype=float),
-            [
-                dict(node_i=0, node_j=1, E=8.0e4, nu=0.30,
-                    A=np.pi*0.18**2,
-                    I_y=np.pi*0.18**4/4, I_z=np.pi*0.18**4/4,
-                    J=np.pi*0.18**4/2, I_rho=np.pi*0.18**4/2,
-                    local_z=np.array([1.0, 0.0, 0.0], dtype=float)),
-                dict(node_i=1, node_j=2, E=8.0e4, nu=0.30,
-                    A=np.pi*0.18**2,
-                    I_y=np.pi*0.18**4/4, I_z=np.pi*0.18**4/4,
-                    J=np.pi*0.18**4/2, I_rho=np.pi*0.18**4/2,
-                    local_z=np.array([1.0, 0.0, 0.0], dtype=float)),
-            ],
-            {0: [True, True, True, True, True, True]},
-            {2: [-10.6, -10.6, -10.6, 0.0, 0.0, 0.3]},  # axial + lateral + moment
-        ],
-    ]
-    test_cases = [{"test_code": test_euler_buckling_cantilever_circular_param_sweep, "expected_failures": [elastic_critical_load_analysis_frame_3D_all_zeros, elastic_critical_load_analysis_frame_3D_all_ones]},
-                  {"test_code": test_orientation_invariance_cantilever_buckling_rect_section, "expected_failures": [elastic_critical_load_analysis_frame_3D_all_zeros, elastic_critical_load_analysis_frame_3D_all_ones]},
-                  {"test_code": test_cantilever_euler_buckling_mesh_convergence, "expected_failures": [elastic_critical_load_analysis_frame_3D_all_zeros, elastic_critical_load_analysis_frame_3D_all_ones]}
-                  ]
-    return {
-        "task_id": task_id,
-        "task_short_description": task_short_description,
-        "created_date": created_date,
-        "created_by": created_by,
-        "main_fcn": main_fcn,
-        "required_imports": required_imports,
-        "fcn_dependencies": fcn_dependencies,
-        "reference_verification_inputs": reference_verification_inputs,
-        "test_cases": test_cases,
-        # "python_version": "version_number",
-        # "package_versions": {"numpy": "version_number", },
-    }
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.
