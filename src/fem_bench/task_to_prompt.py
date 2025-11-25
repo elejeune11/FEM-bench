@@ -1,6 +1,7 @@
 import ast
 import textwrap
 from fem_bench.task_base import Task
+from jinja2 import Environment, FileSystemLoader
 
 
 def extract_signature_and_docstring(code: str) -> tuple[str, str]:
@@ -31,58 +32,25 @@ def extract_signature_and_docstring(code: str) -> tuple[str, str]:
     return signature, docstring_indented
 
 
-def format_dependency_functions(dep_code_list: list[str]) -> str:
-    """Format full helper function definitions (code blocks)."""
-    if not dep_code_list:
-        return "## Available Helper Functions:\n(None)\n"
-
-    formatted_blocks = []
-    for code in dep_code_list:
-        code_block = textwrap.dedent(code).strip()
-        formatted_blocks.append(code_block)
-
-    return "## Available Helper Functions:\n" + "\n\n".join(formatted_blocks) + "\n"
-
-
-def task_to_code_prompt(task: Task) -> str:
+def task_to_code_prompt(task: Task, template_dir: str, template_name: str) -> str:
     """Generate a structured LLM prompt with signature, docstring, imports, and helpers."""
+    env = Environment(
+        loader=FileSystemLoader(searchpath=template_dir),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    env.filters['dedent'] = textwrap.dedent
+
+    code_template = env.get_template(template_name)
     signature, docstring = extract_signature_and_docstring(task.main_fcn_code)
 
-    # Import constraints
-    if task.required_imports:
-        import_lines = "\n".join(task.required_imports)
-        import_instruction = f"- Use only the following imports: {import_lines}"
-    else:
-        import_instruction = "- No imports are available"
+    context = {
+        "task": task,
+        "signature": signature,
+        "docstring": docstring,
+    }
 
-    # Dependencies (helper functions)
-    helper_section = format_dependency_functions(task.fcn_dependency_code)
-
-    prompt = f"""\
-# Python Function Implementation Task
-
-Write a Python function that matches the exact signature and docstring provided below.
-
-## Requirements:
-- Keep the function name, parameter names, and docstring exactly as shown
-- Do not add any code outside the function definition
-{import_instruction}
-- You may call only the helper functions listed below — their full implementations are provided
-- Do not re-implement or modify them
-- Output only valid Python code (no explanations, comments, or markdown)
-- Implement the functionality as described in the docstring
-
-{helper_section}
-
-## Function Signature:
-## Only complete the function below:
-{signature}
-{docstring}
-
-# Output:
-# Only return the complete Python function — no extra text, explanation, or formatting.
-"""
-    return prompt
+    return code_template.render(context)
 
 
 def extract_test_name_and_docstring(code: str) -> tuple[str, str]:
@@ -96,58 +64,42 @@ def extract_test_name_and_docstring(code: str) -> tuple[str, str]:
     raise ValueError("No test function found.")
 
 
-def task_to_test_prompt(task: Task) -> str:
+def task_to_test_prompt(task: Task, template_dir: str, template_name: str)-> str:
     """Generate a prompt that instructs the LLM to write pytest tests for the given task."""
+    # Setup Jinja Environment
+    env = Environment(
+        loader=FileSystemLoader(searchpath=template_dir),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    env.filters['dedent'] = textwrap.dedent
+    test_template = env.get_template(template_name)
+
     # Extract main function signature and docstring
     try:
         signature, docstring = extract_signature_and_docstring(task.main_fcn_code)
     except Exception:
         signature, docstring = "def <unknown>():", '    """Missing docstring."""'
 
-    # Extract test names and their docstrings
-    test_lines = []
+    # Extract test names and their docstrings into a list of dicts
+    test_cases_data = []
     for case in task.test_cases:
         try:
             tree = ast.parse(case["test_code"])
             for node in tree.body:
                 if isinstance(node, ast.FunctionDef):
-                    name = node.name
-                    doc = ast.get_docstring(node) or "(no description)"
-                    test_lines.append(f"- {name}: \"{doc.strip()}\"")
+                    test_cases_data.append({
+                        "name": node.name,
+                        "doc": (ast.get_docstring(node) or "(no description)").strip()
+                    })
         except Exception:
             continue
 
-    if not test_lines:
-        test_block = "- (no test cases found)"
-    else:
-        test_block = "\n".join(test_lines)
+    # 4. Prepare context and render
+    context = {
+        "signature": signature,
+        "docstring": docstring,
+        "test_cases": test_cases_data
+    }
 
-    prompt = f"""\
-# Python Task: Write Pytest Tests for a Function
-
-Below is the function you are testing. Use its signature and docstring to understand its behavior.
-
-## Only complete the test functions below:
-{signature}
-{docstring}
-
-## Your Goal:
-Write pytest-style test functions that verify the correctness of the function above.
-
-## Requirements:
-- Use the exact test function names listed below
-- Each test must accept a single argument: `fcn` — the function to test
-- Use `assert` statements to check correctness
-- Each test must include a descriptive docstring
-- Do not include print statements, logging, or example usage
-- Output only valid Python code — no explanations, markdown, or comments
-
-## Function Signature:
-## Test Functions to Implement:
-{test_block}
-
-# Output:
-# Only return valid pytest test functions — no prose, markdown, or commentary.
-"""
-    return prompt
-
+    return test_template.render(context)

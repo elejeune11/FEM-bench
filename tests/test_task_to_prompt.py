@@ -2,9 +2,12 @@ from fem_bench.task_base import Task
 from fem_bench.task_to_prompt import extract_test_name_and_docstring
 from fem_bench.task_to_prompt import extract_signature_and_docstring
 from fem_bench.task_to_prompt import task_to_code_prompt, task_to_test_prompt
+from pathlib import Path
 import pytest
 import textwrap
 
+
+repo_root = Path(__file__).resolve().parents[1]
 
 def test_task_to_code_prompt_includes_signature_docstring_and_helper():
     # --- Main function source ---
@@ -52,8 +55,12 @@ def test_task_to_code_prompt_includes_signature_docstring_and_helper():
         test_cases=[]
     )
 
+    # --- Create a dummy template ---
+    template_dir = repo_root / "prompt_templates"
+    template_name = "code_prompt.j2"
+
     # --- Generate the prompt ---
-    prompt = task_to_code_prompt(task)
+    prompt = task_to_code_prompt(task, str(template_dir), template_name)
 
     # --- Assertions ---
     # Instructional content
@@ -113,7 +120,11 @@ def test_task_to_test_prompt_includes_function_and_tests():
         ]
     )
 
-    prompt = task_to_test_prompt(task)
+    # --- Create a dummy template ---
+    template_dir = repo_root / "prompt_templates"
+    template_name = "test_prompt.j2"
+
+    prompt = task_to_test_prompt(task, str(template_dir), template_name)
 
     # --- Assertions ---
     assert "def linear_uniform_mesh_1D" in prompt
@@ -208,7 +219,11 @@ def test_task_to_test_prompt_with_exceptions():
         test_cases=[broken_test_code]
     )
 
-    prompt = task_to_test_prompt(task)
+    # --- Create a dummy template ---
+    template_dir = repo_root / "prompt_templates"
+    template_name = "test_prompt.j2"
+
+    prompt = task_to_test_prompt(task, str(template_dir), template_name)
 
     assert "def <unknown>():" in prompt
     assert '"""Missing docstring."""' in prompt

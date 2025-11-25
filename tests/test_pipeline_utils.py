@@ -11,6 +11,8 @@ import tempfile
 import textwrap
 
 
+repo_root = Path(__file__).resolve().parents[1]
+
 def test_json_default_is_robust_for_numpy_and_complex():
     obj = {
         # Arrays
@@ -92,12 +94,17 @@ def test_fembench_pipeline_init():
         llm_outputs_dir = Path(tmp) / "llm_outputs"
         prompts_dir = Path(tmp) / "prompts"
         results_dir = Path(tmp) / "results"
+        template_dir = repo_root / "prompt_templates"
+        
 
         pipeline = FEMBenchPipeline(
             tasks_dir=str(tasks_dir),
             llm_outputs_dir=str(llm_outputs_dir),
             prompts_dir=str(prompts_dir),
-            results_dir=str(results_dir)
+            results_dir=str(results_dir),
+            prompt_template_dir=str(template_dir),
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
 
         # Check directory paths are stored correctly
@@ -133,13 +140,17 @@ def test_load_tasks_from_local_tasks_dir():
     llm_outputs_dir = current_dir / "llm_outputs_dir"
     prompts_dir = current_dir / "prompts_dir"
     results_dir = current_dir / "results_dir"
+    template_dir = repo_root / "prompt_templates"
 
     # Instantiate and load
     pipeline = FEMBenchPipeline(
         tasks_dir=str(tasks_dir),
         llm_outputs_dir=str(llm_outputs_dir),
         prompts_dir=str(prompts_dir),
-        results_dir=str(results_dir)
+        results_dir=str(results_dir),
+        prompt_template_dir=template_dir,
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
     pipeline.load_all_tasks()
@@ -162,12 +173,16 @@ def test_generate_and_save_task_prompts():
     llm_outputs_dir = current_dir / "llm_outputs_dir"
     prompts_dir = current_dir / "prompts_dir"
     results_dir = current_dir / "results_dir"
+    template_dir = repo_root / "prompt_templates"
 
     pipeline = FEMBenchPipeline(
         tasks_dir=str(tasks_dir),
         llm_outputs_dir=str(llm_outputs_dir),
         prompts_dir=str(prompts_dir),
-        results_dir=str(results_dir)
+        results_dir=str(results_dir),
+        prompt_template_dir=template_dir,
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
     pipeline.load_all_tasks()
     pipeline.generate_and_save_task_prompts()
@@ -190,12 +205,16 @@ def test_generate_and_save_test_prompts():
     llm_outputs_dir = current_dir / "llm_outputs_dir"
     prompts_dir = current_dir / "prompts_dir"
     results_dir = current_dir / "results_dir"
+    template_dir = repo_root / "prompt_templates"
 
     pipeline = FEMBenchPipeline(
         tasks_dir=str(tasks_dir),
         llm_outputs_dir=str(llm_outputs_dir),
         prompts_dir=str(prompts_dir),
-        results_dir=str(results_dir)
+        results_dir=str(results_dir),
+        prompt_template_dir=template_dir,
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
     pipeline.load_all_tasks()
     pipeline.generate_and_save_test_prompts()
@@ -216,7 +235,10 @@ def real_pipeline() -> FEMBenchPipeline:
         tasks_dir=base_dir / "tasks_dir",              # You can point to a dummy or real task dir
         llm_outputs_dir=base_dir / "llm_outputs_dir",  # <-- REAL directory with Gemini files
         prompts_dir=base_dir / "prompts_dir",
-        results_dir=base_dir / "results_dir"
+        results_dir=base_dir / "results_dir",
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
 
@@ -258,6 +280,9 @@ def test_evaluate_all_llm_outputs_real_example():
         llm_outputs_dir=base_dir / "llm_outputs_dir",
         prompts_dir=base_dir / "prompts_dir",
         results_dir=base_dir / "results_dir",
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
     pipeline.load_all_tasks()
@@ -288,6 +313,9 @@ def test_evaluate_all_llm_tests_real_example():
         llm_outputs_dir=base_dir / "llm_outputs_dir",
         prompts_dir=base_dir / "prompts_dir",
         results_dir=base_dir / "results_dir",
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
     pipeline.load_all_tasks()
@@ -344,6 +372,9 @@ def test_compute_aggregate_score_real_example():
         llm_outputs_dir=base_dir / "llm_outputs_dir",
         prompts_dir=base_dir / "prompts_dir",
         results_dir=base_dir / "results_dir",
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
     # Load and evaluate
@@ -486,6 +517,9 @@ def test_load_all_llm_outputs_full_coverage(tmp_path: Path):
         prompts_dir=str(prompts_dir),
         llm_outputs_dir=str(llm_outputs_dir),
         results_dir=str(results_dir),
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
     # Only allow modelC and modelF to pass into self.llm_outputs
@@ -554,6 +588,9 @@ def test_load_all_tasks_missing_task_info():
             llm_outputs_dir=str(Path(tmp) / "llm"),
             prompts_dir=str(Path(tmp) / "prompts"),
             results_dir=str(Path(tmp) / "results"),
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
 
         with pytest.raises(ValueError):
@@ -574,6 +611,9 @@ def test_load_all_llm_outputs_allowed_llms_filter():
             llm_outputs_dir=str(llm_outputs),
             prompts_dir=str(Path(tmp) / "prompts"),
             results_dir=str(Path(tmp) / "results"),
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
 
         # Only include modelB
@@ -590,6 +630,9 @@ def test_compute_aggregate_score_empty_results():
             llm_outputs_dir=str(Path(tmp) / "llm"),
             prompts_dir=str(Path(tmp) / "prompts"),
             results_dir=str(Path(tmp) / "results"),
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
         # No evaluation results added
         metrics = pipeline.compute_aggregate_score()
@@ -604,6 +647,9 @@ def test_create_markdown_summary_with_no_results():
             llm_outputs_dir=str(Path(tmp) / "llm"),
             prompts_dir=str(Path(tmp) / "prompts"),
             results_dir=str(results_dir),
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
 
         # This should not raise even if results are empty
@@ -649,6 +695,9 @@ def _make_tmp_pipeline() -> FEMBenchPipeline:
             llm_outputs_dir=str(base / "llm"),
             prompts_dir=str(base / "prompts"),
             results_dir=str(base / "results"),
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         ),
         tmp,
     )
@@ -780,6 +829,9 @@ def _make_pipeline(tmp_dir: Path) -> FEMBenchPipeline:
         llm_outputs_dir=tmp_dir / "llm",
         prompts_dir=tmp_dir / "prompts",
         results_dir=tmp_dir / "results",
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
 def _register_task(pipeline, *, tid, code, tests):
@@ -861,6 +913,9 @@ def _make_pipeline(tmp: Path) -> FEMBenchPipeline:
         llm_outputs_dir=tmp / "llm",
         prompts_dir=tmp / "prompts",
         results_dir=tmp / "results",
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
 
@@ -919,6 +974,9 @@ def test_markdown_summary_triggers_ref_and_fail_detection():
             llm_outputs_dir=tmp_path / "llm",
             prompts_dir=tmp_path / "prompts",
             results_dir=tmp_path / "results",
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
         pipe.results = {
             "dummy_task": {
@@ -958,6 +1016,9 @@ def test_compute_aggregate_score_handles_missing_test_data():
             llm_outputs_dir=base / "llm",
             prompts_dir=base / "prompts",
             results_dir=base / "results",
+            prompt_template_dir=repo_root / "prompt_templates",
+            code_prompt_template_name="code_prompt.j2",
+            test_prompt_template_name="test_prompt.j2",
         )
 
         # LLM output for one task, but NO test data
@@ -1032,6 +1093,9 @@ def test_load_all_llm_outputs_handles_syntax_errors(tmp_path):
         llm_outputs_dir=tmp_path,
         prompts_dir=tmp_path,
         results_dir=tmp_path,
+        prompt_template_dir=repo_root / "prompt_templates",
+        code_prompt_template_name="code_prompt.j2",
+        test_prompt_template_name="test_prompt.j2",
     )
 
     # ---- Create a function (code) file with bad syntax ----
