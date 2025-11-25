@@ -1,0 +1,14 @@
+{
+  "task_id": "elastic_critical_load_analysis_frame_3D_self_contained",
+  "llm_name": "claude-3-5",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_placeholder",
+        false
+      ]
+    ],
+    "failure_fail": []
+  }
+}

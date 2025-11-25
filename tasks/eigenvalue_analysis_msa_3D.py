@@ -348,17 +348,16 @@ def task_info():
     reference_verification_inputs = [
         # 1) 2 nodes, diagonal Ke, Kg = -I, free set: node 1 (uy, rz)
         [
-            2,
             np.diag(np.linspace(2.0, 20.0, 12)),
             -np.eye(12),
             {
                 0: [True, True, True, True, True, True],
                 1: [True, False, True, True, True, False],
             },
+            2
         ],
         # 2) 2 nodes, SPD Ke from fixed random matrix, Kg = -5 I
         [
-            2,
             (np.array([
                 [1.76405235, 0.40015721, 0.97873798, 2.2408932 , 1.86755799, -0.97727788,
                 0.95008842, -0.15135721, -0.10321885, 0.4105985 , 0.14404357, 1.45427351],
@@ -415,10 +414,10 @@ def task_info():
                 0: [True, True, True, True, True, True],
                 1: [True, False, True, True, True, False],
             },
+            2
         ],
         # 3) 3 nodes, diagonal Ke, Kg = -2 I, free set: node 2 (uy, rz)
         [
-            3,
             np.diag(np.linspace(10.0, 40.0, 18)),
             -2.0 * np.eye(18),
             {
@@ -426,10 +425,10 @@ def task_info():
                 1: [True, True, True, True, True, True],
                 2: [True, False, True, True, True, False],
             },
+            3
         ],
         # 4) 4 nodes, diagonal SPD Ke, Kg = -I, free set: node 3 (uy, rz)
         [
-            4,
             np.diag(np.linspace(1.0, 24.0, 24)),
             -np.eye(24),
             {
@@ -438,16 +437,17 @@ def task_info():
                 2: [True, True, True, True, True, True],
                 3: [True, False, True, True, True, False],
             },
+            4
         ],
         # 5) 2 nodes, diagonal Ke, Kg = -3 I, free set: node 1 (ux, ry)
         [
-            2,
             np.diag(np.linspace(5.0, 25.0, 12)),
             -3.0 * np.eye(12),
             {
                 0: [True, True, True, True, True, True],
                 1: [False, True, True, True, False, True],  # free: ux, ry
             },
+            2
         ],
     ]
     test_cases = [{"test_code": test_eigen_known_answer, "expected_failures": [eigenvalue_analysis_bad_allzeros]},
