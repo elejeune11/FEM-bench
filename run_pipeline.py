@@ -8,28 +8,16 @@ from datetime import datetime
 # Use the SAME tasks/prompts for A and B (fair A/B test)
 TASKS_DIR = "tasks"
 PROMPTS_DIR = "prompts"
+PROMPT_TEMPLATES_DIR = "prompt_templates"
+SYSTEM_PROMPT_NAME = "system_prompt_v2"
 
 with_system_prompt = False
 
 if with_system_prompt:
-    LLM_OUTPUTS_DIR = "llm_outputs_system_prompt_v2"
-    RESULTS_DIR = "results_system_prompt_v2"
-#     SYSTEM_PROMPT = """ 
-# You are an expert Python engineer in scientific computing, with a specialization in Finite Element Analysis (FEM).
-# Before responding, reason privately to ensure mathematical correctness and edge-case coverage, but do not output your reasoning.
-# Always return only executable Python code—no commentary, markdown fences, or extra text.
-# Follow the user’s instructions exactly; if there is any conflict, prefer the user’s explicit task rules.
-# Never add imports beyond those specified, and never reimplement or alter helper functions.
-# If the task is to write tests, output only pytest test functions.
-# Be precise, deterministic, and correctness-focused.
-# """ # v1
-    SYSTEM_PROMPT = """
-You are an expert in finite element analysis and scientific computing. You completed your PhD under Tom Hughes and have spent over 10 years at Sandia National Laboratories working on computational mechanics problems.
-Focus on producing robust, correct, production-quality Python code. Your solutions should demonstrate both mathematical rigor and practical engineering judgment.
-Output only executable Python code—no markdown, comments, or extra text.
-Follow the user's task rules exactly: match the given function signatures and docstrings, respect import limits, and never alter helper functions.
-If the task is to write tests, output only pytest tests with meaningful assertions.
-""" # v2
+    LLM_OUTPUTS_DIR = f"llm_outputs_{SYSTEM_PROMPT_NAME}"
+    RESULTS_DIR = f"results_{SYSTEM_PROMPT_NAME}"
+    with open(f"{PROMPT_TEMPLATES_DIR}/{SYSTEM_PROMPT_NAME}.txt", "r", encoding="utf-8") as f:
+        SYSTEM_PROMPT = f.read()
 else:
     LLM_OUTPUTS_DIR = "llm_outputs_temperature1"
     RESULTS_DIR = "results_temperature1"
@@ -158,6 +146,7 @@ Path(RESULTS_DIR).mkdir(exist_ok=True, parents=True)
 meta = {
     "timestamp": datetime.utcnow().isoformat() + "Z",
     "with_system_prompt": with_system_prompt,
+    "prompt_version": SYSTEM_PROMPT_NAME,
     "system_prompt": SYSTEM_PROMPT.strip() if SYSTEM_PROMPT else None,
     "models": MODEL_NAMES,
     "seed": SEED,
