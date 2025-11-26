@@ -1,0 +1,94 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T2(node_coords: np.ndarray, elements: Sequence[dict], u_global: np.ndarray) -> np.ndarray:
+    """
+    Assemble the global geometric (initial-stress) stiffness matrix K_g for a 3D frame
+    under a given global displacement state.
+
+    Each 2-node Euler–Bernoulli beam contributes a 12×12 local geometric stiffness
+    matrix k_g^local that depends on the element length and the internal end
+    force/moment resultants induced by the current displacement state. The local
+    matrix is then mapped to global coordinates with a 12×12 direction-cosine
+    transformation Γ and scattered into the global K_g.
+
+    Parameters
+    ----------
+    node_coords : (n_nodes, 3) ndarray of float
+        Global Cartesian coordinates [x, y, z] of each node (0-based indexing).
+    elements : sequence of dict
+        Per-element dictionaries. Required keys per element:
+            'E' : float
+                Young's modulus (Pa).
+            'nu' : float
+                Poisson's ratio (unitless).
+            'A' : float
+                Cross-sectional area (m²).
+            'I_y', 'I_z' : float
+                Second moments of area about the local y- and z-axes (m⁴).
+            'J' : float
+                Torsional constant (m⁴).
+            'local_z' : array-like of shape (3,), optional
+                Unit vector in global coordinates defining the local z-axis orientation.
+                Must not be parallel to the beam axis. If None, a default is chosen (see Notes).
+    u_global : (6*n_nodes,) ndarray of float
+        Global displacement vector with 6 DOF per node in the order
+        [u_x, u_y, u_z, θ_x, θ_y, θ_z] for node 0, then node 1, etc.
+
+    Returns
+    -------
+    K : (6*n_nodes, 6*n_nodes) ndarray of float
+        Assembled global geometric stiffness matrix. For conservative loading and
+        the standard formulation, K_g is symmetric.
+
+    Notes
+    -----
+    - Local axes are right-handed.
+    - Default orientation rule for `local_z` (reference vector): use the global z-axis
+      unless the beam axis is aligned with global z, in which case use the global y-axis.
+      The 'local_z' must be unit length and not parallel to the beam axis.
+    - Internal end forces used to parameterize k_g^local are elastic internal reactions
+      induced by the supplied displacement state (not external loads). Their local DOF
+      ordering is the same as for local displacements:
+      [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2] ↔
+      [Fx_i, Fy_i, Fz_i, Mx_i, My_i, Mz_i, Fx_j, Fy_j, Fz_j, Mx_j, My_j, Mz_j].
+    - Elements that share nodes contribute additively to common global DOFs.
+    - A zero-length element or invalid `local_z` (non-unit or parallel to the axis)
+      should be treated as an error by the transformation routine.
+
+    External Dependencies
+    ---------------------
+    local_geometric_stiffness_matrix_3D_beam(L, A, I_rho, Fx2, Mx2, My1, Mz1, My2, Mz2) -> (12,12) ndarray
+        Must return the local geometric stiffness using the element length L, section properties, and local end force resultants as shown.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_multi_element_core_correctness_assembly: "Verify basic correctness of assemble_global_geometric_stiffness_3D_beam
+for a simple 3-node, 2-element chain. Checks that:
+  1) zero displacement produces a zero matrix,
+  2) the assembled matrix is symmetric,
+  3) scaling displacements scales K_g linearly,
+  4) superposition holds for independent displacement states, and
+  5) element order does not affect the assembled result."
+- test_frame_objectivity_under_global_rotation: "Verify frame objectivity of assemble_global_geometric_stiffness_3D_beam.
+
+Rotating the entire system (geometry, local axes, and displacement field) by
+a global rotation R should produce a geometric stiffness matrix K_g^rot that
+satisfies: K_g^rot ≈ T K_g T^T, where T is block-diagonal with per-node blocks
+diag(R, R) acting on [u_x,u_y,u_z, rx,ry,rz]."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

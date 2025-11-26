@@ -1,9 +1,0 @@
-{
-  "task_id": "generate_tri6_rectangular_mesh",
-  "llm_name": "claude-opus-4.1",
-  "tests_run": true,
-  "test_results": {
-    "reference_pass": [],
-    "failure_fail": []
-  }
-}

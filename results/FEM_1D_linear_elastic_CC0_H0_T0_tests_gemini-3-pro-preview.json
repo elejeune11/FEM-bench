@@ -1,0 +1,27 @@
+{
+  "task_id": "FEM_1D_linear_elastic_CC0_H0_T0",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_no_load_self_contained",
+        true
+      ],
+      [
+        "test_analytical_solution",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_no_load_self_contained",
+        true
+      ],
+      [
+        "test_analytical_solution",
+        true
+      ]
+    ]
+  }
+}

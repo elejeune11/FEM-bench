@@ -1,0 +1,51 @@
+{
+  "task_id": "MSA_3D_solve_eigenvalue_CC1_H1_T1",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_eigen_known_answer",
+        true
+      ],
+      [
+        "test_eigen_singluar_detected",
+        true
+      ],
+      [
+        "test_eigen_complex_eigenpairs_detected",
+        true
+      ],
+      [
+        "test_eigen_no_positive_eigenvalues_detected",
+        true
+      ],
+      [
+        "test_eigen_invariance_to_reference_load_scaling",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_eigen_known_answer",
+        true
+      ],
+      [
+        "test_eigen_singluar_detected",
+        true
+      ],
+      [
+        "test_eigen_complex_eigenpairs_detected",
+        true
+      ],
+      [
+        "test_eigen_no_positive_eigenvalues_detected",
+        true
+      ],
+      [
+        "test_eigen_invariance_to_reference_load_scaling",
+        true
+      ]
+    ]
+  }
+}

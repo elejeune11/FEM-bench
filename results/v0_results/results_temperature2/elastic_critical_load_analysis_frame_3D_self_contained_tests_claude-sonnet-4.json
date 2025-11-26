@@ -1,9 +1,0 @@
-{
-  "task_id": "elastic_critical_load_analysis_frame_3D_self_contained",
-  "llm_name": "claude-sonnet-4",
-  "tests_run": true,
-  "test_results": {
-    "reference_pass": [],
-    "failure_fail": []
-  }
-}

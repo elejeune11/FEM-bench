@@ -1,0 +1,63 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports:
+import numpy as np
+import pytest
+from typing import Callable, Tuple
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+(None)
+
+## Function Signature:
+## Only complete the function below:
+def FEM_2D_quad_quadrature_CC0_H0_T0(num_pts: int) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Return Gauss–Legendre quadrature points and weights for the
+    reference square Q = { (xi, eta) : -1 ≤ xi ≤ 1, -1 ≤ eta ≤ 1 }.
+
+    Supported rules (tensor products of 1D Gauss–Legendre):
+      - 1 point  : 1×1   (exact for polynomials with degree ≤1 in each variable)
+      - 4 points : 2×2   (exact for degree ≤3 in each variable)
+      - 9 points : 3×3   (exact for degree ≤5 in each variable)
+
+    Parameters
+    ----------
+    num_pts : int
+        Total number of quadrature points. Must be one of {1, 4, 9}.
+
+    Returns
+    -------
+    points : (num_pts, 2) float64 ndarray
+        Quadrature points [xi, eta] on the reference square.
+        Points are returned in *row-major order* (η varies slowest, ξ varies fastest):
+        for example, the 2×2 rule yields
+            [(-1/√3, -1/√3), (+1/√3, -1/√3),
+             (-1/√3, +1/√3), (+1/√3, +1/√3)].
+    weights : (num_pts,) float64 ndarray
+        Corresponding quadrature weights. Computed as the tensor product
+        of 1D Gauss–Legendre weights; their sum equals 4.0, the area of Q.
+
+    Raises
+    ------
+    ValueError
+        If `num_pts` is not one of {1, 4, 9}.
+
+    Notes
+    -----
+    - Each 1D Gauss–Legendre rule integrates polynomials of degree ≤(2n−1) exactly.
+    - The tensor-product 2D rule is therefore exact for all separable polynomials
+      of degree ≤(2n−1) in each variable.
+    - The returned ordering and weight normalization are deterministic and part of the API.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

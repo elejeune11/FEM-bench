@@ -8,52 +8,21 @@ from datetime import datetime
 # Use the SAME tasks/prompts for A and B (fair A/B test)
 TASKS_DIR = "tasks"
 PROMPTS_DIR = "prompts"
-PROMPT_TEMPLATES_DIR = "prompt_templates"
-SYSTEM_PROMPT_NAME = "system_prompt_v2"
 
-with_system_prompt = False
+LLM_OUTPUTS_DIR = "llm_outputs"
+RESULTS_DIR = "results"
 
-if with_system_prompt:
-    LLM_OUTPUTS_DIR = f"llm_outputs_{SYSTEM_PROMPT_NAME}"
-    RESULTS_DIR = f"results_{SYSTEM_PROMPT_NAME}"
-    with open(f"{PROMPT_TEMPLATES_DIR}/{SYSTEM_PROMPT_NAME}.txt", "r", encoding="utf-8") as f:
-        SYSTEM_PROMPT = f.read()
-else:
-    LLM_OUTPUTS_DIR = "llm_outputs_temperature1"
-    RESULTS_DIR = "results_temperature1"
-    SYSTEM_PROMPT = None  # no system message
-
-# Convenience: single variable to pass to clients
-ACTIVE_SYSTEM_PROMPT = SYSTEM_PROMPT
+PROMPT_TEMPLATE_DIR = "prompt_templates"
+CODE_PROMPT_TEMPLATE_NAME = "code_prompt.j2"
+TEST_PROMPT_TEMPLATE_NAME = "test_prompt.j2"
 
 MODEL_NAMES = [
-    "gpt-4o",
-    "gpt-5",
-    "gemini-1.5-flash",
     "gemini-2.5-pro",
-    "claude-3-5",
-    "claude-sonnet-4",
-    "claude-opus-4.1",
-    "deepseek-chat",
-    "deepseek-reasoner",
+    "gemini-3-pro-preview"
 ]
+
 SEED = 11
-
-TEMPERATURE = 0.25   # NEW
-
-# --- Helper: write a simple marker file so you can see why it failed/was blocked ---
-def _write_block_marker(py_path: Path, *, provider: str, task_id: str, phase: str, error: Exception) -> None:
-    reason = str(error).replace("\n", " ")[:2000]  # keep it readable
-    lines = [
-        "# BLOCKED_OR_ERROR",
-        f"# Provider: {provider}",
-        f"# Phase: {phase}",                 # CODE or TESTS
-        f"# Task: {task_id}",
-        f"# Reason: {reason}",
-        "# Note: No code generated due to provider block or error.",
-        "",
-    ]
-    py_path.write_text("\n".join(lines), encoding="utf-8")
+TEMPERATURE = 1.0
 
 # === Setup pipeline ===
 pipeline = FEMBenchPipeline(
@@ -61,6 +30,9 @@ pipeline = FEMBenchPipeline(
     prompts_dir=PROMPTS_DIR,
     llm_outputs_dir=LLM_OUTPUTS_DIR,
     results_dir=RESULTS_DIR,
+    prompt_template_dir=PROMPT_TEMPLATE_DIR,
+    code_prompt_template_name=CODE_PROMPT_TEMPLATE_NAME,
+    test_prompt_template_name=TEST_PROMPT_TEMPLATE_NAME
 )
 
 # === 1. Load tasks ===
@@ -94,13 +66,11 @@ for model_name in MODEL_NAMES:
                         code_prompt,
                         seed=SEED,
                         temperature=TEMPERATURE,           # NEW
-                        system_prompt=ACTIVE_SYSTEM_PROMPT,
                     )
                     code_path.write_text(code_out, encoding="utf-8")
                     print(f"      [✓] Code saved to: {code_path}")
                 except Exception as e:
                     print(f"      [i] Writing marker (blocked/error) for CODE: {e}")
-                    _write_block_marker(code_path, provider=model_name, task_id=task_id, phase="CODE", error=e)
 
         # --- Test Prompt ---
         test_prompt = prompt_pair.get("tests")
@@ -116,14 +86,12 @@ for model_name in MODEL_NAMES:
                         test_prompt,
                         seed=SEED,
                         temperature=TEMPERATURE,           # NEW
-                        system_prompt=ACTIVE_SYSTEM_PROMPT,
                     )
                     test_out = "\n\n".join(test_out_dict.values())
                     test_path.write_text(test_out, encoding="utf-8")
                     print(f"      [✓] Tests saved to: {test_path}")
                 except Exception as e:
                     print(f"      [i] Writing marker (blocked/error) for TESTS: {e}")
-                    _write_block_marker(test_path, provider=model_name, task_id=task_id, phase="TESTS", error=e)
 
 # === 4. Load completions ===
 print("[4] Loading LLM outputs...")
@@ -145,9 +113,6 @@ pipeline.create_markdown_summary(model_names=MODEL_NAMES)
 Path(RESULTS_DIR).mkdir(exist_ok=True, parents=True)
 meta = {
     "timestamp": datetime.utcnow().isoformat() + "Z",
-    "with_system_prompt": with_system_prompt,
-    "prompt_version": SYSTEM_PROMPT_NAME,
-    "system_prompt": SYSTEM_PROMPT.strip() if SYSTEM_PROMPT else None,
     "models": MODEL_NAMES,
     "seed": SEED,
     "temperature": TEMPERATURE,               # NEW

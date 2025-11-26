@@ -1,0 +1,19 @@
+{
+  "task_id": "MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T3",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_assemble_global_stiffness_matrix_shape_and_symmetry",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_assemble_global_stiffness_matrix_shape_and_symmetry",
+        true
+      ]
+    ]
+  }
+}

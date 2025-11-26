@@ -1,0 +1,59 @@
+{
+  "task_id": "FEM_2D_quad8_shape_fcns_and_derivatives_CC0_H0_T0",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_quad8_shape_functions_and_derivatives_input_errors",
+        true
+      ],
+      [
+        "test_partition_of_unity_quad8",
+        true
+      ],
+      [
+        "test_derivative_partition_of_unity_quad8",
+        true
+      ],
+      [
+        "test_kronecker_delta_at_nodes_quad8",
+        true
+      ],
+      [
+        "test_value_completeness_quad8",
+        true
+      ],
+      [
+        "test_gradient_completeness_quad8",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_quad8_shape_functions_and_derivatives_input_errors",
+        true
+      ],
+      [
+        "test_partition_of_unity_quad8",
+        true
+      ],
+      [
+        "test_derivative_partition_of_unity_quad8",
+        true
+      ],
+      [
+        "test_kronecker_delta_at_nodes_quad8",
+        true
+      ],
+      [
+        "test_value_completeness_quad8",
+        true
+      ],
+      [
+        "test_gradient_completeness_quad8",
+        true
+      ]
+    ]
+  }
+}

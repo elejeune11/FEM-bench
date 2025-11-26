@@ -1,0 +1,76 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def MSA_3D_local_geometric_stiffness_CC1_H0_T0(L: float, A: float, I_rho: float, Fx2: float, Mx2: float, My1: float, Mz1: float, My2: float, Mz2: float) -> np.ndarray:
+    """
+    Return the 12x12 local geometric stiffness matrix with torsion-bending coupling for a 3D Euler-Bernoulli beam element.
+
+    The beam is assumed to be aligned with the local x-axis. The geometric stiffness matrix is used in conjunction with the elastic stiffness matrix for nonlinear structural analysis.
+
+    Degrees of freedom are ordered as:
+        [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+
+    Where:
+        - u, v, w: displacements along local x, y, z axes
+        - θx, θy, θz: rotations about local x, y, z axes
+        - Subscripts 1 and 2 refer to nodes i and j of the element
+
+    Parameters:
+        L (float): Length of the beam element [length units]
+        A (float): Cross-sectional area [length² units]
+        I_rho (float): Polar moment of inertia about the x-axis [length⁴ units]
+        Fx2 (float): Internal axial force in the element (positive = tension), evaluated at node 2 [force units]
+        Mx2 (float): Torsional moment at node 2 about x-axis [forcexlength units]
+        My1 (float): Bending moment at node 1 about y-axis [forcexlength units]
+        Mz1 (float): Bending moment at node 1 about z-axis [forcexlength units]
+        My2 (float): Bending moment at node 2 about y-axis [forcexlength units]
+        Mz2 (float): Bending moment at node 2 about z-axis [forcexlength units]
+
+    Returns:
+        np.ndarray: A 12x12 symmetric geometric stiffness matrix in local coordinates.
+                    Positive axial force (tension) contributes to element stiffness;
+                    negative axial force (compression) can lead to instability.
+
+    Notes:
+    Effects captured
+        * Axial load stiffening/softening (second order “P-Δ” and “P-θ” effects):
+        + **Tension (+Fx2)** increases lateral/torsional stiffness.
+        + Compression (-Fx2) decreases it and may trigger buckling when K_e + K_g becomes singular.
+        * Coupling of torsion (Mx2) with bending about the local y and z axes.
+        * Coupling between end bending moments (My, Mz) and both transverse displacements and rotations (“moment-displacement” and “moment-rotation”).
+        * Interaction between the two element nodes (no lumping of geometric terms).
+
+    Implementation details
+        * Consistent 12 x 12 matrix for an Euler-Bernoulli beam.
+        * Cross-section assumed prismatic and doubly symmetric; no shear deformation, non-uniform torsion, or Wagner warping effects are included.
+        * Intended for second-order geometric nonlinear analysis, large displacement static equilibrium, and eigenvalue based buckling calculations.
+        * Inputs `Fx2`, `Mx2`, `My1`, `Mz1`, `My2`, `Mz2` are normally taken from the element's internal force vector at the start of the load increment/Newton iteration.
+        * Valid in a small strain, moderate rotation framework (Δ L large, ε small).
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_local_geometric_stiffness_matrix_3D_beam_comprehensive: "Comprehensive test for local_geometric_stiffness_matrix_3D_beam:
+- shape and symmetry
+- zero matrix when all loads are zero
+- axial force (Fx2) leads to stiffening (tension) or softening (compression)
+- matrix changes when torsional and bending moments are varied
+- matrix scales linearly with Fx2"
+- test_euler_buckling_cantilever_column: "Test the geometric stiffness matrix formulation by checking that it leads to the correct buckling load for a cantilever column.
+Compare numerical result with the analytical Euler buckling load.
+Design the test so that comparison tolerances account for discretization error."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

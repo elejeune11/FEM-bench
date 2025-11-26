@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-11-26T15:34:22.337981Z",
+  "models": [
+    "gemini-2.5-pro",
+    "gemini-3-pro-preview"
+  ],
+  "seed": 11,
+  "temperature": 1.0,
+  "tasks_dir": "tasks",
+  "prompts_dir": "prompts",
+  "llm_outputs_dir": "llm_outputs",
+  "results_dir": "results"
+}

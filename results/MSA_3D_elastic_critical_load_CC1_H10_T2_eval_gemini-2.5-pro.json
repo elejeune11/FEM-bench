@@ -1,0 +1,7 @@
+{
+  "task_id": "MSA_3D_elastic_critical_load_CC1_H10_T2",
+  "llm_name": "gemini-2.5-pro",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}

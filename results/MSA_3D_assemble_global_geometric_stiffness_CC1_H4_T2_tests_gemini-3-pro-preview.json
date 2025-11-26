@@ -1,0 +1,35 @@
+{
+  "task_id": "MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T2",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_multi_element_core_correctness_assembly",
+        false
+      ],
+      [
+        "test_frame_objectivity_under_global_rotation",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_multi_element_core_correctness_assembly",
+        true
+      ],
+      [
+        "test_multi_element_core_correctness_assembly",
+        true
+      ],
+      [
+        "test_frame_objectivity_under_global_rotation",
+        true
+      ],
+      [
+        "test_frame_objectivity_under_global_rotation",
+        true
+      ]
+    ]
+  }
+}

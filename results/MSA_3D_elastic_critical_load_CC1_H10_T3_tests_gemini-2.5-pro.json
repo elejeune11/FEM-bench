@@ -1,0 +1,47 @@
+{
+  "task_id": "MSA_3D_elastic_critical_load_CC1_H10_T3",
+  "llm_name": "gemini-2.5-pro",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        false
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        false
+      ],
+      [
+        "test_cantilever_euler_buckling_mesh_convergence",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_euler_buckling_cantilever_circular_param_sweep",
+        true
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        true
+      ],
+      [
+        "test_orientation_invariance_cantilever_buckling_rect_section",
+        true
+      ],
+      [
+        "test_cantilever_euler_buckling_mesh_convergence",
+        true
+      ],
+      [
+        "test_cantilever_euler_buckling_mesh_convergence",
+        true
+      ]
+    ]
+  }
+}

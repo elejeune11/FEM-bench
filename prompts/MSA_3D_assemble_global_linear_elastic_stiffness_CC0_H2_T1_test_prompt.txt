@@ -1,0 +1,73 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T1(node_coords, elements):
+    """
+    Assembles the global stiffness matrix for a 3D linear elastic frame structure composed of beam elements.
+
+    Each beam element connects two nodes and contributes a 12x12 stiffness matrix (6 DOFs per node) to the
+    global stiffness matrix. The element stiffness is computed in the local coordinate system using material
+    and geometric properties, then transformed into the global coordinate system via a transformation matrix.
+
+    Parameters
+    ----------
+    node_coords : ndarray of shape (n_nodes, 3)
+        Array containing the (x, y, z) coordinates of each node.
+
+    elements : list of dict
+        A list of element dictionaries. Each dictionary must contain:
+            - 'node_i', 'node_j' : int
+                Indices of the start and end nodes.
+            - 'E' : float
+                Young's modulus of the element.
+            - 'nu' : float
+                Poisson's ratio of the element.
+            - 'A' : float
+                Cross-sectional area.
+            - 'I_y', 'I_z' : float
+                Second moments of area about local y and z axes.
+            - 'J' : float
+                Torsional constant.
+            - 'local_z' (optional) : array-like
+                Optional vector defining the local z-direction to resolve transformation ambiguity.
+
+    Returns
+    -------
+    K : ndarray of shape (6 * n_nodes, 6 * n_nodes)
+        The assembled global stiffness matrix of the structure, with 6 degrees of freedom per node.
+
+    Helper Functions Required
+    -------------------------
+    - local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J)
+        Returns the 12x12 local stiffness matrix for a 3D beam element.
+
+    - beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, local_z=None)
+        Returns the 12x12 transformation matrix to convert local stiffness to global coordinates.
+
+    Notes
+    -----
+    - Degrees of freedom per node follow the order: [u_x, u_y, u_z, θ_x, θ_y, θ_z].
+    - Assumes all elements are linearly elastic and connected via shared nodes.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_assemble_global_stiffness_matrix_shape_and_symmetry: "Tests that the global stiffness matrix assembly function produces a symmetric matrix of correct shape,
+and that each element contributes a nonzero 12x12 block to the appropriate location.
+
+Covers multiple structural configurations, for example: single element, linear chain, triangle loop, and square loop."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

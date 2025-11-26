@@ -12,6 +12,7 @@ _TOKEN_POLICY = {
     "gemini-1.5-flash":  {"default": 6000,  "cap": 8192},   # NEW
     "gemini-2.5-flash":  {"default": 6000,  "cap": 8192},
     "gemini-2.5-pro":    {"default": 20000, "cap": 65000},
+    "gemini-3-pro-preview": {"default": 32000, "cap": 65536},
     "gpt-4o":            {"default": 6000,  "cap": 8192},
     "o3":                {"default": 12000, "cap": 20000},
     "gpt-5":             {"default": 12000, "cap": 20000},
@@ -92,7 +93,7 @@ def call_llm_for_code(
             return_raw=return_raw,
             system_prompt=system_prompt,
         )
-    elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"):
+    elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview"):
         return call_gemini_for_code(
             prompt=prompt,
             model_name=model_name,
@@ -181,7 +182,7 @@ def call_llm_for_tests(
             return_raw=return_raw,
             system_prompt=system_prompt,
         )
-    elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"):
+    elif model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview"):
         return call_gemini_for_tests(
             prompt=prompt,
             model_name=model_name,
@@ -230,7 +231,7 @@ def call_llm_for_tests(
     else:
         raise ValueError(
             "Unsupported model: {model}. Supported models: "
-            "gpt-4o, o3, gpt-5, gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro, "
+            "gpt-4o, o3, gpt-5, gemini-1.5-flash, gemini-2.5-flash, gemini-2.5-pro, gemini-3-pro-preview"
             "claude-3-5, claude-sonnet-4, claude-opus-4.1, deepseek-chat, deepseek-reasoner"
             .format(model=model_name)
         )
@@ -244,6 +245,7 @@ def list_available_models() -> Dict[str, str]:
         "gemini-1.5-flash":   "Google Gemini 1.5 Flash",   # NEW
         "gemini-2.5-flash":   "Google Gemini 2.5 Flash",
         "gemini-2.5-pro":     "Google Gemini 2.5 Pro",
+        "gemini-3-pro-preview": "Google Gemini 3 Pro Preview",
         "claude-3-5":         "Anthropic Claude 3.5 Sonnet (2024-10-22)",
         "claude-sonnet-4":    "Anthropic Claude Sonnet 4 (2025-05-14)",
         "claude-opus-4.1":    "Anthropic Claude Opus 4.1 (2025-08-05)",

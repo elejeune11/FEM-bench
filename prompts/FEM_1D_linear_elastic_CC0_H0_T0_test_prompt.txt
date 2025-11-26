@@ -1,0 +1,85 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def FEM_1D_linear_elastic_CC0_H0_T0(x_min: float, x_max: float, num_elements: int, material_regions: List[Dict[str, float]], body_force_fn: Callable[[float], float], dirichlet_bc_list: List[Dict[str, float]], neumann_bc_list: Optional[List[Dict[str, float]]], n_gauss: int) -> Dict[str, np.ndarray]:
+    """
+    Solve a 1D small-strain, linear-elastic bar problem with built-in meshing and assembly.
+
+    Builds a uniform 2-node (linear) mesh on [x_min, x_max], assigns element-wise
+    material properties from piecewise regions, assembles the global stiffness and
+    force vectors (including body forces via Gauss quadrature and optional point
+    Neumann loads), applies Dirichlet constraints, solves for nodal displacements,
+    and returns displacements and reactions.
+
+    Parameters
+    ----------
+    x_min, x_max : float
+        Domain bounds (x_max > x_min).
+    num_elements : int
+        Number of linear elements (num_nodes = num_elements + 1).
+    material_regions : list of dict
+        Piecewise-constant material regions. Each dict must contain:
+        {"coord_min": float, "coord_max": float, "E": float, "A": float}.
+        Elements are assigned by their midpoint x_center. Every element must fall
+        into exactly one region.
+    body_force_fn : Callable[[float], float]
+        Body force density f(x) (force per unit length). Evaluated at quadrature points.
+    dirichlet_bc_list : list of dict
+        Dirichlet boundary conditions applied at existing mesh nodes. Each dict:
+        {"x_location": float, "u_prescribed": float}.
+    neumann_bc_list : list of dict, optional
+        Point loads applied at existing mesh nodes. Each dict:
+        {"x_location": float, "load_mag": float}.
+        Positive load acts in the +x direction (outward).
+    n_gauss : int, optional
+        Number of Gauss points per element (1–3 supported). Default 2 (exact for
+        linear elements with constant EA and linear f mapped through x(ξ)).
+
+    Returns
+    -------
+    dict
+        {
+            "displacements": np.ndarray,  shape (n_nodes,)
+                Nodal displacement vector.
+            "reactions": np.ndarray,      shape (n_dirichlet,)
+                Reaction forces at the Dirichlet-constrained nodes (in the order
+                listed by `dirichlet_bc_list` / discovered nodes).
+            "node_coords": np.ndarray,    shape (n_nodes,)
+                Coordinates of all mesh nodes.
+            "reaction_nodes": np.ndarray, shape (n_dirichlet,)
+                Indices of nodes where reactions are reported.
+        }
+
+    Raises
+    ------
+    ValueError
+        If an element is not covered by exactly one material region, if BC
+        coordinates do not match a unique node, or if `n_gauss` is not in {1,2,3}.
+    numpy.linalg.LinAlgError
+        If the reduced stiffness matrix is singular (e.g., insufficient Dirichlet constraints).
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_no_load_self_contained: "Test zero displacement and zero reaction in a fixed-free bar with no external load.
+
+A 2-element bar with uniform material, zero body force, and one fixed end should return:
+- Zero displacement at all nodes
+- Zero reaction at the fixed node
+- Correct output shapes and boundary condition enforcement"
+- test_analytical_solution: "Test a non-zero displacement field against a known analytical solution."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

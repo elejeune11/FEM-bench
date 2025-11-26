@@ -5,7 +5,8 @@ Write a Python function that matches the exact signature and docstring provided 
 ## Requirements:
 - Keep the function name, parameter names, and docstring exactly as shown
 - Do not add any code outside the function definition
-- Use only the following imports: import numpy as np
+- Use only the following imports:
+import numpy as np
 import pytest
 - You may call only the helper functions listed below — their full implementations are provided
 - Do not re-implement or modify them

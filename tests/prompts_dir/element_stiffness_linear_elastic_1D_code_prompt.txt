@@ -5,7 +5,8 @@ Write a Python function that matches the exact signature and docstring provided 
 ## Requirements:
 - Keep the function name, parameter names, and docstring exactly as shown
 - Do not add any code outside the function definition
-- Use only the following imports: import numpy as np
+- Use only the following imports:
+import numpy as np
 import pytest
 - You may call only the helper functions listed below — their full implementations are provided
 - Do not re-implement or modify them
@@ -42,6 +43,7 @@ def gauss_quadrature_1D(n: int) -> np.ndarray:
 
     return np.array([points, weights], dtype=object)
 
+
 def shape_function_derivatives_1D_linear() -> np.ndarray:
     """
     Return constant derivatives of 1D linear shape functions w.r.t. ξ.
@@ -53,6 +55,7 @@ def shape_function_derivatives_1D_linear() -> np.ndarray:
         -0.5,
         0.5
     ])
+
 
 def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> float:
     """
@@ -66,6 +69,7 @@ def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> float:
         float: Jacobian dx/dξ
     """
     return np.array(np.dot(dN_dxi, x_elem))
+
 
 
 ## Function Signature:

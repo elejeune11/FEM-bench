@@ -1,0 +1,94 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def MSA_3D_solve_linear_CC0_H1_T1(P_global: np.ndarray, K_global: np.ndarray, boundary_conditions: dict, n_nodes: int):
+    """
+    Solve for nodal displacements and support reactions in a 3D linear-elastic frame
+    using a partitioned stiffness approach.
+
+    This function partitions the global equilibrium system
+
+        K_global * u_global = P_global
+
+    into fixed and free degree-of-freedom (DOF) subsets based on the specified
+    boundary conditions. The reduced system for the free DOFs is solved directly,
+    provided that the free–free stiffness submatrix (K_ff) is well-conditioned.
+    Reactions at fixed supports are then computed from the recovered free displacements.
+
+    Parameters
+    ----------
+    P_global : (6*n_nodes,) ndarray of float
+        Global load vector containing externally applied nodal forces and moments.
+        Entries follow the per-node DOF order:
+        [F_x, F_y, F_z, M_x, M_y, M_z].
+
+    K_global : (6*n_nodes, 6*n_nodes) ndarray of float
+        Assembled global stiffness matrix for the structure.
+
+    boundary_conditions : dict[int, array-like of bool]
+        Dictionary mapping each node index (0-based) to a 6-element boolean array
+        defining the constrained DOFs:
+            True  → fixed (prescribed zero displacement/rotation)
+            False → free (unknown)
+        Nodes not listed are assumed fully free.
+
+    n_nodes : int
+        Total number of nodes in the structure.
+
+    Returns
+    -------
+    u : (6*n_nodes,) ndarray of float
+        Global displacement vector. Free DOFs contain computed displacements;
+        fixed DOFs are zero.
+
+    r : (6*n_nodes,) ndarray of float
+        Global reaction vector. Nonzero values appear only at fixed DOFs and
+        represent internal support reactions:
+            r_fixed = K_sf @ u_free - P_fixed.
+
+    Raises
+    ------
+    ValueError
+        If the reduced stiffness matrix K_ff is ill-conditioned
+        (cond(K_ff) ≥ 1e16), indicating a singular or unstable system.
+
+    Helper Functions
+    ----------------
+    - partition_degrees_of_freedom(boundary_conditions, n_nodes)
+        Identifies which global DOFs are fixed and which are free, returning
+        sorted integer index arrays (`fixed`, `free`). This helper ensures
+        consistency between the nodal boundary-condition specification and the
+        DOF layout assumed here.
+
+    Notes
+    -----
+    - DOF ordering per node: [u_x, u_y, u_z, θ_x, θ_y, θ_z].
+    - The solution uses direct inversion of K_ff via `np.linalg.solve`.
+    - A condition number check ensures numerical stability
+    - Reaction forces are computed assuming zero prescribed displacements
+      at fixed DOFs.
+    - The system must be properly constrained (no rigid-body modes)
+      for the solution to be valid.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_linear_solve_arbitrary_solvable_cases: "Verifies `linear_solve` against small, solvable 6-DOF-per-node systems that
+mimic cantilever-style setups. Checks boundary-condition handling,
+free-DOF equilibrium (K_ff u_f = P_f), reactions at fixed DOFs, and global equilibrium."
+- test_linear_solve_raises_on_ill_conditioned_Kff: "Ensures ValueError is raised when the free–free stiffness submatrix (K_ff) is ill-conditioned."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

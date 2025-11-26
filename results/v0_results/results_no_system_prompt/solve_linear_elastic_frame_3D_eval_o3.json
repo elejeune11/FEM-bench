@@ -1,7 +1,0 @@
-{
-  "task_id": "solve_linear_elastic_frame_3D",
-  "llm_name": "o3",
-  "matches_reference": false,
-  "test_results": [],
-  "error": "'code'"
-}

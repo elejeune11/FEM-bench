@@ -1,0 +1,53 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports:
+import numpy as np
+import pytest
+from typing import Callable
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+(None)
+
+## Function Signature:
+## Only complete the function below:
+def MSA_3D_partition_DOFs_CC0_H0_T0(boundary_conditions: dict, n_nodes: int):
+    """
+    Partition global degrees of freedom (DOFs) into fixed and free sets for a 3D frame.
+
+    Purpose
+    -------
+    For a 3D frame with 6 DOFs per node (3 translations and 3 rotations), this routine
+    builds the global index sets of fixed and free DOFs used to assemble, partition,
+    and solve the linear system. The global DOF ordering per node is:
+        [UX, UY, UZ, RX, RY, RZ].
+    Global indices are 0-based and assigned as: DOF_index = 6*node + local_dof.
+
+    Parameters
+    ----------
+    boundary_conditions : dict[int, array-like of bool]
+        Maps node index (0-based, in [0, n_nodes-1]) to a 6-length iterable of booleans
+        indicating which DOFs are fixed at that node (True = fixed, False = free).
+        Nodes not present in the dict are assumed to have all DOFs free.
+    n_nodes : int
+        Total number of nodes in the structure (N ≥ 0).
+
+    Returns
+    -------
+    fixed : ndarray of int, shape (n_fixed,)
+        Sorted, unique global indices of fixed DOFs (0-based). May be empty if no DOFs are fixed.
+    free : ndarray of int, shape (6*N - n_fixed,)
+        Sorted, unique global indices of free DOFs (0-based). Disjoint from `fixed`.
+        The union of `fixed` and `free` covers all DOFs: {0, 1, ..., 6*N - 1}.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

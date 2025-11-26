@@ -1,0 +1,23 @@
+{
+  "task_id": "MSA_3D_partition_DOFs_CC0_H0_T0",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_partition_dofs_correctness",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_partition_dofs_correctness",
+        true
+      ],
+      [
+        "test_partition_dofs_correctness",
+        true
+      ]
+    ]
+  }
+}

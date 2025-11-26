@@ -1,0 +1,90 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports:
+import numpy as np
+from typing import Callable, Optional, Sequence
+import pytest
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+(None)
+
+## Function Signature:
+## Only complete the function below:
+def MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T3(node_coords: np.ndarray, elements: Sequence[dict], u_global: np.ndarray) -> np.ndarray:
+    """
+    Assemble the global geometric (initial-stress) stiffness matrix K_g for a 3D frame
+    under a given global displacement state.
+
+    Each 2-node Euler–Bernoulli beam contributes a 12×12 local geometric stiffness
+    matrix k_g^local that depends on the element length and the internal end
+    force/moment resultants induced by the current displacement state. The local
+    matrix is then mapped to global coordinates with a 12×12 direction-cosine
+    transformation Γ and scattered into the global K_g.
+
+    Parameters
+    ----------
+    node_coords : (n_nodes, 3) ndarray of float
+        Global Cartesian coordinates [x, y, z] of each node (0-based indexing).
+    elements : sequence of dict
+        Per-element dictionaries. Required keys per element:
+            'E' : float
+                Young's modulus (Pa).
+            'nu' : float
+                Poisson's ratio (unitless).
+            'A' : float
+                Cross-sectional area (m²).
+            'I_y', 'I_z' : float
+                Second moments of area about the local y- and z-axes (m⁴).
+            'J' : float
+                Torsional constant (m⁴).
+            'local_z' : array-like of shape (3,), optional
+                Unit vector in global coordinates defining the local z-axis orientation.
+                Must not be parallel to the beam axis. If None, a default is chosen (see Notes).
+    u_global : (6*n_nodes,) ndarray of float
+        Global displacement vector with 6 DOF per node in the order
+        [u_x, u_y, u_z, θ_x, θ_y, θ_z] for node 0, then node 1, etc.
+
+    Returns
+    -------
+    K : (6*n_nodes, 6*n_nodes) ndarray of float
+        Assembled global geometric stiffness matrix. For conservative loading and
+        the standard formulation, K_g is symmetric.
+
+    Notes
+    -----
+    - Local axes are right-handed.
+    - Default orientation rule for `local_z` (reference vector): use the global z-axis
+      unless the beam axis is aligned with global z, in which case use the global y-axis.
+      The 'local_z' must be unit length and not parallel to the beam axis.
+    - Internal end forces used to parameterize k_g^local are elastic internal reactions
+      induced by the supplied displacement state (not external loads). Their local DOF
+      ordering is the same as for local displacements:
+      [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2] ↔
+      [Fx_i, Fy_i, Fz_i, Mx_i, My_i, Mz_i, Fx_j, Fy_j, Fz_j, Mx_j, My_j, Mz_j].
+    - Elements that share nodes contribute additively to common global DOFs.
+    - A zero-length element or invalid `local_z` (non-unit or parallel to the axis)
+      should be treated as an error by the transformation routine.
+
+    Effects captured in the geometric stiffness matrix:
+        * Axial load stiffening/softening (second order “P-Δ” and “P-θ” effects):
+        + **Tension (+Fx2)** increases lateral/torsional stiffness.
+        + Compression (-Fx2) decreases it and may trigger buckling when K_e + K_g becomes singular.
+        * Coupling of torsion (Mx2) with bending about the local y and z axes.
+        * Coupling between end bending moments (My, Mz) and both transverse displacements and rotations (“moment-displacement” and “moment-rotation”).
+        * Interaction between the two element nodes (no lumping of geometric terms).
+        * Cross-section assumed prismatic and doubly symmetric; no shear deformation, non-uniform torsion, or Wagner warping effects are included.
+        * Intended for second-order geometric nonlinear analysis, large displacement static equilibrium, and eigenvalue based buckling calculations.
+        * Valid in a small strain, moderate rotation framework (Δ L large, ε small).
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

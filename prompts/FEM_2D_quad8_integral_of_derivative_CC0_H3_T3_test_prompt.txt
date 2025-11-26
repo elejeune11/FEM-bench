@@ -1,0 +1,74 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def FEM_2D_quad8_integral_of_derivative_CC0_H3_T3(node_coords: np.ndarray, node_values: np.ndarray, num_gauss_pts: int) -> np.ndarray:
+    """
+    Compute ∫_Ω (∇u) dΩ for a scalar field u defined over a quadratic
+    8-node quadrilateral (Q8) finite element.
+
+    The computation uses isoparametric mapping and Gauss–Legendre quadrature
+    on the reference domain Q = [-1, 1] × [-1, 1].
+
+    Parameters
+    ----------
+    node_coords : np.ndarray
+        Physical coordinates of the Q8 element nodes.
+        Shape: (8, 2). Each row is [x, y].
+        Node ordering (must match both geometry and values):
+            1: (-1, -1),  2: ( 1, -1),  3: ( 1,  1),  4: (-1,  1),
+            5: ( 0, -1),  6: ( 1,  0),  7: ( 0,  1),  8: (-1,  0)
+    node_values : np.ndarray
+        Scalar nodal values of u. Shape: (8,) or (8, 1).
+    num_gauss_pts : int
+        Number of quadrature points to use: one of {1, 4, 9}.
+        - 1 → 1×1 rule, exact for ≤1st-degree polynomials
+        - 4 → 2×2 rule, exact for ≤3rd-degree
+        - 9 → 3×3 rule, exact for ≤5th-degree
+
+    Returns
+    -------
+    integral : np.ndarray
+        The vector [∫_Ω ∂u/∂x dΩ, ∫_Ω ∂u/∂y dΩ].
+        Shape: (2,).
+
+    Notes
+    -----
+    Shape functions:
+        N1 = -1/4 (1-ξ)(1-η)(1+ξ+η)
+        N2 =  +1/4 (1+ξ)(1-η)(ξ-η-1)
+        N3 =  +1/4 (1+ξ)(1+η)(ξ+η-1)
+        N4 =  +1/4 (1-ξ)(1+η)(η-ξ-1)
+        N5 =  +1/2 (1-ξ²)(1-η)
+        N6 =  +1/2 (1+ξ)(1-η²)
+        N7 =  +1/2 (1-ξ²)(1+η)
+        N8 =  +1/2 (1-ξ)(1-η²)
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_integral_of_derivative_quad8_identity_cubic: "Validate ∫_Ω (∇u) dΩ for a cubic field on an identity-mapped Q8 element.
+A 2×2 Gauss–Legendre rule (num_gauss_pts = 4) is exact for this case,"
+- test_integral_of_derivative_quad8_affine_linear_field: "Analytic check with an affine geometric map and a linear field.
+Map the reference square Q = [-1, 1] × [-1, 1] by [x, y]^T = A[ξ, η]^T + c.
+For the linear scalar field u(x, y) = α + βx + γy.
+Test to make sure the function matches the correct analytical solution."
+- test_integral_of_derivative_quad8_order_check_asymmetric_curved: "Check quadrature-order sensitivity on a curved, asymmetric Q8 mapping.
+Select a geometry that is intentionally non-affine. With properly selected fixed,
+asymmetric nodal values, the integral ∫_Ω (∇u) dΩ should depend on the
+quadrature order. The test confirms that results from a 3×3 rule differ from those 
+of 1×1 or 2×2, verifying that higher-order integration is sensitive to nonlinear mappings."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

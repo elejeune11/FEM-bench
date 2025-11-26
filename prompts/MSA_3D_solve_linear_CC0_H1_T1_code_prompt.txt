@@ -1,0 +1,123 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports:
+import numpy as np
+import pytest
+from typing import Callable
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+def partition_degrees_of_freedom(boundary_conditions: dict, n_nodes: int):
+    """
+    Partitions the degrees of freedom (DOFs) into fixed and free sets for a 3D frame structure.
+
+    Parameters
+    ----------
+    boundary_conditions : dict[int, array-like of bool]
+        Dictionary mapping node indices to 6-element boolean arrays, where `True` indicates the DOF is fixed.
+        Nodes not listed are assumed fully free.
+
+    n_nodes : int
+        Total number of nodes in the structure.
+
+    Returns
+    -------
+    fixed : ndarray of int
+        Sorted array of fixed DOF indices.
+
+    free : ndarray of int
+        Sorted array of free DOF indices.
+    """
+    n_dof = n_nodes * 6
+    fixed = []
+    for n in range(n_nodes):
+        flags = boundary_conditions.get(n)
+        if flags is not None:
+            fixed.extend([6*n + i for i, f in enumerate(flags) if f])
+    fixed = np.asarray(fixed, dtype=int)
+    free = np.setdiff1d(np.arange(n_dof), fixed, assume_unique=True)
+    return fixed, free
+
+
+## Function Signature:
+## Only complete the function below:
+def MSA_3D_solve_linear_CC0_H1_T1(P_global: np.ndarray, K_global: np.ndarray, boundary_conditions: dict, n_nodes: int):
+    """
+    Solve for nodal displacements and support reactions in a 3D linear-elastic frame
+    using a partitioned stiffness approach.
+
+    This function partitions the global equilibrium system
+
+        K_global * u_global = P_global
+
+    into fixed and free degree-of-freedom (DOF) subsets based on the specified
+    boundary conditions. The reduced system for the free DOFs is solved directly,
+    provided that the free–free stiffness submatrix (K_ff) is well-conditioned.
+    Reactions at fixed supports are then computed from the recovered free displacements.
+
+    Parameters
+    ----------
+    P_global : (6*n_nodes,) ndarray of float
+        Global load vector containing externally applied nodal forces and moments.
+        Entries follow the per-node DOF order:
+        [F_x, F_y, F_z, M_x, M_y, M_z].
+
+    K_global : (6*n_nodes, 6*n_nodes) ndarray of float
+        Assembled global stiffness matrix for the structure.
+
+    boundary_conditions : dict[int, array-like of bool]
+        Dictionary mapping each node index (0-based) to a 6-element boolean array
+        defining the constrained DOFs:
+            True  → fixed (prescribed zero displacement/rotation)
+            False → free (unknown)
+        Nodes not listed are assumed fully free.
+
+    n_nodes : int
+        Total number of nodes in the structure.
+
+    Returns
+    -------
+    u : (6*n_nodes,) ndarray of float
+        Global displacement vector. Free DOFs contain computed displacements;
+        fixed DOFs are zero.
+
+    r : (6*n_nodes,) ndarray of float
+        Global reaction vector. Nonzero values appear only at fixed DOFs and
+        represent internal support reactions:
+            r_fixed = K_sf @ u_free - P_fixed.
+
+    Raises
+    ------
+    ValueError
+        If the reduced stiffness matrix K_ff is ill-conditioned
+        (cond(K_ff) ≥ 1e16), indicating a singular or unstable system.
+
+    Helper Functions
+    ----------------
+    - partition_degrees_of_freedom(boundary_conditions, n_nodes)
+        Identifies which global DOFs are fixed and which are free, returning
+        sorted integer index arrays (`fixed`, `free`). This helper ensures
+        consistency between the nodal boundary-condition specification and the
+        DOF layout assumed here.
+
+    Notes
+    -----
+    - DOF ordering per node: [u_x, u_y, u_z, θ_x, θ_y, θ_z].
+    - The solution uses direct inversion of K_ff via `np.linalg.solve`.
+    - A condition number check ensures numerical stability
+    - Reaction forces are computed assuming zero prescribed displacements
+      at fixed DOFs.
+    - The system must be properly constrained (no rigid-body modes)
+      for the solution to be valid.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

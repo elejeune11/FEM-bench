@@ -1,0 +1,31 @@
+{
+  "task_id": "MSA_3D_local_elastic_stiffness_CC0_H0_T0",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_local_stiffness_3D_beam",
+        false
+      ],
+      [
+        "test_cantilever_deflection_matches_euler_bernoulli",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_local_stiffness_3D_beam",
+        true
+      ],
+      [
+        "test_cantilever_deflection_matches_euler_bernoulli",
+        true
+      ],
+      [
+        "test_cantilever_deflection_matches_euler_bernoulli",
+        true
+      ]
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "task_id": "MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T2",
+  "llm_name": "gemini-2.5-pro",
+  "matches_reference": false,
+  "test_results": [],
+  "error": "'code'"
+}

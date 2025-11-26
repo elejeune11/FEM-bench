@@ -1,0 +1,27 @@
+{
+  "task_id": "FEM_2D_quad8_physical_gradient_CC0_H1_T3",
+  "llm_name": "gemini-3-pro-preview",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_q8_gradient_identity_mapping_matches_quadratic_analytic",
+        true
+      ],
+      [
+        "test_q8_gradient_linear_physical_field_under_curved_mapping_is_constant",
+        true
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_q8_gradient_identity_mapping_matches_quadratic_analytic",
+        true
+      ],
+      [
+        "test_q8_gradient_linear_physical_field_under_curved_mapping_is_constant",
+        true
+      ]
+    ]
+  }
+}

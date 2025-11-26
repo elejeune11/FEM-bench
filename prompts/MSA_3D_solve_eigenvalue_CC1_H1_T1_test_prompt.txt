@@ -1,0 +1,87 @@
+# Python Task: Write Pytest Tests for a Function
+
+Below is the function you are testing. Use its signature and docstring to understand its behavior.
+
+## Only complete the test functions below:
+def MSA_3D_solve_eigenvalue_CC1_H1_T1(K_e_global: np.ndarray, K_g_global: np.ndarray, boundary_conditions: dict, n_nodes: int):
+    """
+    Compute the smallest positive elastic critical load factor and corresponding
+    global buckling mode shape for a 3D frame/beam model.
+
+    The generalized eigenproblem is solved on the free DOFs:
+        K_e_ff * phi = -lambda * K_g_ff * phi
+    where K_e_ff and K_g_ff are the partitions of the elastic and geometric
+    stiffness matrices after applying boundary conditions.
+
+    Parameters
+    ----------
+    K_e_global : ndarray, shape (6*n_nodes, 6*n_nodes)
+        Global elastic stiffness matrix.
+    K_g_global : ndarray, shape (6*n_nodes, 6*n_nodes)
+        Global geometric stiffness matrix at the reference load state.
+    boundary_conditions : dict[int, array-like of bool]
+        Dictionary mapping each node index (0-based) to a 6-element boolean array
+        defining the constrained DOFs:
+            True  → fixed (prescribed zero displacement/rotation)
+            False → free (unknown)
+        Nodes not listed are assumed fully free.
+    n_nodes : int
+        Number of nodes in the model (assumes 6 DOFs per node, ordered
+        [u_x, u_y, u_z, theta_x, theta_y, theta_z] per node).
+
+    Returns
+    -------
+    elastic_critical_load_factor : float
+        The smallest positive eigenvalue lambda (> 0), interpreted as the elastic
+        critical load factor (i.e., P_cr = lambda * P_ref, if K_g_global was
+        formed at reference load P_ref).
+    deformed_shape_vector : ndarray, shape (6*n_nodes,)
+        Global buckling mode vector with entries on constrained DOFs set to zero.
+        No normalization is applied (matches original behavior).
+
+    Helper Functions
+    ----------------
+    - partition_degrees_of_freedom(boundary_conditions, n_nodes)
+        Identifies which global DOFs are fixed and which are free, returning
+        sorted integer index arrays (`fixed`, `free`). This helper ensures
+        consistency between the nodal boundary-condition specification and the
+        DOF layout assumed here.
+
+    Raises
+    ------
+    ValueError
+        - If the reduced matrices are ill-conditioned/singular beyond tolerance.
+            Use a tolerence of 1e16
+        - If no positive eigenvalue is found.
+        - If eigenpairs contain non-negligible complex parts.
+    """
+
+## Your Goal:
+Write pytest-style test functions that verify the correctness of the function above.
+
+## Requirements:
+- Use the exact test function names listed below
+- Each test must accept a single argument: `fcn` — the function to test
+- Use `assert` statements to check correctness
+- Each test must include a descriptive docstring
+- Do not include print statements, logging, or example usage
+- Output only valid Python code — no explanations, markdown, or comments
+
+## Test Functions to Implement:
+- test_eigen_known_answer: "Verifies that eigenvalue_analysis produces the correct result in a simple,
+analytically solvable case. For example, with diagonal K_e and K_g = -I, the critical
+load factors reduce to the diagonal entries of K_e, so the function should
+return the smallest one and a mode aligned with the corresponding DOF."
+- test_eigen_singluar_detected: "Verify that eigenvalue_analysis raises ValueError when the
+reduced elastic block is singular/ill-conditioned."
+- test_eigen_complex_eigenpairs_detected: "Verify that eigenvalue_analysis raises ValueError when the generalized
+eigenproblem yields significantly complex pairs."
+- test_eigen_no_positive_eigenvalues_detected: "Verify that eigenvalue_analysis raises ValueError when no positive
+eigenvalues are present."
+- test_eigen_invariance_to_reference_load_scaling: "Check that the computed critical load factor scales correctly with the
+reference geometric stiffness. Scaling K_g by a constant c should scale
+the reported eigenvalue by 1/c, while still returning valid global mode
+vectors of the correct size."
+
+# Output:
+# Only return valid pytest test functions — no prose, markdown, or commentary.

@@ -1,0 +1,77 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports:
+import numpy as np
+from typing import Callable, Optional
+import pytest
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+(None)
+
+## Function Signature:
+## Only complete the function below:
+def MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T3(node_coords, elements):
+    """
+    Assemble the global stiffness matrix for a 3D linear-elastic frame structure composed of beam elements.
+
+    Each 2-node Euler–Bernoulli beam contributes a 12×12 local elastic stiffness matrix
+    based on its material and geometric properties (E, ν, A, I_y, I_z, J, L).
+    The local matrix is expressed in the element’s coordinate system and includes
+    axial, bending, and torsional stiffness terms.
+
+    For global assembly, each local stiffness is transformed into global coordinates
+    using a 12×12 direction-cosine transformation matrix (Γ) derived from the element’s
+    start and end node coordinates and, if provided, an orientation vector (local_z).
+    The global stiffness matrix K is formed by adding these transformed
+    element matrices into the appropriate degree-of-freedom positions.
+
+    Parameters
+    ----------
+    node_coords : ndarray of shape (n_nodes, 3)
+        Array containing the (x, y, z) coordinates of each node.
+
+    elements : list of dict
+        A list of element dictionaries. Each dictionary must contain:
+            - 'node_i', 'node_j' : int
+                Indices of the start and end nodes.
+            - 'E' : float
+                Young's modulus of the element.
+            - 'nu' : float
+                Poisson's ratio of the element.
+            - 'A' : float
+                Cross-sectional area.
+            - 'I_y', 'I_z' : float
+                Second moments of area about local y and z axes.
+            - 'J' : float
+                Torsional constant.
+            - 'local_z' : array-like of shape (3,), optional
+                Unit vector in global coordinates defining the local z-axis orientation.
+                Must not be parallel to the beam axis. If None, a default is chosen.
+                Default local_z = global z, unless the beam lies along global z — then default local_z = global y.
+
+    Returns
+    -------
+    K : ndarray of shape (6 * n_nodes, 6 * n_nodes)
+        The assembled global stiffness matrix of the structure, with 6 degrees of freedom per node.
+
+    Notes
+    -----
+    - Local matrices are computed assuming Euler–Bernoulli beam theory and small displacements.
+    - Each element’s local stiffness is rotated into global coordinates using K_g = Γᵀ K_l Γ.
+    - Elements sharing nodes contribute additively to common global DOFs.
+    - Reference vectors (local_z) must be unit length and not parallel to the beam axis.
+    - Degrees of freedom per node follow the order: [u_x, u_y, u_z, θ_x, θ_y, θ_z].
+    - Assumes all elements are linearly elastic and connected via shared nodes.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

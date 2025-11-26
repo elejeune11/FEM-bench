@@ -1,9 +1,0 @@
-{
-  "task_id": "local_elastic_stiffness_matrix_3D_beam",
-  "llm_name": "deepseek-reasoner",
-  "tests_run": true,
-  "test_results": {
-    "reference_pass": [],
-    "failure_fail": []
-  }
-}

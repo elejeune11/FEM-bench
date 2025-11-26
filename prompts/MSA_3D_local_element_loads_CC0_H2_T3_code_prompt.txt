@@ -1,0 +1,92 @@
+# Python Function Implementation Task
+
+Write a Python function that matches the exact signature and docstring provided below.
+
+## Requirements:
+- Keep the function name, parameter names, and docstring exactly as shown
+- Do not add any code outside the function definition
+- Use only the following imports:
+import numpy as np
+from typing import Callable, Optional
+import pytest
+- You may call only the helper functions listed below — their full implementations are provided
+- Do not re-implement or modify them
+- Output only valid Python code (no explanations, comments, or markdown)
+- Implement the functionality as described in the docstring
+
+## Available Helper Functions:
+(None)
+
+## Function Signature:
+## Only complete the function below:
+def MSA_3D_local_element_loads_CC0_H2_T3(ele_info, xi, yi, zi, xj, yj, zj, u_dofs_global):
+    """
+    Compute the local internal nodal force/moment vector (end loading) for a 3D Euler-Bernoulli beam element.
+
+    This function transforms the element's global displacement vector into local coordinates,
+    applies the local stiffness matrix, and returns the corresponding internal end forces
+    in the local coordinate system.
+
+    Parameters
+    ----------
+    ele_info : dict
+        Dictionary containing the element's material and geometric properties:
+            'E' : float
+                Young's modulus (Pa).
+            'nu' : float
+                Poisson's ratio (unitless).
+            'A' : float
+                Cross-sectional area (m²).
+            'I_y', 'I_z' : float
+                Second moments of area about the local y- and z-axes (m⁴).
+            'J' : float
+                Torsional constant (m⁴).
+            'local_z' : array-like of shape (3,), optional
+                Unit vector in global coordinates defining the local z-axis orientation.
+                Must not be parallel to the beam axis. If None, a default is chosen.
+                Default local_z = global z, unless the beam lies along global z — then default local_z = global y.
+
+    xi, yi, zi : float
+        Global coordinates of the element's start node.
+
+    xj, yj, zj : float
+        Global coordinates of the element's end node.
+
+    u_dofs_global : array-like of shape (12,)
+        Element displacement vector in global coordinates:
+        [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2],
+        where:
+            - u, v, w are translations along x, y, z
+            - θx, θy, θz are rotations about x, y, z
+            - Subscripts 1 and 2 refer to the start (i) and end (j) nodes.
+
+    Returns
+    -------
+    load_dofs_local : ndarray of shape (12,)
+        Internal element end forces in local coordinates, ordered consistently with `u_dofs_global`.
+        Positive forces/moments follow the local right-handed coordinate system conventions.
+
+    Raises
+    ------
+    ValueError
+        If the beam length is zero or if `local_z` is invalid.
+
+    Notes
+    -----
+    - This computation assumes an Euler–Bernoulli beam (no shear deformation).
+    - The returned forces and moments are internal: they represent the element's
+    elastic response to the provided displacement state, not externally applied loads.
+    - The local coordinate system is right-handed:
+    + local x-axis → element axis from node i to node j
+    + local y-axis → perpendicular to both local z (provided) and x
+    + local z-axis → defined by the provided (optional) or default orientation vector.
+    - The returned load vector is ordered as:
+    [Fx_i, Fy_i, Fz_i, Mx_i, My_i, Mz_i, Fx_j, Fy_j, Fz_j, Mx_j, My_j, Mz_j],
+    consistent with the element’s local displacement ordering
+    [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2].
+    - Positive internal forces and moments follow the local right-handed coordinate
+    convention: tension and positive bending act in the positive local directions.
+    """
+
+# Output:
+# Only return the complete Python function — no extra text, explanation, or formatting.

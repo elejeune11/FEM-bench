@@ -1,0 +1,35 @@
+{
+  "task_id": "FEM_2D_quad8_integral_of_derivative_CC0_H3_T3",
+  "llm_name": "gemini-2.5-pro",
+  "tests_run": true,
+  "test_results": {
+    "reference_pass": [
+      [
+        "test_integral_of_derivative_quad8_identity_cubic",
+        true
+      ],
+      [
+        "test_integral_of_derivative_quad8_affine_linear_field",
+        true
+      ],
+      [
+        "test_integral_of_derivative_quad8_order_check_asymmetric_curved",
+        false
+      ]
+    ],
+    "failure_fail": [
+      [
+        "test_integral_of_derivative_quad8_identity_cubic",
+        true
+      ],
+      [
+        "test_integral_of_derivative_quad8_affine_linear_field",
+        true
+      ],
+      [
+        "test_integral_of_derivative_quad8_order_check_asymmetric_curved",
+        true
+      ]
+    ]
+  }
+}

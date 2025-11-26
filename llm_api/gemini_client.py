@@ -1,9 +1,14 @@
-# --- gemini_client.py ---
+# --- gemini_client.py (UPDATED) ---
 import os
 import time
 from typing import Dict, Optional
 from dotenv import load_dotenv
-import google.generativeai as genai
+
+# Imports for the modern google-genai SDK
+# 'google' now contains 'genai', and 'types' is used for configuration objects.
+from google import genai
+from google.genai import types 
+
 from llm_api.clean_utils import (
     clean_and_extract_function,
     extract_test_functions,
@@ -12,15 +17,30 @@ from llm_api.clean_utils import (
 # Load API key
 load_dotenv()
 
+# --- Global Client Object ---
+# The client is now a central object, replacing the global 'configure' state.
+# It is initialized to None and created/returned by the new _configure_gemini.
+_GEMINI_CLIENT = None 
 
-def _configure_gemini():
-    """Loads the Gemini API key and configures the genai library."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError(
-            "GEMINI_API_KEY is not set in your environment or .env file."
-        )
-    genai.configure(api_key=api_key)
+def _get_gemini_client() -> genai.Client:
+    """Gets or creates the global Gemini Client object."""
+    global _GEMINI_CLIENT
+    if _GEMINI_CLIENT is None:
+        api_key = os.getenv("GEMINI_API_KEY")
+        # Also support the new, preferred environment variable
+        if not api_key:
+            api_key = os.getenv("GOOGLE_API_KEY")
+        
+        # The API key is passed directly to the Client constructor
+        if not api_key:
+            raise RuntimeError(
+                "GEMINI_API_KEY or GOOGLE_API_KEY is not set in your environment or .env file."
+            )
+        
+        # The new way: create a client object
+        _GEMINI_CLIENT = genai.Client(api_key=api_key)
+        
+    return _GEMINI_CLIENT
 
 
 def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
@@ -36,14 +56,11 @@ def retry_api_call(call_fn, retries: int = 3, backoff: float = 1.5):
 
 def _make_model(model_name: str, system_prompt: Optional[str]):
     """
-    Construct a Gemini GenerativeModel. If system_prompt is provided, use it as
-    the model's system_instruction; otherwise construct the model normally.
+    Construct a Gemini GenerativeModel config for a client.
+    Note: The GenerativeModel class is no longer used for generation in this manner.
+    We just return the client and system prompt.
     """
-    if system_prompt:
-        return genai.GenerativeModel(
-            model_name, system_instruction=system_prompt
-        )
-    return genai.GenerativeModel(model_name)
+    return _get_gemini_client(), system_prompt
 
 
 def call_gemini_for_code(
@@ -57,16 +74,30 @@ def call_gemini_for_code(
     """
     Calls Gemini and returns a single cleaned function.
     """
-    _configure_gemini()
-    model = _make_model(model_name, system_prompt)
+    # 1. Get the client object
+    client, sp = _make_model(model_name, system_prompt) 
+
+    # 2. Configure thinking_level for Gemini 3 Pro Preview
+    thinking_config = None
+    if model_name == "gemini-3-pro-preview":
+        thinking_config = types.ThinkingConfig(
+            thinking_level=types.ThinkingLevel.HIGH
+        )
+    
+    # 3. Build the configuration object
+    config = types.GenerateContentConfig(
+        temperature=temperature,
+        max_output_tokens=max_tokens,
+        system_instruction=sp, # System prompt is now part of the config
+        thinking_config=thinking_config,
+    )
 
     def call():
-        return model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": temperature,
-                "max_output_tokens": max_tokens,
-            },
+        # The new way: call generate_content method on the client
+        return client.models.generate_content(
+            model=model_name, # The model name is passed here
+            contents=prompt,
+            config=config,
         )
 
     response = retry_api_call(call)
@@ -85,16 +116,30 @@ def call_gemini_for_tests(
     """
     Calls Gemini and returns all test functions as a dict {name: code}.
     """
-    _configure_gemini()
-    model = _make_model(model_name, system_prompt)
+    # 1. Get the client object
+    client, sp = _make_model(model_name, system_prompt)
+
+    # 2. Configure thinking_level for Gemini 3 Pro Preview
+    thinking_config = None
+    if model_name == "gemini-3-pro-preview":
+        thinking_config = types.ThinkingConfig(
+            thinking_level=types.ThinkingLevel.HIGH
+        )
+        
+    # 3. Build the configuration object
+    config = types.GenerateContentConfig(
+        temperature=temperature,
+        max_output_tokens=max_tokens,
+        system_instruction=sp, # System prompt is now part of the config
+        thinking_config=thinking_config,
+    )
 
     def call():
-        return model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": temperature,
-                "max_output_tokens": max_tokens,
-            },
+        # The new way: call generate_content method on the client
+        return client.models.generate_content(
+            model=model_name, # The model name is passed here
+            contents=prompt,
+            config=config,
         )
 
     response = retry_api_call(call)
