@@ -17,7 +17,18 @@ Write pytest-style test functions that verify the correctness of the function ab
 - Do not include print statements, logging, or example usage
 - Output only valid Python code — no explanations, markdown, or comments
 
-## Function Signature:
+{% if task.python_version or task.package_versions %}
+## Environment Specifications:
+{% if task.python_version -%}
+- Python Version: {{ task.python_version }}
+{% endif -%}
+{% if task.package_versions -%}
+- Package Versions:
+{% for package, version in task.package_versions.items() %}  - {{ package }}: {{ version }}
+{% endfor %}
+{%- endif %}
+
+{% endif -%}
 ## Test Functions to Implement:
 {% if test_cases %}
 {% for test in test_cases %}

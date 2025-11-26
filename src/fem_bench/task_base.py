@@ -59,6 +59,8 @@ class Task:
         fcn_dependency_code: Optional[List[str]] = None,
         reference_verification_inputs: Optional[List[List]] = None,
         test_cases: Optional[List[Dict[str, Any]]] = None,
+        python_version: Optional[str] = None,
+        package_versions: Optional[Dict[str, str]] = None,
     ):
         # --- Metadata ---
         self.task_id = task_id
@@ -66,6 +68,8 @@ class Task:
         self.created_date = created_date
         self.created_by = created_by
 
+        self.python_version = python_version
+        self.package_versions = package_versions or {}
         # --- Execution Spec (source only) ---
         self.main_fcn_code = main_fcn_code.strip()
         self.required_imports = required_imports or []

@@ -89,4 +89,16 @@ def task_info():
                                      [-5.0, 5.0, 7],
                                      [3.0, -1.0, 6]]
     test_cases = [{"test_code": test_basic_mesh_creation, "expected_failures": [fail_basic_mesh_creation]}, {"test_code": test_single_element_mesh, "expected_failures": [fail_single_element_mesh]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

@@ -16,12 +16,24 @@ Write a Python function that matches the exact signature and docstring provided 
 - Output only valid Python code (no explanations, comments, or markdown)
 - Implement the functionality as described in the docstring
 
-## Available Helper Functions:
-{% if task.fcn_dependency_code %}
-{{ task.fcn_dependency_code | map('dedent') | join('\n\n') }}
-{% else %}
-(None)
+{% if task.python_version or task.package_versions %}
+## Environment Specifications:
+{% if task.python_version -%}
+- Python Version: {{ task.python_version }}
 {% endif %}
+{%- if task.package_versions -%}
+- Package Versions:
+{% for package, version in task.package_versions.items() %}  - {{ package }}: {{ version }}
+{% endfor %}
+{%- endif %}
+
+{% endif -%}
+## Available Helper Functions:
+{% if task.fcn_dependency_code -%}
+{{ task.fcn_dependency_code | map('dedent') | join('\n\n') }}
+{%- else -%}
+(None)
+{%- endif %}
 
 
 ## Function Signature:

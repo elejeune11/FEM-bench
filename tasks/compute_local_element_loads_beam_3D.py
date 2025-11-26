@@ -819,4 +819,16 @@ def task_info():
         {"test_code": test_coordinate_invariance_global_rotation,
          "expected_failures": [compute_local_element_loads_beam_3D, compute_local_element_loads_beam_3D_return_scaled_disp]},
     ]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }

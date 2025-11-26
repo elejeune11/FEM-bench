@@ -210,4 +210,16 @@ def task_info():
         [[0.0, 10.0], 10e9, 0.05, 3]
     ]
     test_cases = [{"test_code": test_element_stiffness_comprehensive, "expected_failures": [wrong_element_stiffness_missing_area, wrong_element_stiffness_asymmetric]}]
-    return task_id, task_short_description, created_date, created_by, main_fcn, required_imports, fcn_dependencies, reference_verification_inputs, test_cases
+    return {
+        "task_id": task_id,
+        "task_short_description": task_short_description,
+        "created_date": created_date,
+        "created_by": created_by,
+        "main_fcn": main_fcn,
+        "required_imports": required_imports,
+        "fcn_dependencies": fcn_dependencies,
+        "reference_verification_inputs": reference_verification_inputs,
+        "test_cases": test_cases,
+        # "python_version": "version_number",
+        # "package_versions": {"numpy": "version_number", },
+    }
