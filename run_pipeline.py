@@ -56,13 +56,14 @@ else:
 
 experiment_dir_name = f"{experiment_signature}_run{run_num}"
 EXPERIMENT_LLM_OUTPUTS_DIR = Path(LLM_OUTPUTS_DIR) / experiment_dir_name
+EXPERIMENT_RESULTS_DIR = Path(RESULTS_DIR) / experiment_dir_name
 
 # === Setup pipeline ===
 pipeline = FEMBenchPipeline(
     tasks_dir=TASKS_DIR,
     prompts_dir=PROMPTS_DIR,
     llm_outputs_dir=EXPERIMENT_LLM_OUTPUTS_DIR,  # Use the specific experiment dir
-    results_dir=RESULTS_DIR,
+    results_dir=EXPERIMENT_RESULTS_DIR, # Use the specific experiment results dir
     prompt_template_dir=PROMPT_TEMPLATE_DIR,
     code_prompt_template_name=CODE_PROMPT_TEMPLATE_NAME,
     test_prompt_template_name=TEST_PROMPT_TEMPLATE_NAME
@@ -154,7 +155,7 @@ pipeline.compute_aggregate_score()
 pipeline.create_markdown_summary(model_names=MODEL_NAMES)
 
 # Stamp run metadata for auditing
-Path(RESULTS_DIR).mkdir(exist_ok=True, parents=True)
+EXPERIMENT_RESULTS_DIR.mkdir(exist_ok=True, parents=True)
 meta = {
     "timestamp": datetime.utcnow().isoformat() + "Z",
     "models": MODEL_NAMES,
@@ -163,14 +164,13 @@ meta = {
     "tasks_dir": TASKS_DIR,
     "prompts_dir": PROMPTS_DIR,
     "llm_output_experiment_dir": str(EXPERIMENT_LLM_OUTPUTS_DIR), # Link to the specific run
-    "results_dir": RESULTS_DIR,
+    "results_dir": str(EXPERIMENT_RESULTS_DIR),
 }
-(Path(RESULTS_DIR) / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+(EXPERIMENT_RESULTS_DIR / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 print("Pipeline complete.")
 print("\n--- Outputs ---")
 print(f"LLM outputs for this run are in: {EXPERIMENT_LLM_OUTPUTS_DIR}")
-print(f"Run metadata is available at: {RESULTS_DIR}/run_meta.json")
-print(f"A summary of the evaluation has been saved to: {RESULTS_DIR}/evaluation_summary.md")
+print(f"Results for this run are in: {EXPERIMENT_RESULTS_DIR}")
 
 print(f"\nModels evaluated: {', '.join(MODEL_NAMES)}")
