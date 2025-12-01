@@ -71,7 +71,6 @@ def compute_jacobian_1D(dN_dxi: np.ndarray, x_elem: np.ndarray) -> float:
     return np.array(np.dot(dN_dxi, x_elem))
 
 
-
 ## Function Signature:
 ## Only complete the function below:
 def element_stiffness_linear_elastic_1D(x_elem: np.ndarray, E: float, A: float, n_gauss: int) -> np.ndarray:

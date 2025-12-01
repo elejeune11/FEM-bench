@@ -17,7 +17,6 @@ import pytest
 ## Available Helper Functions:
 (None)
 
-
 ## Function Signature:
 ## Only complete the function below:
 def solve_linear_elastic_1D_self_contained(x_min: float, x_max: float, num_elements: int, material_regions: List[Dict[str, float]], body_force_fn: Callable[[float], float], dirichlet_bc_list: List[Dict[str, float]], neumann_bc_list: Optional[List[Dict[str, float]]], n_gauss: int) -> Dict[str, np.ndarray]:

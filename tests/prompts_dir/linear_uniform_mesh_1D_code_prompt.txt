@@ -16,7 +16,6 @@ import pytest
 ## Available Helper Functions:
 (None)
 
-
 ## Function Signature:
 ## Only complete the function below:
 def linear_uniform_mesh_1D(x_min: float, x_max: float, num_elements: int) -> np.ndarray:
