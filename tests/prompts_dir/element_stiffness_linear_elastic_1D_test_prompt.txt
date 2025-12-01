@@ -28,7 +28,6 @@ Write pytest-style test functions that verify the correctness of the function ab
 - Do not include print statements, logging, or example usage
 - Output only valid Python code — no explanations, markdown, or comments
 
-## Function Signature:
 ## Test Functions to Implement:
 - test_element_stiffness_comprehensive: "Verify the correctness and robustness of the 1D linear elastic element stiffness matrix.
 

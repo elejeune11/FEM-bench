@@ -1,0 +1,10 @@
+{
+  "models": [
+    "gemini-2.5-pro",
+    "gemini-3-pro-preview"
+  ],
+  "seed": 11,
+  "temperature": 1.0,
+  "run_number": 0,
+  "use_latest_run_flag": true
+}

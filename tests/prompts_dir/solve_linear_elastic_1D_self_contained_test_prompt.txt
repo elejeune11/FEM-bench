@@ -45,7 +45,6 @@ Write pytest-style test functions that verify the correctness of the function ab
 - Do not include print statements, logging, or example usage
 - Output only valid Python code — no explanations, markdown, or comments
 
-## Function Signature:
 ## Test Functions to Implement:
 - test_no_load_self_contained: "Test zero displacement and zero reaction in a fixed-free bar with no external load.
 
