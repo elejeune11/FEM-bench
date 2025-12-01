@@ -24,6 +24,7 @@ MODEL_NAMES = [
 
 SEED = 11
 TEMPERATURE = 1.0
+RUN_NUMBER = None
 
 # === Argument Parsing ===
 parser = argparse.ArgumentParser(description="Run the FEM-Bench evaluation pipeline.")
@@ -43,7 +44,11 @@ experiment_signature = f"seed{SEED}_temp{TEMPERATURE}"
 Path(LLM_OUTPUTS_DIR).mkdir(exist_ok=True, parents=True)
 existing_runs = sorted(Path(LLM_OUTPUTS_DIR).glob(f"{experiment_signature}_run*"))
 
-latest_run_num = -1
+if not RUN_NUMBER:
+    latest_run_num = -1
+else:
+    latest_run_num = RUN_NUMBER
+
 if existing_runs:
     latest_run_num = max([int(run.name.split('_run')[-1]) for run in existing_runs])
 
