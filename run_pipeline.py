@@ -124,4 +124,8 @@ meta = {
 (Path(RESULTS_DIR) / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 print("Pipeline complete.")
-print(f"Models evaluated: {', '.join(MODEL_NAMES)}")
+print("\n--- Outputs ---")
+print(f"Run metadata is available at: {RESULTS_DIR}/run_meta.json")
+print(f"A summary of the evaluation has been saved to: {RESULTS_DIR}/evaluation_summary.md")
+
+print(f"\nModels evaluated: {', '.join(MODEL_NAMES)}")
