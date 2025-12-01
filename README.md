@@ -100,8 +100,8 @@ fem-bench/
    pip install --upgrade pip
    pip install -e ".[dev]"
    
-   # Required packages for LLM API clients (for setup shown in the repo)
-   pip install python-dotenv requests openai google-generativeai
+   # Install required packages for LLM API clients
+   pip install -r requirements.txt
    ```
 
 2. **Verify installation:**
