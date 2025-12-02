@@ -3,7 +3,6 @@ from llm_api.llm_clients import call_llm_for_code, call_llm_for_tests
 from pathlib import Path
 import json
 from datetime import datetime
-import argparse
 
 # === Config ===
 # Use the SAME tasks/prompts for A and B (fair A/B test)
@@ -24,17 +23,7 @@ MODEL_NAMES = [
 
 SEED = 11
 TEMPERATURE = 1.0
-RUN_NUMBER = None
-
-# === Argument Parsing ===
-parser = argparse.ArgumentParser(description="Run the FEM-Bench evaluation pipeline.")
-parser.add_argument(
-    "--use-latest-run",
-    action="store_true",
-    help="If set, use the most recent run folder that matches the current parameters (seed, temp). "
-         "Otherwise, a new numbered run folder will be created."
-)
-args = parser.parse_args()
+RUN_NUMBER = 0
 
 # === Dynamic Directory Setup ===
 # Define a unique signature for this experiment's parameters
@@ -44,22 +33,7 @@ experiment_signature = f"seed{SEED}_temp{TEMPERATURE}"
 Path(LLM_OUTPUTS_DIR).mkdir(exist_ok=True, parents=True)
 existing_runs = sorted(Path(LLM_OUTPUTS_DIR).glob(f"{experiment_signature}_run*"))
 
-if not RUN_NUMBER:
-    latest_run_num = -1
-else:
-    latest_run_num = RUN_NUMBER
-
-if existing_runs:
-    latest_run_num = max([int(run.name.split('_run')[-1]) for run in existing_runs])
-
-if args.use_latest_run and latest_run_num != -1:
-    # Use the latest existing run folder
-    run_num = latest_run_num
-else:
-    # Create a new run folder
-    run_num = latest_run_num + 1
-
-experiment_dir_name = f"{experiment_signature}_run{run_num}"
+experiment_dir_name = f"{experiment_signature}_run{RUN_NUMBER}"
 EXPERIMENT_LLM_OUTPUTS_DIR = Path(LLM_OUTPUTS_DIR) / experiment_dir_name
 EXPERIMENT_RESULTS_DIR = Path(RESULTS_DIR) / experiment_dir_name
 
@@ -92,8 +66,7 @@ generation_meta = {
     "models": MODEL_NAMES,
     "seed": SEED,
     "temperature": TEMPERATURE,
-    "run_number": run_num,
-    "use_latest_run_flag": args.use_latest_run,
+    "run_number": RUN_NUMBER,
 }
 (EXPERIMENT_LLM_OUTPUTS_DIR / "generation_meta.json").write_text(json.dumps(generation_meta, indent=2), encoding="utf-8")
 
