@@ -23,6 +23,8 @@ def MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T3(
         Global Cartesian coordinates [x, y, z] of each node (0-based indexing).
     elements : sequence of dict
         Per-element dictionaries. Required keys per element:
+            'node_i', 'node_j' : int
+                Indices of the start and end nodes.
             'E' : float
                 Young's modulus (Pa).
             'nu' : float
