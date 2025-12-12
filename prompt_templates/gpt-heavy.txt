@@ -1,0 +1,159 @@
+You will receive Python function implementation tasks with strict formatting and domain-specific requirements. Follow these instructions precisely to ensure your solution is accepted.
+
+General rules for all tasks
+- Output only valid Python code containing the single function requested. Do not include any explanations, comments, assertions, prints, or markdown.
+- Keep the function name, signature (including type hints), and docstring exactly as provided. Do not alter spacing, order, or wording inside the docstring.
+- Do not add any code outside the function body.
+- Use only the imports explicitly listed in the task prompt. Do not import anything else. If imports are allowed, place them inside the function unless told otherwise.
+- Use only the helper functions explicitly provided in the prompt. Do not re-implement or modify them unless the prompt explicitly states that helper functions are unavailable. If no helpers are available, implement all needed logic inside the single function.
+
+Coordinate systems, DOF ordering, and transformations (3D beam/frame tasks)
+- Local element DOF ordering is always:
+  [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2]
+- Internal force vector (local) uses the same order mapped to force/moment resultants:
+  [Fx_i, Fy_i, Fz_i, Mx_i, My_i, Mz_i, Fx_j, Fy_j, Fz_j, Mx_j, My_j, Mz_j]
+- The 12×12 transformation matrix Γ relates local and global systems via:
+  K_global = Γ.T @ K_local @ Γ
+  Therefore:
+  - Displacements transform to local with u_local = Γ @ u_global
+  - Forces transform to local with f_local = Γ.T @ f_global
+- The 12×12 Γ is composed of four repeated 3×3 direction cosine blocks along the diagonal, built from a right-handed orthonormal triad (ex, ey, ez) where:
+  - ex is the unit vector along the element axis from node i to node j
+  - ey = normalize(cross(ref_vec, ex))
+  - ez = cross(ex, ey)
+  - If ref_vec (local_z) is not provided: use global z unless ex is nearly parallel to global z, then use global y.
+  - Validate ref_vec when provided: shape (3,), unit length, and not parallel to ex.
+  - A zero-length element must raise an error in the transformation routine.
+
+Local elastic stiffness of a 3D Euler–Bernoulli beam (when helpers are not provided)
+- Use the standard 12×12 formulation with axial, torsional, and bending about local y and z:
+  - Axial: EA/L coupling u1-u2
+  - Torsion: GJ/L coupling θx1-θx2 with G = E/(2(1+ν))
+  - Bending about z (affects v and θz) uses E*Iz
+  - Bending about y (affects w and θy) uses E*Iy
+- A canonical implementation (matching typical helpers) is:
+
+  k = np.zeros((12, 12))
+  EA_L = E * A / L
+  GJ_L = E * J / (2.0 * (1.0 + nu) * L)
+  EIz_L = E * Iz
+  EIy_L = E * Iy
+  # axial
+  k[0, 0] = k[6, 6] = EA_L
+  k[0, 6] = k[6, 0] = -EA_L
+  # torsion
+  k[3, 3] = k[9, 9] = GJ_L
+  k[3, 9] = k[9, 3] = -GJ_L
+  # bending about z (local y‑displacements & rotations about z)
+  k[1, 1] = k[7, 7] = 12.0 * EIz_L / L**3
+  k[1, 7] = k[7, 1] = -12.0 * EIz_L / L**3
+  k[1, 5] = k[5, 1] = k[1, 11] = k[11, 1] = 6.0 * EIz_L / L**2
+  k[5, 7] = k[7, 5] = k[7, 11] = k[11, 7] = -6.0 * EIz_L / L**2
+  k[5, 5] = k[11, 11] = 4.0 * EIz_L / L
+  k[5, 11] = k[11, 5] = 2.0 * EIz_L / L
+  # bending about y (local z‑displacements & rotations about y)
+  k[2, 2] = k[8, 8] = 12.0 * EIy_L / L**3
+  k[2, 8] = k[8, 2] = -12.0 * EIy_L / L**3
+  k[2, 4] = k[4, 2] = k[2, 10] = k[10, 2] = -6.0 * EIy_L / L**2
+  k[4, 8] = k[8, 4] = k[8, 10] = k[10, 8] = 6.0 * EIy_L / L**2
+  k[4, 4] = k[10, 10] = 4.0 * EIy_L / L
+  k[4, 10] = k[10, 4] = 2.0 * EIy_L / L
+
+Computing internal element end forces (local)
+- Given global element displacements u_dofs_global of length 12 and geometry:
+  1) Build Γ with the transformation routine.
+  2) Compute element length L = ||xj - xi||.
+  3) Build the local elastic stiffness k_e_local as above or via provided helper.
+  4) Transform displacements to local: u_local = Γ @ u_dofs_global.
+  5) Internal end forces (local) are load_local = k_e_local @ u_local.
+
+Local geometric stiffness matrix with torsion–bending coupling (12×12)
+- For the function MSA_3D_local_geometric_stiffness_CC1_H0_T0, you must construct the full consistent local geometric (initial-stress) stiffness with coupling between axial force Fx2, torsion Mx2, and end bending moments My1, Mz1, My2, Mz2, including polar inertia coupling via I_rho and A. Use exactly this formulation:
+
+  k_g = np.zeros((12, 12))
+  # upper triangle off diagonal terms
+  k_g[0, 6] = -Fx2 / L
+  k_g[1, 3] = My1 / L
+  k_g[1, 4] = Mx2 / L
+  k_g[1, 5] = Fx2 / 10.0
+  k_g[1, 7] = -6.0 * Fx2 / (5.0 * L)
+  k_g[1, 9] = My2 / L
+  k_g[1, 10] = -Mx2 / L
+  k_g[1, 11] = Fx2 / 10.0
+  k_g[2, 3] = Mz1 / L
+  k_g[2, 4] = -Fx2 / 10.0
+  k_g[2, 5] = Mx2 / L
+  k_g[2, 8] = -6.0 * Fx2 / (5.0 * L)
+  k_g[2, 9] = Mz2 / L
+  k_g[2, 10] = -Fx2 / 10.0
+  k_g[2, 11] = -Mx2 / L
+  k_g[3, 4] = -1.0 * (2.0 * Mz1 - Mz2) / 6.0
+  k_g[3, 5] = (2.0 * My1 - My2) / 6.0
+  k_g[3, 7] = -My1 / L
+  k_g[3, 8] = -Mz1 / L
+  k_g[3, 9] = -Fx2 * I_rho / (A * L)
+  k_g[3, 10] = -1.0 * (Mz1 + Mz2) / 6.0
+  k_g[3, 11] = (My1 + My2) / 6.0
+  k_g[4, 7] = -Mx2 / L
+  k_g[4, 8] = Fx2 / 10.0
+  k_g[4, 9] = -1.0 * (Mz1 + Mz2) / 6.0
+  k_g[4, 10] = -Fx2 * L / 30.0
+  k_g[4, 11] = Mx2 / 2.0
+  k_g[5, 7] = -Fx2 / 10.0
+  k_g[5, 8] = -Mx2 / L
+  k_g[5, 9] = (My1 + My2) / 6.0
+  k_g[5, 10] = -Mx2 / 2.0
+  k_g[5, 11] = -Fx2 * L / 30.0
+  k_g[7, 9] = -My2 / L
+  k_g[7, 10] = Mx2 / L
+  k_g[7, 11] = -Fx2 / 10.0
+  k_g[8, 9] = -Mz2 / L
+  k_g[8, 10] = Fx2 / 10.0
+  k_g[8, 11] = Mx2 / L
+  k_g[9, 10] = (Mz1 - 2.0 * Mz2) / 6.0
+  k_g[9, 11] = -1.0 * (My1 - 2.0 * My2) / 6.0
+  # add in the symmetric lower triangle
+  k_g = k_g + k_g.transpose()
+  # add diagonal terms
+  k_g[0, 0] = Fx2 / L
+  k_g[1, 1] = 6.0 * Fx2 / (5.0 * L)
+  k_g[2, 2] = 6.0 * Fx2 / (5.0 * L)
+  k_g[3, 3] = Fx2 * I_rho / (A * L)
+  k_g[4, 4] = 2.0 * Fx2 * L / 15.0
+  k_g[5, 5] = 2.0 * Fx2 * L / 15.0
+  k_g[6, 6] = Fx2 / L
+  k_g[7, 7] = 6.0 * Fx2 / (5.0 * L)
+  k_g[8, 8] = 6.0 * Fx2 / (5.0 * L)
+  k_g[9, 9] = Fx2 * I_rho / (A * L)
+  k_g[10, 10] = 2.0 * Fx2 * L / 15.0
+  k_g[11, 11] = 2.0 * Fx2 * L / 15.0
+
+Global geometric stiffness assembly (when required)
+- Global DOFs per node are 6, ordered [u_x, u_y, u_z, θ_x, θ_y, θ_z].
+- For each element:
+  1) Determine node indices ni, nj and their coordinates.
+  2) Build Γ and element length L.
+  3) Extract the element’s global displacement subvector u_e (12×1).
+  4) Transform to local: d_loc = Γ @ u_e.
+  5) Compute local elastic stiffness k_el (as above or via helper).
+  6) Compute internal local end forces: f_loc = k_el @ d_loc.
+  7) Extract geometric parameters from f_loc for k_g^local construction:
+     Fx2 = f_loc[6]
+     Mx2 = f_loc[9]
+     My1 = f_loc[4]
+     Mz1 = f_loc[5]
+     My2 = f_loc[10]
+     Mz2 = f_loc[11]
+  8) Build k_g_local using the exact 12×12 formulation above.
+  9) Transform to global: k_g_global = Γ.T @ k_g_local @ Γ.
+  10) Assemble into the global matrix K at the element’s DOF indices.
+- After assembly, you may enforce symmetry via K = 0.5 * (K + K.T) to counter minor numerical asymmetries.
+
+Common pitfalls to avoid
+- Do not use Γ.T to transform displacements; the correct is u_local = Γ @ u_global.
+- Respect the exact DOF ordering and index mapping when extracting forces and moments.
+- Do not omit torsion–bending and moment–displacement/rotation coupling terms in geometric stiffness; use the full matrix provided above when requested.
+- Do not add extra imports or code outside the function.
+- Ensure no extraneous output (no prints, comments, or markdown).
+
+When in doubt, strictly follow the formulas and conventions above; these reflect the expected answers for these tasks.
