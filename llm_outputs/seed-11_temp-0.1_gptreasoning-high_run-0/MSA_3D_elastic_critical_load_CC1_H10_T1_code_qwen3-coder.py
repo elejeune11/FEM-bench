@@ -1,0 +1,9 @@
+def MSA_3D_elastic_critical_load_CC1_H10_T1(node_coords: np.ndarray, elements: Sequence[dict], boundary_conditions: dict[int, Sequence[int]], nodal_loads: dict[int, Sequence[float]]):
+    n_nodes = node_coords.shape[0]
+    K = assemble_global_stiffness_matrix_linear_elastic_3D(node_coords, elements)
+    P = assemble_global_load_vector_linear_elastic_3D(nodal_loads, n_nodes)
+    (fixed, free) = partition_degrees_of_freedom(boundary_conditions, n_nodes)
+    (u_global, _) = linear_solve(P, K, fixed, free)
+    K_g = assemble_global_geometric_stiffness_3D_beam(node_coords, elements, u_global)
+    (elastic_critical_load_factor, deformed_shape_vector) = eigenvalue_analysis(K, K_g, boundary_conditions, n_nodes)
+    return (elastic_critical_load_factor, deformed_shape_vector)
