@@ -17,23 +17,31 @@ CODE_PROMPT_TEMPLATE_NAME = "code_prompt.j2"
 TEST_PROMPT_TEMPLATE_NAME = "test_prompt.j2"
 
 MODEL_NAMES = [
+    "gemini-3-pro-preview",
     "gemini-2.5-pro",
-    "gemini-3-pro-preview"
+    "claude-opus-4.5",
+    "claude-haiku-4.5",
+    "gpt-5",
+    "gpt-5-mini",
+    "qwen3-coder",
+    "qwen3-next-80b",
+    "llama-4-maverick",
+    "llama-4-scout",
 ]
 
 SEED = 11
-TEMPERATURE = 1.0
+TEMPERATURE = 0.1
+GPT_REASONING_EFFORT = "high"
 RUN_NUMBER = 0
 
 # === Dynamic Directory Setup ===
 # Define a unique signature for this experiment's parameters
-experiment_signature = f"seed{SEED}_temp{TEMPERATURE}"
+experiment_signature = f"seed-{SEED}_temp-{TEMPERATURE}_gptreasoning-{GPT_REASONING_EFFORT}"
 
 # Find existing runs with the same signature
 Path(LLM_OUTPUTS_DIR).mkdir(exist_ok=True, parents=True)
-existing_runs = sorted(Path(LLM_OUTPUTS_DIR).glob(f"{experiment_signature}_run*"))
 
-experiment_dir_name = f"{experiment_signature}_run{RUN_NUMBER}"
+experiment_dir_name = f"{experiment_signature}_run-{RUN_NUMBER}"
 EXPERIMENT_LLM_OUTPUTS_DIR = Path(LLM_OUTPUTS_DIR) / experiment_dir_name
 EXPERIMENT_RESULTS_DIR = Path(RESULTS_DIR) / experiment_dir_name
 
@@ -89,6 +97,7 @@ for model_name in MODEL_NAMES:
                         code_prompt,
                         seed=SEED,
                         temperature=TEMPERATURE,           # NEW
+                        reasoning_effort=GPT_REASONING_EFFORT,
                     )
                     code_path.write_text(code_out, encoding="utf-8")
                     print(f"      [✓] Code saved to: {code_path}")
@@ -109,6 +118,7 @@ for model_name in MODEL_NAMES:
                         test_prompt,
                         seed=SEED,
                         temperature=TEMPERATURE,           # NEW
+                        reasoning_effort=GPT_REASONING_EFFORT,
                     )
                     test_out = "\n\n".join(test_out_dict.values())
                     test_path.write_text(test_out, encoding="utf-8")
@@ -132,6 +142,10 @@ print("[7] Aggregating results...")
 pipeline.compute_aggregate_score()
 pipeline.create_markdown_summary(model_names=MODEL_NAMES)
 
+# === 8. Generate LaTeX summary ===
+print("[8] Generating LaTeX summary...")
+pipeline.create_latex_summary(model_names=MODEL_NAMES)
+
 # Stamp run metadata for auditing
 EXPERIMENT_RESULTS_DIR.mkdir(exist_ok=True, parents=True)
 meta = {
@@ -139,6 +153,7 @@ meta = {
     "models": MODEL_NAMES,
     "seed": SEED,
     "temperature": TEMPERATURE,               # NEW
+    "reasoning_effort": GPT_REASONING_EFFORT,
     "tasks_dir": TASKS_DIR,
     "prompts_dir": PROMPTS_DIR,
     "llm_output_experiment_dir": str(EXPERIMENT_LLM_OUTPUTS_DIR), # Link to the specific run
