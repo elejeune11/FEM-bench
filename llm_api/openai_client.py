@@ -9,7 +9,8 @@ from llm_api.clean_utils import clean_and_extract_function, extract_test_functio
 load_dotenv()
 
 # Treat GPT-5 (and o-series) as reasoning models for Chat Completions params
-REASONING_MODELS = {"o3", "o3-pro", "gpt-5", "gpt-5-mini"}  # extend as needed
+# Updated to include gpt-5-mini
+REASONING_MODELS = {"o3", "o3-pro", "gpt-5", "gpt-5-mini"}
 
 
 def _get_openai_client():
@@ -40,6 +41,7 @@ def _prepare_chat_params(
     max_tokens: int,
     seed: Optional[int],
     system_prompt: Optional[str] = None,
+    reasoning_effort: Optional[str] = None,
 ) -> dict:
     """
     Internal helper to prepare chat completion parameters depending on model.
@@ -48,6 +50,12 @@ def _prepare_chat_params(
     Non-reasoning models -> use max_tokens + temperature.
 
     If system_prompt is provided, it is injected as the first message with role='system'.
+    
+    Parameters
+    ----------
+    reasoning_effort : Optional[str]
+        For GPT-5 models, controls reasoning depth. Options: 'none', 'low', 'medium', 'high'.
+        Only used for reasoning models. Defaults to 'medium' if not specified.
     """
     messages = []
     if system_prompt:
@@ -64,8 +72,13 @@ def _prepare_chat_params(
     if model in REASONING_MODELS:
         # Reasoning models on Chat Completions expect max_completion_tokens
         params["max_completion_tokens"] = max_tokens
-        # Temperature is ignored/unsupported for some reasoning models on this endpoint.
-        # (Use Responses API for full GPT-5 features.)
+        # Temperature is ignored/unsupported for reasoning models
+        # Optionally add reasoning_effort for GPT-5 models
+        if model.startswith("gpt-5") and reasoning_effort:
+            params["reasoning_effort"] = reasoning_effort
+        elif model.startswith("gpt-5"):
+            # Default to medium reasoning effort for GPT-5 if not specified
+            params["reasoning_effort"] = "medium"
     else:
         params["max_tokens"] = max_tokens
         params["temperature"] = temperature
@@ -75,18 +88,31 @@ def _prepare_chat_params(
 
 def call_openai_for_code(
     prompt: str,
-    model: str = "gpt-4o",            # you can pass "gpt-5" here
+    model: str = "gpt-4o",
     temperature: float = 0.0,
     max_tokens: int = 2048,
     seed: Optional[int] = None,
     return_raw: bool = False,
     system_prompt: Optional[str] = None,
+    reasoning_effort: Optional[str] = None,
 ) -> str:
     """
     Calls OpenAI and returns a single cleaned function.
     Raises an error if the output is empty.
 
-    system_prompt: optional string passed as a system message before the user message.
+    Parameters
+    ----------
+    system_prompt : Optional[str]
+        Optional string passed as a system message before the user message.
+    reasoning_effort : Optional[str]
+        For GPT-5/gpt-5-mini only. Controls reasoning depth: 'none', 'low', 'medium', 'high'.
+        Defaults to 'medium' if not specified for GPT-5 models.
+        Ignored for non-reasoning models.
+    
+    Note
+    ----
+    GPT-5 and gpt-5-mini do NOT support temperature parameter.
+    They use reasoning_effort instead. Temperature will be ignored for these models.
     """
     client = _get_openai_client()
     def call():
@@ -97,6 +123,7 @@ def call_openai_for_code(
             max_tokens=max_tokens,
             seed=seed,
             system_prompt=system_prompt,
+            reasoning_effort=reasoning_effort,
         )
         response = client.chat.completions.create(**params)
 
@@ -117,18 +144,31 @@ def call_openai_for_code(
 
 def call_openai_for_tests(
     prompt: str,
-    model: str = "gpt-4o",            # you can pass "gpt-5" here
+    model: str = "gpt-4o",
     temperature: float = 0.0,
     max_tokens: int = 2048,
     seed: Optional[int] = None,
     return_raw: bool = False,
     system_prompt: Optional[str] = None,
+    reasoning_effort: Optional[str] = None,
 ) -> Dict[str, str]:
     """
     Calls OpenAI and returns all test functions as a dict {name: code}.
     Raises an error if the output is empty.
 
-    system_prompt: optional string passed as a system message before the user message.
+    Parameters
+    ----------
+    system_prompt : Optional[str]
+        Optional string passed as a system message before the user message.
+    reasoning_effort : Optional[str]
+        For GPT-5/gpt-5-mini only. Controls reasoning depth: 'none', 'low', 'medium', 'high'.
+        Defaults to 'medium' if not specified for GPT-5 models.
+        Ignored for non-reasoning models.
+    
+    Note
+    ----
+    GPT-5 and gpt-5-mini do NOT support temperature parameter.
+    They use reasoning_effort instead. Temperature will be ignored for these models.
     """
     client = _get_openai_client()
     def call():
@@ -139,6 +179,7 @@ def call_openai_for_tests(
             max_tokens=max_tokens,
             seed=seed,
             system_prompt=system_prompt,
+            reasoning_effort=reasoning_effort,
         )
         response = client.chat.completions.create(**params)
 

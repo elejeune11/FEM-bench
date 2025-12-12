@@ -1,0 +1,42 @@
+def test_basic_mesh_creation(fcn):
+    """Test basic 1D uniform mesh creation for correctness.
+    This test verifies that the provided mesh-generation function produces
+    the expected node coordinates and element connectivity for a simple
+    1D domain with uniform spacing.
+    """
+    x_min = 0.0
+    x_max = 1.0
+    num_elements = 4
+    (node_coords, element_connectivity) = fcn(x_min, x_max, num_elements)
+    expected_num_nodes = num_elements + 1
+    assert node_coords.shape == (expected_num_nodes,)
+    expected_node_coords = np.array([0.0, 0.25, 0.5, 0.75, 1.0])
+    assert np.allclose(node_coords, expected_node_coords)
+    assert element_connectivity.shape == (num_elements, 2)
+    expected_connectivity = np.array([[0, 1], [1, 2], [2, 3], [3, 4]])
+    assert np.array_equal(element_connectivity, expected_connectivity)
+    assert node_coords[0] == x_min
+    assert node_coords[-1] == x_max
+    spacings = np.diff(node_coords)
+    assert np.allclose(spacings, spacings[0])
+
+def test_single_element_mesh(fcn):
+    """Test mesh generation for the edge case of a single 1D element.
+    This test checks that the mesh-generation function correctly handles
+    the minimal valid case of one linear element spanning a domain from
+    x_min to x_max. It ensures the function properly computes both node
+    coordinates and connectivity for this degenerate case.
+    """
+    x_min = 2.0
+    x_max = 5.0
+    num_elements = 1
+    (node_coords, element_connectivity) = fcn(x_min, x_max, num_elements)
+    expected_num_nodes = 2
+    assert node_coords.shape == (expected_num_nodes,)
+    expected_node_coords = np.array([2.0, 5.0])
+    assert np.allclose(node_coords, expected_node_coords)
+    assert element_connectivity.shape == (1, 2)
+    expected_connectivity = np.array([[0, 1]])
+    assert np.array_equal(element_connectivity, expected_connectivity)
+    assert node_coords[0] == x_min
+    assert node_coords[-1] == x_max
