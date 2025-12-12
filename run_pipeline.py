@@ -3,7 +3,6 @@ from llm_api.llm_clients import call_llm_for_code, call_llm_for_tests
 from pathlib import Path
 import json
 from datetime import datetime
-import argparse
 
 # === Config ===
 # Use the SAME tasks/prompts for A and B (fair A/B test)
@@ -18,51 +17,40 @@ CODE_PROMPT_TEMPLATE_NAME = "code_prompt.j2"
 TEST_PROMPT_TEMPLATE_NAME = "test_prompt.j2"
 
 MODEL_NAMES = [
+    "gemini-3-pro-preview",
     "gemini-2.5-pro",
-    "gemini-3-pro-preview"
+    "claude-opus-4.5",
+    "claude-haiku-4.5",
+    "gpt-5",
+    "gpt-5-mini",
+    "qwen3-coder",
+    "qwen3-next-80b",
+    "llama-4-maverick",
+    "llama-4-scout",
 ]
 
 SEED = 11
-TEMPERATURE = 1.0
-
-# === Argument Parsing ===
-parser = argparse.ArgumentParser(description="Run the FEM-Bench evaluation pipeline.")
-parser.add_argument(
-    "--use-latest-run",
-    action="store_true",
-    help="If set, use the most recent run folder that matches the current parameters (seed, temp). "
-         "Otherwise, a new numbered run folder will be created."
-)
-args = parser.parse_args()
+TEMPERATURE = 0.1
+GPT_REASONING_EFFORT = "high"
+RUN_NUMBER = 0
 
 # === Dynamic Directory Setup ===
 # Define a unique signature for this experiment's parameters
-experiment_signature = f"seed{SEED}_temp{TEMPERATURE}"
+experiment_signature = f"seed-{SEED}_temp-{TEMPERATURE}_gptreasoning-{GPT_REASONING_EFFORT}"
 
 # Find existing runs with the same signature
 Path(LLM_OUTPUTS_DIR).mkdir(exist_ok=True, parents=True)
-existing_runs = sorted(Path(LLM_OUTPUTS_DIR).glob(f"{experiment_signature}_run*"))
 
-latest_run_num = -1
-if existing_runs:
-    latest_run_num = max([int(run.name.split('_run')[-1]) for run in existing_runs])
-
-if args.use_latest_run and latest_run_num != -1:
-    # Use the latest existing run folder
-    run_num = latest_run_num
-else:
-    # Create a new run folder
-    run_num = latest_run_num + 1
-
-experiment_dir_name = f"{experiment_signature}_run{run_num}"
+experiment_dir_name = f"{experiment_signature}_run-{RUN_NUMBER}"
 EXPERIMENT_LLM_OUTPUTS_DIR = Path(LLM_OUTPUTS_DIR) / experiment_dir_name
+EXPERIMENT_RESULTS_DIR = Path(RESULTS_DIR) / experiment_dir_name
 
 # === Setup pipeline ===
 pipeline = FEMBenchPipeline(
     tasks_dir=TASKS_DIR,
     prompts_dir=PROMPTS_DIR,
     llm_outputs_dir=EXPERIMENT_LLM_OUTPUTS_DIR,  # Use the specific experiment dir
-    results_dir=RESULTS_DIR,
+    results_dir=EXPERIMENT_RESULTS_DIR, # Use the specific experiment results dir
     prompt_template_dir=PROMPT_TEMPLATE_DIR,
     code_prompt_template_name=CODE_PROMPT_TEMPLATE_NAME,
     test_prompt_template_name=TEST_PROMPT_TEMPLATE_NAME
@@ -86,8 +74,7 @@ generation_meta = {
     "models": MODEL_NAMES,
     "seed": SEED,
     "temperature": TEMPERATURE,
-    "run_number": run_num,
-    "use_latest_run_flag": args.use_latest_run,
+    "run_number": RUN_NUMBER,
 }
 (EXPERIMENT_LLM_OUTPUTS_DIR / "generation_meta.json").write_text(json.dumps(generation_meta, indent=2), encoding="utf-8")
 
@@ -110,6 +97,7 @@ for model_name in MODEL_NAMES:
                         code_prompt,
                         seed=SEED,
                         temperature=TEMPERATURE,           # NEW
+                        reasoning_effort=GPT_REASONING_EFFORT,
                     )
                     code_path.write_text(code_out, encoding="utf-8")
                     print(f"      [✓] Code saved to: {code_path}")
@@ -130,6 +118,7 @@ for model_name in MODEL_NAMES:
                         test_prompt,
                         seed=SEED,
                         temperature=TEMPERATURE,           # NEW
+                        reasoning_effort=GPT_REASONING_EFFORT,
                     )
                     test_out = "\n\n".join(test_out_dict.values())
                     test_path.write_text(test_out, encoding="utf-8")
@@ -153,24 +142,28 @@ print("[7] Aggregating results...")
 pipeline.compute_aggregate_score()
 pipeline.create_markdown_summary(model_names=MODEL_NAMES)
 
+# === 8. Generate LaTeX summary ===
+print("[8] Generating LaTeX summary...")
+pipeline.create_latex_summary(model_names=MODEL_NAMES)
+
 # Stamp run metadata for auditing
-Path(RESULTS_DIR).mkdir(exist_ok=True, parents=True)
+EXPERIMENT_RESULTS_DIR.mkdir(exist_ok=True, parents=True)
 meta = {
     "timestamp": datetime.utcnow().isoformat() + "Z",
     "models": MODEL_NAMES,
     "seed": SEED,
     "temperature": TEMPERATURE,               # NEW
+    "reasoning_effort": GPT_REASONING_EFFORT,
     "tasks_dir": TASKS_DIR,
     "prompts_dir": PROMPTS_DIR,
     "llm_output_experiment_dir": str(EXPERIMENT_LLM_OUTPUTS_DIR), # Link to the specific run
-    "results_dir": RESULTS_DIR,
+    "results_dir": str(EXPERIMENT_RESULTS_DIR),
 }
-(Path(RESULTS_DIR) / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+(EXPERIMENT_RESULTS_DIR / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 print("Pipeline complete.")
 print("\n--- Outputs ---")
 print(f"LLM outputs for this run are in: {EXPERIMENT_LLM_OUTPUTS_DIR}")
-print(f"Run metadata is available at: {RESULTS_DIR}/run_meta.json")
-print(f"A summary of the evaluation has been saved to: {RESULTS_DIR}/evaluation_summary.md")
+print(f"Results for this run are in: {EXPERIMENT_RESULTS_DIR}")
 
 print(f"\nModels evaluated: {', '.join(MODEL_NAMES)}")

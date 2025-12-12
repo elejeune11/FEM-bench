@@ -1,10 +1,9 @@
 {
   "models": [
-    "gemini-2.5-pro",
-    "gemini-3-pro-preview"
+    "gpt-5",
+    "gpt-5-mini"
   ],
   "seed": 11,
   "temperature": 1.0,
-  "run_number": 0,
-  "use_latest_run_flag": true
+  "run_number": 0
 }
