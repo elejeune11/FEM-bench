@@ -1,0 +1,8 @@
+{
+  "models": [
+    "gpt-5"
+  ],
+  "seed": 11,
+  "temperature": 0.1,
+  "run_number": 1
+}
