@@ -1,0 +1,141 @@
+You will be asked to implement Python functions for 3D Euler–Bernoulli beam/frame finite elements. Follow these rules and domain-specific conventions precisely.
+
+General compliance
+- Output only valid Python code with a single function body; no extra text, comments, or markdown.
+- Do not change the provided function name, parameters, or docstring.
+- Use only the imports explicitly allowed in the task. Place imports inside the function if needed.
+- If helper functions are provided by the task, call them exactly as specified. Do not re-implement or alter them. If no helpers are provided, you may define small helper routines inside the main function body (not at module scope).
+- Do not add code outside the function definition.
+
+Beam/frame conventions (critical)
+- Local DOF ordering is always:
+  [u1, v1, w1, θx1, θy1, θz1, u2, v2, w2, θx2, θy2, θz2].
+- The 12×12 transformation matrix Γ maps local to global for matrices:
+  K_global = Γ.T @ K_local @ Γ.
+- For displacement vectors: local displacements are obtained via
+  u_local = Γ @ u_global
+  (do not use Γ.T for mapping displacements).
+- Internal local end forces (reactions) for a linear elastic state are computed as:
+  f_local = K_e_local @ u_local
+  where K_e_local is the 12×12 local elastic stiffness matrix for the beam.
+
+Local elastic stiffness (if you must implement it internally)
+- Standard Euler–Bernoulli beam, prismatic, no shear deformation:
+  - Axial: EA/L on [0,0] and [6,6], with -EA/L coupling on [0,6] and [6,0].
+  - Torsion: GJ/L on [3,3] and [9,9], with -GJ/L coupling on [3,9] and [9,3], where G = E/(2(1+nu)).
+  - Bending about z (v-θz block using Iz): use the standard 12-6-4-2 form.
+  - Bending about y (w-θy block using Iy): use the standard 12-6-4-2 form with appropriate signs.
+  Follow the canonical 3D beam stiffness form exactly.
+
+Exact local geometric stiffness with torsion–bending coupling
+- When asked to return the 12×12 local geometric (initial-stress) stiffness with torsion–bending coupling, implement the following matrix exactly (symmetric; build upper triangle, then mirror, then set diagonals):
+
+  Let inputs be:
+    L (float), A (float), I_rho (float),
+    Fx2 (float), Mx2 (float), My1 (float), Mz1 (float), My2 (float), Mz2 (float).
+
+  Build k_g as zeros(12,12), then set the following upper-triangle off-diagonal entries:
+    k_g[0, 6]  = -Fx2 / L
+    k_g[1, 3]  =  My1 / L
+    k_g[1, 4]  =  Mx2 / L
+    k_g[1, 5]  =  Fx2 / 10.0
+    k_g[1, 7]  = -6.0 * Fx2 / (5.0 * L)
+    k_g[1, 9]  =  My2 / L
+    k_g[1, 10] = -Mx2 / L
+    k_g[1, 11] =  Fx2 / 10.0
+
+    k_g[2, 3]  =  Mz1 / L
+    k_g[2, 4]  = -Fx2 / 10.0
+    k_g[2, 5]  =  Mx2 / L
+    k_g[2, 8]  = -6.0 * Fx2 / (5.0 * L)
+    k_g[2, 9]  =  Mz2 / L
+    k_g[2, 10] = -Fx2 / 10.0
+    k_g[2, 11] = -Mx2 / L
+
+    k_g[3, 4]  = -(2.0 * Mz1 - Mz2) / 6.0
+    k_g[3, 5]  =  (2.0 * My1 - My2) / 6.0
+    k_g[3, 7]  = -My1 / L
+    k_g[3, 8]  = -Mz1 / L
+    k_g[3, 9]  = -Fx2 * I_rho / (A * L)
+    k_g[3, 10] = -(Mz1 + Mz2) / 6.0
+    k_g[3, 11] =  (My1 + My2) / 6.0
+
+    k_g[4, 7]  = -Mx2 / L
+    k_g[4, 8]  =  Fx2 / 10.0
+    k_g[4, 9]  = -(Mz1 + Mz2) / 6.0
+    k_g[4, 10] = -Fx2 * L / 30.0
+    k_g[4, 11] =  Mx2 / 2.0
+
+    k_g[5, 7]  = -Fx2 / 10.0
+    k_g[5, 8]  = -Mx2 / L
+    k_g[5, 9]  =  (My1 + My2) / 6.0
+    k_g[5, 10] = -Mx2 / 2.0
+    k_g[5, 11] = -Fx2 * L / 30.0
+
+    k_g[7, 9]  = -My2 / L
+    k_g[7, 10] =  Mx2 / L
+    k_g[7, 11] = -Fx2 / 10.0
+
+    k_g[8, 9]  = -Mz2 / L
+    k_g[8, 10] =  Fx2 / 10.0
+    k_g[8, 11] =  Mx2 / L
+
+    k_g[9, 10] =  (Mz1 - 2.0 * Mz2) / 6.0
+    k_g[9, 11] = -(My1 - 2.0 * My2) / 6.0
+
+  Then symmetrize:
+    k_g = k_g + k_g.transpose()
+
+  Then set diagonals:
+    k_g[0, 0]   =  Fx2 / L
+    k_g[1, 1]   =  6.0 * Fx2 / (5.0 * L)
+    k_g[2, 2]   =  6.0 * Fx2 / (5.0 * L)
+    k_g[3, 3]   =  Fx2 * I_rho / (A * L)
+    k_g[4, 4]   =  2.0 * Fx2 * L / 15.0
+    k_g[5, 5]   =  2.0 * Fx2 * L / 15.0
+    k_g[6, 6]   =  Fx2 / L
+    k_g[7, 7]   =  6.0 * Fx2 / (5.0 * L)
+    k_g[8, 8]   =  6.0 * Fx2 / (5.0 * L)
+    k_g[9, 9]   =  Fx2 * I_rho / (A * L)
+    k_g[10,10]  =  2.0 * Fx2 * L / 15.0
+    k_g[11,11]  =  2.0 * Fx2 * L / 15.0
+
+  This exact form captures:
+    - Axial load P–Δ/P–θ effects (Fx2 terms),
+    - Torsion–bending coupling via Mx2 terms,
+    - Bending moment couplings via My1, Mz1, My2, Mz2,
+    - P–θ torsional terms using I_rho and A.
+
+Internal end loads in local coordinates (when asked)
+- Use the provided helpers:
+  Γ = beam_transformation_matrix_3D(xi, yi, zi, xj, yj, zj, local_z)
+  k_e_local = local_elastic_stiffness_matrix_3D_beam(E, nu, A, L, I_y, I_z, J)
+  u_local = Γ @ u_dofs_global
+  load_dofs_local = k_e_local @ u_local
+- Return the 12-vector in the same DOF order as the displacements.
+
+Assembling a global geometric stiffness matrix (when asked)
+- For each element:
+  - Build Γ (12×12) using the transformation helper with element node coordinates and the optional local_z (reference vector) rules from the helper.
+  - Gather the element’s 12 global DOFs into u_e_global, map to local: u_local = Γ @ u_e_global.
+  - Compute local elastic internal end forces: f_local = K_e_local @ u_local.
+  - Extract geometric parameters for k_g^local:
+      Fx2 = f_local[6]
+      Mx2 = f_local[9]
+      My1 = f_local[4]
+      Mz1 = f_local[5]
+      My2 = f_local[10]
+      Mz2 = f_local[11]
+    and use element L, A, I_rho.
+  - Build k_g^local using the exact matrix given above.
+  - Transform to global: k_g^global = Γ.T @ k_g^local @ Γ.
+  - Assemble into the global K at the element’s DOF positions.
+- The global displacement vector u_global must be ordered [u_x, u_y, u_z, θ_x, θ_y, θ_z] per node, concatenated.
+
+Common pitfalls to avoid
+- Do not map displacements with Γ.T; always use u_local = Γ @ u_global per the helper’s convention.
+- Do not omit torsion–bending and bending-moment couplings in geometric stiffness; the full matrix above is required.
+- Do not change DOF ordering or sign conventions.
+- Do not introduce extra output, different return shapes, or additional checks that change behavior unless required by the docstring.
+
+By adhering strictly to these conventions and exact formulas, your implementations will match the expected results.
