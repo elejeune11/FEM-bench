@@ -130,78 +130,84 @@ rm -rf fem_bench_env  # To completely remove
 
 | Task                                                      | gemini-3-pro-preview   | gemini-2.5-pro   | claude-opus-4.5   | claude-haiku-4.5   | gpt-5   | gpt-5-mini   | qwen3-coder   | qwen3-next-80b   | llama-4-maverick   | llama-4-scout   |
 |:----------------------------------------------------------|:-----------------------|:-----------------|:------------------|:-------------------|:--------|:-------------|:--------------|:-----------------|:-------------------|:----------------|
-| FEM_1D_linear_elastic_CC0_H0_T0                           | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| FEM_1D_local_elastic_stiffness_CC0_H3_T1                  | ✓                      | ✓                | ✓                 | ×                  | ×       | ×            | ✓             | ×                | ×                  | ✓               |
-| FEM_1D_uniform_mesh_CC0_H0_T0                             | ✓                      | ✓                | ✓                 | ✓                  | ×       | ✓            | ✓             | ✓                | ✓                  | ✓               |
-| FEM_2D_quad8_element_distributed_load_CC0_H0_T0           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ×                  | ×               |
-| FEM_2D_quad8_integral_of_derivative_CC0_H3_T3             | ✓                      | ✓                | ×                 | ×                  | ×       | ✓            | ×             | ✓                | ×                  | ×               |
-| FEM_2D_quad8_mesh_rectangle_CC0_H0_T0                     | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ×                  | ×               |
-| FEM_2D_quad8_physical_gradient_CC0_H1_T3                  | ✓                      | ✓                | ×                 | ×                  | ✓       | ✓            | ×             | ×                | ×                  | ×               |
-| FEM_2D_quad8_shape_fcns_and_derivatives_CC0_H0_T0         | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ×             | ×                | ×                  | ×               |
-| FEM_2D_quad_quadrature_CC0_H0_T0                          | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| FEM_2D_tri6_mesh_rectangle_CC0_H0_T0                      | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ×                  | ×               |
-| FEM_2D_tri6_shape_fcns_and_derivatives_CC0_H0_T0          | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ✓                  | ×               |
-| FEM_2D_tri_quadrature_CC0_H0_T0                           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
-| MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T1      | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
-| MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T2      | ×                      | ×                | ✓                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
-| MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T3      | ×                      | ×                | ×                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
-| MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T1 | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T3 | ✓                      | ×                | ✓                 | ×                  | ✓       | ×            | ×             | ×                | ×                  | ×               |
-| MSA_3D_assemble_global_load_CC0_H0_T0                     | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| MSA_3D_elastic_critical_load_CC1_H10_T1                   | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| MSA_3D_elastic_critical_load_CC1_H10_T2                   | ✓                      | ×                | ✓                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
-| MSA_3D_elastic_critical_load_CC1_H10_T3                   | ×                      | ×                | ×                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
-| MSA_3D_linear_elastic_CC0_H6_T1                           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
-| MSA_3D_linear_elastic_CC0_H6_T3                           | ✓                      | ✓                | ✓                 | ×                  | ×       | ✓            | ×             | ×                | ×                  | ×               |
-| MSA_3D_local_elastic_stiffness_CC0_H0_T0                  | ✓                      | ✓                | ✓                 | ✓                  | ×       | ×            | ✓             | ×                | ✓                  | ×               |
-| MSA_3D_local_element_loads_CC0_H2_T1                      | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| MSA_3D_local_element_loads_CC0_H2_T3                      | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ×             | ×                | ×                  | ×               |
-| MSA_3D_local_geometric_stiffness_CC1_H0_T0                | ×                      | ×                | ×                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
-| MSA_3D_partition_DOFs_CC0_H0_T0                           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| MSA_3D_solve_eigenvalue_CC1_H1_T1                         | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ✓             | ×                | ✓                  | ×               |
-| MSA_3D_solve_eigenvalue_CC1_H1_T3                         | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
-| MSA_3D_solve_linear_CC0_H1_T1                             | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ×                  | ×               |
-| MSA_3D_solve_linear_CC0_H1_T3                             | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
-| MSA_3D_transformation_matrix_CC0_H0_T0                    | ✓                      | ×                | ✓                 | ✓                  | ×       | ✓            | ×             | ✓                | ×                  | ×               |
+| **FEM 1D** | | | |
+| linear_elastic_CC0_H0_T0                           | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| local_elastic_stiffness_CC0_H3_T1                  | ✓                      | ✓                | ✓                 | ×                  | ×       | ×            | ✓             | ×                | ×                  | ✓               |
+| uniform_mesh_CC0_H0_T0                             | ✓                      | ✓                | ✓                 | ✓                  | ×       | ✓            | ✓             | ✓                | ✓                  | ✓               |
+| **FEM 2D** | | | |
+| quad8_element_distributed_load_CC0_H0_T0           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ×                  | ×               |
+| quad8_integral_of_derivative_CC0_H3_T3             | ✓                      | ✓                | ×                 | ×                  | ×       | ✓            | ×             | ✓                | ×                  | ×               |
+| quad8_mesh_rectangle_CC0_H0_T0                     | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ×                  | ×               |
+| quad8_physical_gradient_CC0_H1_T3                  | ✓                      | ✓                | ×                 | ×                  | ✓       | ✓            | ×             | ×                | ×                  | ×               |
+| quad8_shape_fcns_and_derivatives_CC0_H0_T0         | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ×             | ×                | ×                  | ×               |
+| quad_quadrature_CC0_H0_T0                          | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| tri6_mesh_rectangle_CC0_H0_T0                      | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ×                  | ×               |
+| tri6_shape_fcns_and_derivatives_CC0_H0_T0          | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ✓                  | ×               |
+| tri_quadrature_CC0_H0_T0                           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
+| **MSA 3D** | | | |
+| assemble_global_geometric_stiffness_CC1_H4_T1      | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
+| assemble_global_geometric_stiffness_CC1_H4_T2      | ×                      | ×                | ✓                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
+| assemble_global_geometric_stiffness_CC1_H4_T3      | ×                      | ×                | ×                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
+| assemble_global_linear_elastic_stiffness_CC0_H2_T1 | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| assemble_global_linear_elastic_stiffness_CC0_H2_T3 | ✓                      | ×                | ✓                 | ×                  | ✓       | ×            | ×             | ×                | ×                  | ×               |
+| assemble_global_load_CC0_H0_T0                     | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| elastic_critical_load_CC1_H10_T1                   | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| elastic_critical_load_CC1_H10_T2                   | ✓                      | ×                | ✓                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
+| elastic_critical_load_CC1_H10_T3                   | ×                      | ×                | ×                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
+| linear_elastic_CC0_H6_T1                           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
+| linear_elastic_CC0_H6_T3                           | ✓                      | ✓                | ✓                 | ×                  | ×       | ✓            | ×             | ×                | ×                  | ×               |
+| local_elastic_stiffness_CC0_H0_T0                  | ✓                      | ✓                | ✓                 | ✓                  | ×       | ×            | ✓             | ×                | ✓                  | ×               |
+| local_element_loads_CC0_H2_T1                      | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| local_element_loads_CC0_H2_T3                      | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ×             | ×                | ×                  | ×               |
+| local_geometric_stiffness_CC1_H0_T0                | ×                      | ×                | ×                 | ×                  | ×       | ×            | ×             | ×                | ×                  | ×               |
+| partition_DOFs_CC0_H0_T0                           | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| solve_eigenvalue_CC1_H1_T1                         | ✓                      | ✓                | ✓                 | ×                  | ✓       | ✓            | ✓             | ×                | ✓                  | ×               |
+| solve_eigenvalue_CC1_H1_T3                         | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ×               |
+| solve_linear_CC0_H1_T1                             | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ×                | ×                  | ×               |
+| solve_linear_CC0_H1_T3                             | ✓                      | ✓                | ✓                 | ✓                  | ✓       | ✓            | ✓             | ✓                | ✓                  | ✓               |
+| transformation_matrix_CC0_H0_T0                    | ✓                      | ×                | ✓                 | ✓                  | ×       | ✓            | ×             | ✓                | ×                  | ×               |
 | Total                                                     | 29/33                  | 26/33            | 28/33             | 19/33              | 22/33   | 25/33        | 21/33         | 16/33            | 16/33              | 6/33            |
 
 ### Joint Test Success Rate (%) - First Run
 
 | Task                                                      | gemini-3-pro-preview   | gemini-2.5-pro   | claude-opus-4.5   | claude-haiku-4.5   | gpt-5   | gpt-5-mini   | qwen3-coder   | qwen3-next-80b   | llama-4-maverick   | llama-4-scout   |
 |:----------------------------------------------------------|:-----------------------|:-----------------|:------------------|:-------------------|:--------|:-------------|:--------------|:-----------------|:-------------------|:----------------|
-| FEM_1D_linear_elastic_CC0_H0_T0                           | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 50.0%         | 50.0%            | –                  | 100.0%          |
-| FEM_1D_local_elastic_stiffness_CC0_H3_T1                  | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 0.0%    | 100.0%       | 100.0%        | 100.0%           | 100.0%             | 100.0%          |
-| FEM_1D_uniform_mesh_CC0_H0_T0                             | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 100.0%           | 100.0%             | 100.0%          |
-| FEM_2D_quad8_element_distributed_load_CC0_H0_T0           | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 50.0%        | 50.0%         | 50.0%            | 0.0%               | 0.0%            |
-| FEM_2D_quad8_integral_of_derivative_CC0_H3_T3             | 66.7%                  | 66.7%            | 100.0%            | 33.3%              | 100.0%  | 33.3%        | 0.0%          | 66.7%            | 33.3%              | 0.0%            |
-| FEM_2D_quad8_mesh_rectangle_CC0_H0_T0                     | 100.0%                 | 66.7%            | 66.7%             | 66.7%              | 100.0%  | 66.7%        | 66.7%         | 66.7%            | 66.7%              | 33.3%           |
-| FEM_2D_quad8_physical_gradient_CC0_H1_T3                  | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 50.0%         | 100.0%           | 100.0%             | 50.0%           |
-| FEM_2D_quad8_shape_fcns_and_derivatives_CC0_H0_T0         | 100.0%                 | 83.3%            | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 83.3%         | 83.3%            | 83.3%              | 50.0%           |
-| FEM_2D_quad_quadrature_CC0_H0_T0                          | 40.0%                  | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 60.0%            | 60.0%              | 100.0%          |
-| FEM_2D_tri6_mesh_rectangle_CC0_H0_T0                      | 66.7%                  | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 66.7%            | 100.0%             | 66.7%           |
-| FEM_2D_tri6_shape_fcns_and_derivatives_CC0_H0_T0          | 100.0%                 | 100.0%           | 100.0%            | 50.0%              | 83.3%   | 100.0%       | 50.0%         | 50.0%            | 50.0%              | 33.3%           |
-| FEM_2D_tri_quadrature_CC0_H0_T0                           | 40.0%                  | 40.0%            | 40.0%             | 100.0%             | 60.0%   | 100.0%       | 100.0%        | 100.0%           | 60.0%              | 60.0%           |
-| MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T1      | 0.0%                   | 50.0%            | 0.0%              | 0.0%               | 100.0%  | 0.0%         | 50.0%         | 50.0%            | 0.0%               | 0.0%            |
-| MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T2      | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | 0.0%             | 0.0%               | –               |
-| MSA_3D_assemble_global_geometric_stiffness_CC1_H4_T3      | 0.0%                   | 0.0%             | –                 | 0.0%               | 0.0%    | 0.0%         | 0.0%          | 0.0%             | 0.0%               | 0.0%            |
-| MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T1 | 100.0%                 | 100.0%           | 100.0%            | 0.0%               | 100.0%  | 100.0%       | 100.0%        | 100.0%           | 0.0%               | 0.0%            |
-| MSA_3D_assemble_global_linear_elastic_stiffness_CC0_H2_T3 | 100.0%                 | 100.0%           | 0.0%              | 0.0%               | 100.0%  | 100.0%       | 0.0%          | 100.0%           | 0.0%               | 0.0%            |
-| MSA_3D_assemble_global_load_CC0_H0_T0                     | 100.0%                 | –                | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 100.0%           | 100.0%             | 100.0%          |
-| MSA_3D_elastic_critical_load_CC1_H10_T1                   | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | –                | 0.0%               | 0.0%            |
-| MSA_3D_elastic_critical_load_CC1_H10_T2                   | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | –                | 0.0%               | 0.0%            |
-| MSA_3D_elastic_critical_load_CC1_H10_T3                   | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | –                | 0.0%               | 0.0%            |
-| MSA_3D_linear_elastic_CC0_H6_T1                           | 100.0%                 | 100.0%           | 100.0%            | 50.0%              | 100.0%  | 50.0%        | 0.0%          | 0.0%             | 0.0%               | 0.0%            |
-| MSA_3D_linear_elastic_CC0_H6_T3                           | 100.0%                 | 50.0%            | 100.0%            | 50.0%              | 100.0%  | 100.0%       | 0.0%          | 0.0%             | 0.0%               | 0.0%            |
-| MSA_3D_local_elastic_stiffness_CC0_H0_T0                  | 50.0%                  | –                | 100.0%            | 0.0%               | 100.0%  | –            | 0.0%          | 0.0%             | –                  | 0.0%            |
-| MSA_3D_local_element_loads_CC0_H2_T1                      | 100.0%                 | 50.0%            | 100.0%            | 0.0%               | 50.0%   | 75.0%        | 0.0%          | 50.0%            | 75.0%              | 75.0%           |
-| MSA_3D_local_element_loads_CC0_H2_T3                      | 100.0%                 | 100.0%           | 100.0%            | 0.0%               | 75.0%   | 100.0%       | 0.0%          | 50.0%            | 75.0%              | 75.0%           |
-| MSA_3D_local_geometric_stiffness_CC1_H0_T0                | 50.0%                  | –                | 50.0%             | 50.0%              | 50.0%   | 0.0%         | 50.0%         | 50.0%            | 0.0%               | 0.0%            |
-| MSA_3D_partition_DOFs_CC0_H0_T0                           | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 0.0%             | 100.0%             | 0.0%            |
-| MSA_3D_solve_eigenvalue_CC1_H1_T1                         | 100.0%                 | 40.0%            | 100.0%            | 0.0%               | 100.0%  | 100.0%       | 20.0%         | 100.0%           | 100.0%             | 100.0%          |
-| MSA_3D_solve_eigenvalue_CC1_H1_T3                         | 100.0%                 | 80.0%            | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 60.0%         | 100.0%           | 80.0%              | 100.0%          |
-| MSA_3D_solve_linear_CC0_H1_T1                             | 50.0%                  | 100.0%           | 50.0%             | 0.0%               | 50.0%   | 50.0%        | 0.0%          | 0.0%             | 50.0%              | 50.0%           |
-| MSA_3D_solve_linear_CC0_H1_T3                             | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 50.0%         | 0.0%             | 0.0%               | 0.0%            |
-| MSA_3D_transformation_matrix_CC0_H0_T0                    | 100.0%                 | 66.7%            | 66.7%             | 33.3%              | 66.7%   | 33.3%        | 0.0%          | 33.3%            | 33.3%              | 33.3%           |
+| **FEM 1D** | | | |
+| linear_elastic_CC0_H0_T0                           | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 50.0%         | 50.0%            | –                  | 100.0%          |
+| local_elastic_stiffness_CC0_H3_T1                  | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 0.0%    | 100.0%       | 100.0%        | 100.0%           | 100.0%             | 100.0%          |
+| uniform_mesh_CC0_H0_T0                             | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 100.0%           | 100.0%             | 100.0%          |
+| **FEM 2D** | | | |
+| quad8_element_distributed_load_CC0_H0_T0           | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 50.0%        | 50.0%         | 50.0%            | 0.0%               | 0.0%            |
+| quad8_integral_of_derivative_CC0_H3_T3             | 66.7%                  | 66.7%            | 100.0%            | 33.3%              | 100.0%  | 33.3%        | 0.0%          | 66.7%            | 33.3%              | 0.0%            |
+| quad8_mesh_rectangle_CC0_H0_T0                     | 100.0%                 | 66.7%            | 66.7%             | 66.7%              | 100.0%  | 66.7%        | 66.7%         | 66.7%            | 66.7%              | 33.3%           |
+| quad8_physical_gradient_CC0_H1_T3                  | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 50.0%         | 100.0%           | 100.0%             | 50.0%           |
+| quad8_shape_fcns_and_derivatives_CC0_H0_T0         | 100.0%                 | 83.3%            | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 83.3%         | 83.3%            | 83.3%              | 50.0%           |
+| quad_quadrature_CC0_H0_T0                          | 40.0%                  | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 60.0%            | 60.0%              | 100.0%          |
+| tri6_mesh_rectangle_CC0_H0_T0                      | 66.7%                  | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 66.7%            | 100.0%             | 66.7%           |
+| tri6_shape_fcns_and_derivatives_CC0_H0_T0          | 100.0%                 | 100.0%           | 100.0%            | 50.0%              | 83.3%   | 100.0%       | 50.0%         | 50.0%            | 50.0%              | 33.3%           |
+| tri_quadrature_CC0_H0_T0                           | 40.0%                  | 40.0%            | 40.0%             | 100.0%             | 60.0%   | 100.0%       | 100.0%        | 100.0%           | 60.0%              | 60.0%           |
+| **MSA 3D** | | | |
+| assemble_global_geometric_stiffness_CC1_H4_T1      | 0.0%                   | 50.0%            | 0.0%              | 0.0%               | 100.0%  | 0.0%         | 50.0%         | 50.0%            | 0.0%               | 0.0%            |
+| assemble_global_geometric_stiffness_CC1_H4_T2      | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | 0.0%             | 0.0%               | –               |
+| assemble_global_geometric_stiffness_CC1_H4_T3      | 0.0%                   | 0.0%             | –                 | 0.0%               | 0.0%    | 0.0%         | 0.0%          | 0.0%             | 0.0%               | 0.0%            |
+| assemble_global_linear_elastic_stiffness_CC0_H2_T1 | 100.0%                 | 100.0%           | 100.0%            | 0.0%               | 100.0%  | 100.0%       | 100.0%        | 100.0%           | 0.0%               | 0.0%            |
+| assemble_global_linear_elastic_stiffness_CC0_H2_T3 | 100.0%                 | 100.0%           | 0.0%              | 0.0%               | 100.0%  | 100.0%       | 0.0%          | 100.0%           | 0.0%               | 0.0%            |
+| assemble_global_load_CC0_H0_T0                     | 100.0%                 | –                | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 100.0%           | 100.0%             | 100.0%          |
+| elastic_critical_load_CC1_H10_T1                   | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | –                | 0.0%               | 0.0%            |
+| elastic_critical_load_CC1_H10_T2                   | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | –                | 0.0%               | 0.0%            |
+| elastic_critical_load_CC1_H10_T3                   | 0.0%                   | 0.0%             | 0.0%              | 0.0%               | 0.0%    | 0.0%         | 0.0%          | –                | 0.0%               | 0.0%            |
+| linear_elastic_CC0_H6_T1                           | 100.0%                 | 100.0%           | 100.0%            | 50.0%              | 100.0%  | 50.0%        | 0.0%          | 0.0%             | 0.0%               | 0.0%            |
+| linear_elastic_CC0_H6_T3                           | 100.0%                 | 50.0%            | 100.0%            | 50.0%              | 100.0%  | 100.0%       | 0.0%          | 0.0%             | 0.0%               | 0.0%            |
+| local_elastic_stiffness_CC0_H0_T0                  | 50.0%                  | –                | 100.0%            | 0.0%               | 100.0%  | –            | 0.0%          | 0.0%             | –                  | 0.0%            |
+| local_element_loads_CC0_H2_T1                      | 100.0%                 | 50.0%            | 100.0%            | 0.0%               | 50.0%   | 75.0%        | 0.0%          | 50.0%            | 75.0%              | 75.0%           |
+| local_element_loads_CC0_H2_T3                      | 100.0%                 | 100.0%           | 100.0%            | 0.0%               | 75.0%   | 100.0%       | 0.0%          | 50.0%            | 75.0%              | 75.0%           |
+| local_geometric_stiffness_CC1_H0_T0                | 50.0%                  | –                | 50.0%             | 50.0%              | 50.0%   | 0.0%         | 50.0%         | 50.0%            | 0.0%               | 0.0%            |
+| partition_DOFs_CC0_H0_T0                           | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 100.0%        | 0.0%             | 100.0%             | 0.0%            |
+| solve_eigenvalue_CC1_H1_T1                         | 100.0%                 | 40.0%            | 100.0%            | 0.0%               | 100.0%  | 100.0%       | 20.0%         | 100.0%           | 100.0%             | 100.0%          |
+| solve_eigenvalue_CC1_H1_T3                         | 100.0%                 | 80.0%            | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 60.0%         | 100.0%           | 80.0%              | 100.0%          |
+| solve_linear_CC0_H1_T1                             | 50.0%                  | 100.0%           | 50.0%             | 0.0%               | 50.0%   | 50.0%        | 0.0%          | 0.0%             | 50.0%              | 50.0%           |
+| solve_linear_CC0_H1_T3                             | 100.0%                 | 100.0%           | 100.0%            | 100.0%             | 100.0%  | 100.0%       | 50.0%         | 0.0%             | 0.0%               | 0.0%            |
+| transformation_matrix_CC0_H0_T0                    | 100.0%                 | 66.7%            | 66.7%             | 33.3%              | 66.7%   | 33.3%        | 0.0%          | 33.3%            | 33.3%              | 33.3%           |
 | Avg Joint Success %                                       | 71.6%                  | 63.4%            | 71.9%             | 49.5%              | 73.8%   | 65.4%        | 41.8%         | 49.3%            | 41.4%              | 37.2%           |
 
 ### Task-by-task Pass@5 - Sorted "Easiest" to "Hardest"
@@ -260,20 +266,7 @@ CLAUDE_API_KEY=your_anthropic_key_here
 TOGETHER_API_KEY=your_together_ai_key_here
 ```
 
-MODEL_NAMES = [
-    "gemini-3-pro-preview",
-    "gemini-2.5-pro",
-    "claude-opus-4.5",
-    "claude-haiku-4.5",
-    "gpt-5",
-    "gpt-5-mini",
-    "qwen3-coder",
-    "qwen3-next-80b",
-    "llama-4-maverick",
-    "llama-4-scout",
-]
-
-These keys are **not included** in the repo for security. Each client loads the appropriate key using `dotenv`. Missing keys will raise a clear error during runtime. The current code supports ten models: gemini-3-pro-preview, gemini-2.5-pro, gpt-5, claude-opus-4.5, claude-haiku-4.5, gpt-5, gpt-5-mini, qwen3-coder, qwen3-next-80b, llama-4-maverick, and llama-4-scout. You can modify the code to change this, and you only need to include keys for the models you plan to use.
+These keys are **not included** in the repo for security. Each client loads the appropriate key using `dotenv`. Missing keys will raise a clear error during runtime. The current code supports ten models: gemini-3-pro-preview, gemini-2.5-pro, claude-opus-4.5, claude-haiku-4.5, gpt-5, gpt-5-mini, qwen3-coder, qwen3-next-80b, llama-4-maverick, and llama-4-scout. You can modify the code to change this, and you only need to include keys for the models you plan to use.
 
 The `run_pipeline.py` script automates a **full LLM benchmarking cycle**:
 1. **Load tasks** from the `tasks/` directory.
@@ -356,24 +349,24 @@ To add a new Task, you only need to define its metadata, reference implementatio
 #### Example Tasks:
 
 Very simple Task:
-* [FEM_1D_linear_elastic_CC0_H0_T0](tasks/FEM_1D_linear_elastic_CC0_H0_T0.py)
+* [FEM_1D_linear_elastic_CC0_H0_T0.py](tasks/FEM_1D_linear_elastic_CC0_H0_T0.py)
 
-Slightly more complicated Task::
-* [FEM_1D_local_elastic_stiffness_CC0_H3_T1](tasks/FEM_1D_local_elastic_stiffness_CC0_H3_T1.py)
+Slightly more complicated Task:
+* [FEM_1D_local_elastic_stiffness_CC0_H3_T1.py](tasks/FEM_1D_local_elastic_stiffness_CC0_H3_T1.py)
 
 The most complicated Task with no helper funcion:
-* [MSA_3D_elastic_critical_load_CC1_H10_T3](tasks/MSA_3D_elastic_critical_load_CC1_H10_T3.py)
+* [MSA_3D_elastic_critical_load_CC1_H10_T3.py](tasks/MSA_3D_elastic_critical_load_CC1_H10_T3.py)
 
 #### Example Generated Code Prompts:
-* [linear_uniform_mesh_1D_code_prompt.txt](prompts/FEM_1D_linear_elastic_CC0_H0_T0_code_prompt.txt)
-* [element_stiffness_linear_elastic_1D_code_prompt.txt](prompts/FEM_1D_local_elastic_stiffness_CC0_H3_T1_code_prompt.txt)
-* [solve_linear_elastic_1D_self_contained_code_prompt.txt](prompts/MSA_3D_elastic_critical_load_CC1_H10_T3_code_prompt.txt)
+* [FEM_1D_linear_elastic_CC0_H0_T0_code_prompt.txt](prompts/FEM_1D_linear_elastic_CC0_H0_T0_code_prompt.txt)
+* [FEM_1D_local_elastic_stiffness_CC0_H3_T1_code_prompt.txt](prompts/FEM_1D_local_elastic_stiffness_CC0_H3_T1_code_prompt.txt)
+* [MSA_3D_elastic_critical_load_CC1_H10_T3_code_prompt.txt](prompts/MSA_3D_elastic_critical_load_CC1_H10_T3_code_prompt.txt)
 
 
 #### Example Generated Test Prompts:
-* [linear_uniform_mesh_1D_test_prompt.txt](prompts/FEM_1D_linear_elastic_CC0_H0_T0_test_prompt.txt)
-* [element_stiffness_linear_elastic_1D_test_prompt.txt](prompts/FEM_1D_local_elastic_stiffness_CC0_H3_T1_test_prompt.txt)
-* [solve_linear_elastic_1D_self_contained_test_prompt.txt](prompts/MSA_3D_elastic_critical_load_CC1_H10_T3_test_prompt.txt)
+* [FEM_1D_linear_elastic_CC0_H0_T0_test_prompt.txt](prompts/FEM_1D_linear_elastic_CC0_H0_T0_test_prompt.txt)
+* [FEM_1D_local_elastic_stiffness_CC0_H3_T1_test_prompt.txt](prompts/FEM_1D_local_elastic_stiffness_CC0_H3_T1_test_prompt.txt)
+* [MSA_3D_elastic_critical_load_CC1_H10_T3_test_prompt.txt](prompts/MSA_3D_elastic_critical_load_CC1_H10_T3_test_prompt.txt)
 
 
 ## Citation Info <a name="cite"></a>
