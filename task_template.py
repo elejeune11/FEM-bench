@@ -58,6 +58,7 @@ def task_info():
         "fcn_dependencies": fcn_dependencies,
         "reference_verification_inputs": reference_verification_inputs,
         "test_cases": test_cases,
+        "allow_negation_for_match": False,
         # "python_version": "version_number",
         # "package_versions": {"numpy": "version_number", },
     }
