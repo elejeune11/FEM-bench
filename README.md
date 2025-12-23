@@ -385,12 +385,3 @@ After we have more Tasks completed, we will prepare a manuscript on our results.
   keywords = {finite element method, large language models, benchmarking, machine learning}
 }
 ```
-
-
-## TODO list <a name="todo"></a>
-- [ ] Create additional tasks to complete the initial benchmark set
-- [ ] Iterate on prompt strategy to improve output quality (so far 2 system prompts tried)
-- [ ] Investigate the role of LLM temperature on performance (one small study conducted)
-- [ ] Improve pipeline robustness i.e., what issues arrise with new tasks? 
-- [ ] Continue to collate and summarize results across tasks and models
-- [ ] Analyze patterns in LLM generated code
