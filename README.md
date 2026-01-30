@@ -46,7 +46,7 @@ You can think of FEM-Bench as having three parts:
 
 A schematic of the FEM-Bench workflow is shown here:
 
-![FEM-Bench workflow schematic](./FEMBench.png)
+![FEM-Bench workflow schematic](./figures/FEMBench.png)
 
 **A major goal of this tool is to make it easy to create and deploy new Tasks, ensuring the system stays relevant and highly extensible.**
 
@@ -253,6 +253,10 @@ rm -rf fem_bench_env  # To completely remove
 | | | | |
 | **Tasks Solved (any success)** | **30/33** | **29/33** | **28/33** |
 | **Tasks Solved (5/5 success)** | **26/33** | **16/33** | **19/33** |
+
+The figure below summarizes the results presented in the tables above in a graph that plots the function correctness against the average joint test success rate for all evaluated models. This visualization highlights the performance differences across model families and identifies the current state-of-the-art on the FEM-Bench benchmark.
+
+![Model Performance Comparison](./figures/fig-3.png)
 
 
 ### How To Run the Pipeline <a name="run_pipeline"></a>
